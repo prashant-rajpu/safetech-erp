@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+.DS_Store
+test-results/
+playwright-report/
+text.env
+Claude fable Pickup.txt
+HANDOVER.md
+Safetech_ERP_Handoff_Guide.txt
+erp_handoff_guide.txt
+PROJECT_MEMORY.md
+.github/PHASE2_COMMIT_MESSAGE.json
