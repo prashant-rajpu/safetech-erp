@@ -15,11 +15,11 @@ const consultants = [
 ]
 
 const reinforcementTypes = [
-  { id: 'rt1', ref_code: 'B500B-12', description: 'High Yield Deformed Rebar Ø12mm B500B', unit: 'kg', standard: 'BS 4449', status: 'Active' },
-  { id: 'rt2', ref_code: 'B500B-16', description: 'High Yield Deformed Rebar Ø16mm B500B', unit: 'kg', standard: 'BS 4449', status: 'Active' },
-  { id: 'rt3', ref_code: 'MESH-A142', description: 'Welded Wire Mesh A142 (6mm @ 200mm)', unit: 'm2', standard: 'BS 4483', status: 'Active' },
-  { id: 'rt4', ref_code: 'MESH-A252', description: 'Welded Wire Mesh A252 (8mm @ 200mm)', unit: 'm2', standard: 'BS 4483', status: 'Active' },
-  { id: 'rt5', ref_code: 'STRAND-12.7', description: 'Prestressing Strand 12.7mm 7-wire Low Relaxation', unit: 'm', standard: 'ASTM A416', status: 'Active' }
+  { id: 'rt1', ref_code: 'B500B-12', description: 'High Yield Deformed Rebar Ø12mm B500B', diameter_mm: 12, unit: 'kg', standard: 'BS 4449', status: 'Active' },
+  { id: 'rt2', ref_code: 'B500B-16', description: 'High Yield Deformed Rebar Ø16mm B500B', diameter_mm: 16, unit: 'kg', standard: 'BS 4449', status: 'Active' },
+  { id: 'rt3', ref_code: 'MESH-A142', description: 'Welded Wire Mesh A142 (6mm @ 200mm)', diameter_mm: 0, unit: 'm2', standard: 'BS 4483', status: 'Active' },
+  { id: 'rt4', ref_code: 'MESH-A252', description: 'Welded Wire Mesh A252 (8mm @ 200mm)', diameter_mm: 0, unit: 'm2', standard: 'BS 4483', status: 'Active' },
+  { id: 'rt5', ref_code: 'STRAND-12.7', description: 'Prestressing Strand 12.7mm 7-wire Low Relaxation', diameter_mm: 0, unit: 'm', standard: 'ASTM A416', status: 'Active' }
 ]
 
 const vehicles = [
@@ -39,7 +39,68 @@ const drivers = [
   { id: 'dr5', name: 'Khaled Ibrahim', mobile: '058 2369395', license_no: 'DXB-550217', license_expiry: '2027-06-08', assigned_plate: '62349', status: 'Active' },
   { id: 'dr6', name: 'Satwant Singh', mobile: '052 2805133', license_no: 'DXB-449903', license_expiry: '2026-12-15', assigned_plate: '20990', status: 'Active' },
   { id: 'dr7', name: 'Sami Ahmed', mobile: '050 4167644', license_no: 'DXB-338812', license_expiry: '2027-02-22', assigned_plate: '73749', status: 'Active' },
-  { id: 'dr8', name: 'Naji', mobile: '050 5976631', license_no: 'DXB-227744', license_expiry: '2026-10-30', assigned_plate: '64554', status: 'Active' }
+  { id: 'dr8', name: 'Naji', mobile: '050 5976631', license_no: 'DXB-227744', license_expiry: '2026-10-30', assigned_plate: '64554', status: 'Active' },
+  { id: 'dr9', name: 'Harmandeep Singh', mobile: '056 6055409', license_no: '', license_expiry: '', assigned_plate: '56493', status: 'Active' },
+  { id: 'dr10', name: 'Ranjeet singh', mobile: '058 6886987', license_no: '', license_expiry: '', assigned_plate: '32881', status: 'Active' },
+  { id: 'dr11', name: 'Nzyad', mobile: '052 1308021', license_no: '', license_expiry: '', assigned_plate: '19607', status: 'Active' },
+  { id: 'dr12', name: 'Ayham Khaled', mobile: '052 8164939', license_no: '', license_expiry: '', assigned_plate: '39057', status: 'Active' },
+  { id: 'dr13', name: 'Zain Arshad', mobile: '055 2782604', license_no: '', license_expiry: '', assigned_plate: '52769', status: 'Active' },
+  { id: 'dr14', name: 'Mohamad', mobile: '056 2140233', license_no: '', license_expiry: '', assigned_plate: '67828', status: 'Active' },
+  { id: 'dr15', name: 'Nisar Ahmad', mobile: '056 229 0791', license_no: '', license_expiry: '', assigned_plate: '98751', status: 'Active' },
+  { id: 'dr16', name: 'Nazir', mobile: '052 8109834', license_no: '', license_expiry: '', assigned_plate: '82339', status: 'Active' },
+  { id: 'dr17', name: 'Awad', mobile: '052 7987528', license_no: '', license_expiry: '', assigned_plate: '11649', status: 'Active' },
+  { id: 'dr18', name: 'Mohammed Nore', mobile: '055 9495590', license_no: '', license_expiry: '', assigned_plate: '79169', status: 'Active' },
+  { id: 'dr19', name: 'Amar', mobile: '058 8316199', license_no: '', license_expiry: '', assigned_plate: '70377', status: 'Active' },
+  { id: 'dr20', name: 'Mohammad Ayoub', mobile: '056 1475744', license_no: '', license_expiry: '', assigned_plate: '10989', status: 'Active' },
+  { id: 'dr21', name: 'Muhamad', mobile: '055 3461335', license_no: '', license_expiry: '', assigned_plate: '47414', status: 'Active' },
+  { id: 'dr22', name: 'Abid Hussain', mobile: '050 2143040', license_no: '', license_expiry: '', assigned_plate: '32437', status: 'Active' },
+  { id: 'dr23', name: 'Ammar', mobile: '055 9114187', license_no: '', license_expiry: '', assigned_plate: '84198', status: 'Active' },
+  { id: 'dr24', name: 'Yaser abo Karshif', mobile: '056 4575061', license_no: '', license_expiry: '', assigned_plate: '82688', status: 'Active' },
+  { id: 'dr25', name: 'Mosafer Janan', mobile: '056 8478602', license_no: '', license_expiry: '', assigned_plate: '47681', status: 'Active' },
+  { id: 'dr26', name: 'Shamsu Allah', mobile: '050 7781397', license_no: '', license_expiry: '', assigned_plate: '4476', status: 'Active' },
+  { id: 'dr27', name: 'Rehman', mobile: '055 1170880', license_no: '', license_expiry: '', assigned_plate: '58380', status: 'Active' },
+  { id: 'dr28', name: 'Rakhmat', mobile: '0563026427 / 0568909894', license_no: '', license_expiry: '', assigned_plate: '89371', status: 'Active' },
+  { id: 'dr29', name: 'Supandeep Singh', mobile: '054 5326158', license_no: '', license_expiry: '', assigned_plate: '15387', status: 'Active' },
+  { id: 'dr30', name: 'Dilbag Singh', mobile: '056 1270263', license_no: '', license_expiry: '', assigned_plate: '43606', status: 'Active' },
+  { id: 'dr31', name: 'Ranjit singh', mobile: '056 5352034', license_no: '', license_expiry: '', assigned_plate: '47108', status: 'Active' },
+  { id: 'dr32', name: 'Jarman', mobile: '055 7253128', license_no: '', license_expiry: '', assigned_plate: '85964', status: 'Active' },
+  { id: 'dr33', name: 'Balraj', mobile: '056 9874370', license_no: '', license_expiry: '', assigned_plate: '58838', status: 'Active' },
+  { id: 'dr34', name: 'Husandeep', mobile: '055 6907850', license_no: '', license_expiry: '', assigned_plate: '37248', status: 'Active' },
+  { id: 'dr35', name: 'Jugraj Singh', mobile: '056 9292707', license_no: '', license_expiry: '', assigned_plate: '88217', status: 'Active' },
+  { id: 'dr36', name: 'Lovdeep Sinhg', mobile: '052 5523371', license_no: '', license_expiry: '', assigned_plate: '52156', status: 'Active' },
+  { id: 'dr37', name: 'Mohamed Shiraz', mobile: '055 7441205', license_no: '', license_expiry: '', assigned_plate: '67071', status: 'Active' },
+  { id: 'dr38', name: 'Joga Singh', mobile: '052 5369097', license_no: '', license_expiry: '', assigned_plate: '82471', status: 'Active' },
+  { id: 'dr39', name: 'Naziab Hussain', mobile: '052 7060933', license_no: '', license_expiry: '', assigned_plate: '4517', status: 'Active' },
+  { id: 'dr40', name: 'Rihan Ali', mobile: '050 9088714', license_no: '', license_expiry: '', assigned_plate: '29289', status: 'Active' },
+  { id: 'dr41', name: 'Khayal Bar', mobile: '055 1637899', license_no: '', license_expiry: '', assigned_plate: '39696', status: 'Active' },
+  { id: 'dr42', name: 'Rukhsar Hussain', mobile: '050 5903593', license_no: '', license_expiry: '', assigned_plate: '88163', status: 'Active' },
+  { id: 'dr43', name: 'Qaiser Iqbal', mobile: '052 4564374', license_no: '', license_expiry: '', assigned_plate: '12874', status: 'Active' },
+  { id: 'dr44', name: 'Abdulsattar', mobile: '050 8321067', license_no: '', license_expiry: '', assigned_plate: '29195', status: 'Active' },
+  { id: 'dr45', name: 'Gurjant Singh', mobile: '055 4048606', license_no: '', license_expiry: '', assigned_plate: '53148', status: 'Active' },
+  { id: 'dr46', name: 'Navjot', mobile: '052 6595540', license_no: '', license_expiry: '', assigned_plate: '44264', status: 'Active' },
+  { id: 'dr47', name: 'Dilbag', mobile: '055 4048596', license_no: '', license_expiry: '', assigned_plate: '88083', status: 'Active' },
+  { id: 'dr48', name: 'Amandip Singh', mobile: '0528928745', license_no: '', license_expiry: '', assigned_plate: '93781', status: 'Active' },
+  { id: 'dr49', name: 'Anwarpreet', mobile: '056 1090113', license_no: '', license_expiry: '', assigned_plate: '97752', status: 'Active' },
+  { id: 'dr50', name: 'Dharmpreet', mobile: '055 9166412', license_no: '', license_expiry: '', assigned_plate: '36171', status: 'Active' },
+  { id: 'dr51', name: 'Jaskaran', mobile: '056 5845925', license_no: '', license_expiry: '', assigned_plate: '33751', status: 'Active' },
+  { id: 'dr52', name: 'Sukchain', mobile: '052 1660225', license_no: '', license_expiry: '', assigned_plate: '84026', status: 'Active' },
+  { id: 'dr53', name: 'Mandeep', mobile: '050 5753168', license_no: '', license_expiry: '', assigned_plate: '49921', status: 'Active' },
+  { id: 'dr54', name: 'Muhanad Ali Aliarof', mobile: '058 8875582', license_no: '', license_expiry: '', assigned_plate: '76477', status: 'Active' },
+  { id: 'dr55', name: 'Abdul Karim Ismail', mobile: '056 6075017', license_no: '', license_expiry: '', assigned_plate: '67622', status: 'Active' },
+  { id: 'dr56', name: 'Mohamad kashou', mobile: '054 5522622', license_no: '', license_expiry: '', assigned_plate: '45059', status: 'Active' },
+  { id: 'dr57', name: 'Huseen', mobile: '056 6028701', license_no: '', license_expiry: '', assigned_plate: '62598', status: 'Active' },
+  { id: 'dr58', name: 'Ahmad Alsayid Ahmad', mobile: '050 1515917', license_no: '', license_expiry: '', assigned_plate: '12824', status: 'Active' },
+  { id: 'dr59', name: 'Majd Mohammed', mobile: '056 1319517', license_no: '', license_expiry: '', assigned_plate: '90384', status: 'Active' },
+  { id: 'dr60', name: 'Aiham', mobile: '055 5712710', license_no: '', license_expiry: '', assigned_plate: '21010', status: 'Active' },
+  { id: 'dr61', name: 'Omar', mobile: '052 6089005', license_no: '', license_expiry: '', assigned_plate: '37109', status: 'Active' },
+  { id: 'dr62', name: 'Bashar AlSteif', mobile: '054 4821146', license_no: '', license_expiry: '', assigned_plate: '17258', status: 'Active' },
+  { id: 'dr63', name: 'Ahmed AlRifai', mobile: '055 7305323', license_no: '', license_expiry: '', assigned_plate: '80670', status: 'Active' },
+  { id: 'dr64', name: 'Hussein Ali Maroush', mobile: '058 8899753', license_no: '', license_expiry: '', assigned_plate: '76937', status: 'Active' },
+  { id: 'dr65', name: 'Muhand Ali jresh', mobile: '050 3260125', license_no: '', license_expiry: '', assigned_plate: '34632', status: 'Active' },
+  { id: 'dr66', name: 'Osama Awad', mobile: '052 7767714', license_no: '', license_expiry: '', assigned_plate: '83868', status: 'Active' },
+  { id: 'dr67', name: 'Ahmed Mohamad Shahada', mobile: '056 6434168', license_no: '', license_expiry: '', assigned_plate: '87760', status: 'Active' },
+  { id: 'dr68', name: 'Olyan Aboud', mobile: '058 2887199', license_no: '', license_expiry: '', assigned_plate: '52096', status: 'Active' },
+  { id: 'dr69', name: 'Yousuf', mobile: '055 8475272', license_no: '', license_expiry: '', assigned_plate: '94225', status: 'Active' }
 ]
 
 // ── DESIGN ───────────────────────────────────────────────────────────────────
@@ -89,37 +150,37 @@ const bomItems = [
 // QR is generated when the element is planned to cast (status moves from
 // 'Planned' to 'QR Generated'); downstream departments then scan/update it.
 const elements = [
-  { id: 'el1', element_code: '00-IW01-2502M-002', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-101', revision: 'R1', element_type: 'WL/PC', building: 'Building A', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3200, width_mm: 2400, thickness_mm: 200, volume_cum: 3.12, weight_tons: 7.8, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-25', bed: 'Bed 1', mould: 'Mould A', qr_generated: true, qr_generated_at: '2026-06-24 09:00', status: 'Delivered', cast_date: '2026-06-25', remarks: 'Shipped on SPBM-10369' },
-  { id: 'el2', element_code: '00-IW01-2502M-003', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-101', revision: 'R1', element_type: 'WL/PC', building: 'Building A', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3200, width_mm: 2400, thickness_mm: 200, volume_cum: 3.12, weight_tons: 7.8, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-26', bed: 'Bed 1', mould: 'Mould A', qr_generated: true, qr_generated_at: '2026-06-24 09:00', status: 'Ready', cast_date: '2026-06-26', remarks: 'Curing completed' },
-  { id: 'el3', element_code: '00-IW02-2502M-004', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor G', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-29', bed: 'Mould B', mould: 'Mould B', qr_generated: true, qr_generated_at: '2026-06-27 10:30', status: 'Curing', cast_date: '2026-06-29', remarks: '' },
-  { id: 'el4', element_code: '00-HC30-2502M-001', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-201', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 2', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-06-27', bed: 'HCS Bed A', mould: '—', qr_generated: true, qr_generated_at: '2026-06-25 11:30', status: 'Curing', cast_date: '2026-06-27', remarks: '' },
-  { id: 'el5', element_code: '00-HC30-2502M-002', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-201', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 2', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-06-28', bed: 'HCS Bed A', mould: '—', qr_generated: true, qr_generated_at: '2026-06-25 11:30', status: 'Curing', cast_date: '2026-06-28', remarks: '' },
-  { id: 'el6', element_code: '00-BW05-2502M-001', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', revision: 'R2', element_type: 'BW', building: 'Boundary Wall A', floor: 'G', zone: 'Zone 1', length_mm: 3500, width_mm: 1200, thickness_mm: 100, volume_cum: 2.1, weight_tons: 5.25, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-29', bed: 'Mould C', mould: 'Mould C', qr_generated: true, qr_generated_at: '2026-06-27 14:00', status: 'Rejected', cast_date: '2026-06-29', remarks: 'NCR-2026-011 raised — honeycombing' },
-  { id: 'el7', element_code: '00-IW03-2502M-005', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-30', bed: 'Bed 1', mould: 'Mould A', qr_generated: true, qr_generated_at: '2026-06-29 08:15', status: 'QR Generated', cast_date: '', remarks: 'Scheduled for casting' },
-  { id: 'el8', element_code: '00-IW03-2502M-006', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-30', bed: 'Bed 1', mould: 'Mould A', qr_generated: true, qr_generated_at: '2026-06-29 08:15', status: 'QR Generated', cast_date: '', remarks: 'Scheduled for casting' },
-  { id: 'el9', element_code: '00-HC31-2502M-003', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 3', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-07-01', bed: 'HCS Bed A', mould: '—', qr_generated: false, qr_generated_at: '', status: 'Planned', cast_date: '', remarks: 'Awaiting QR generation' },
-  { id: 'el10', element_code: '00-HC31-2502M-004', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 3', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-07-01', bed: 'HCS Bed B', mould: '—', qr_generated: false, qr_generated_at: '', status: 'Planned', cast_date: '', remarks: 'Awaiting QR generation' },
-  { id: 'el11', element_code: '00-BW06-2502M-002', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', revision: 'R2', element_type: 'BW', building: 'Boundary Wall B', floor: 'G', zone: 'Zone 1', length_mm: 3500, width_mm: 1200, thickness_mm: 100, volume_cum: 2.1, weight_tons: 5.25, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-07-02', bed: 'Mould C', mould: 'Mould C', qr_generated: false, qr_generated_at: '', status: 'Planned', cast_date: '', remarks: '' },
-  { id: 'el12', element_code: '00-CL10-2502M-001', project_no: 'P25020', drawing_no: 'DWG-KU-CL-401', revision: 'R1', element_type: 'CL', building: 'Facade North', floor: 'L3', zone: 'Zone C', length_mm: 4200, width_mm: 1800, thickness_mm: 120, volume_cum: 0.91, weight_tons: 2.27, concrete_grade: 'C50', mix_design: 'MIX-C50-MS', planned_cast_date: '2026-07-03', bed: 'Mould B', mould: 'Mould B', qr_generated: false, qr_generated_at: '', status: 'Planned', cast_date: '', remarks: 'Pending drawing re-approval' }
+  { id: 'el1', element_code: '00-IW01-2502M-002', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-101', revision: 'R1', element_type: 'WL/PC', building: 'Building A', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3200, width_mm: 2400, thickness_mm: 200, volume_cum: 3.12, weight_tons: 7.8, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-25', bed: 'Bed 1', mould: 'Mould A', assigned_mould: 'Mould A', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-24 09:00', priority: 'Medium', status: 'Delivered', cast_date: '2026-06-25', remarks: 'Shipped on SPBM-10369' },
+  { id: 'el2', element_code: '00-IW01-2502M-003', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-101', revision: 'R1', element_type: 'WL/PC', building: 'Building A', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3200, width_mm: 2400, thickness_mm: 200, volume_cum: 3.12, weight_tons: 7.8, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-26', bed: 'Bed 1', mould: 'Mould A', assigned_mould: 'Mould A', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-24 09:00', priority: 'Medium', status: 'Ready', cast_date: '2026-06-26', remarks: 'Curing completed' },
+  { id: 'el3', element_code: '00-IW02-2502M-004', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor G', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-29', bed: 'Mould B', mould: 'Mould B', assigned_mould: 'Mould B', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-27 10:30', priority: 'Medium', status: 'Curing', cast_date: '2026-06-29', remarks: '' },
+  { id: 'el4', element_code: '00-HC30-2502M-001', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-201', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 2', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-06-27', bed: 'HCS Bed A', mould: '—', assigned_mould: '—', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-25 11:30', priority: 'Medium', status: 'Curing', cast_date: '2026-06-27', remarks: '' },
+  { id: 'el5', element_code: '00-HC30-2502M-002', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-201', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 2', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-06-28', bed: 'HCS Bed A', mould: '—', assigned_mould: '—', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-25 11:30', priority: 'Medium', status: 'Curing', cast_date: '2026-06-28', remarks: '' },
+  { id: 'el6', element_code: '00-BW05-2502M-001', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', revision: 'R2', element_type: 'BW', building: 'Boundary Wall A', floor: 'G', zone: 'Zone 1', length_mm: 3500, width_mm: 1200, thickness_mm: 100, volume_cum: 2.1, weight_tons: 5.25, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-29', bed: 'Mould C', mould: 'Mould C', assigned_mould: 'Mould C', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-27 14:00', priority: 'Medium', status: 'Rejected', cast_date: '2026-06-29', remarks: 'NCR-2026-011 raised — honeycombing' },
+  { id: 'el7', element_code: '00-IW03-2502M-005', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-30', bed: 'Bed 1', mould: 'Mould A', assigned_mould: 'Mould A', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-29 08:15', priority: 'Medium', status: 'QR Generated', cast_date: '', remarks: 'Scheduled for casting' },
+  { id: 'el8', element_code: '00-IW03-2502M-006', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', revision: 'R1', element_type: 'WL/PC', building: 'Building B', floor: 'Floor 1', zone: 'Zone 1', length_mm: 3800, width_mm: 2600, thickness_mm: 250, volume_cum: 4.2, weight_tons: 10.5, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-06-30', bed: 'Bed 1', mould: 'Mould A', assigned_mould: 'Mould A', cast_revision: '', qr_generated: true, qr_generated_at: '2026-06-29 08:15', priority: 'Medium', status: 'QR Generated', cast_date: '', remarks: 'Scheduled for casting' },
+  { id: 'el9', element_code: '00-HC31-2502M-003', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 3', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-07-01', bed: 'HCS Bed A', mould: '—', assigned_mould: '—', cast_revision: '', qr_generated: false, qr_generated_at: '', priority: 'Medium', status: 'Planned', cast_date: '', remarks: 'Awaiting QR generation' },
+  { id: 'el10', element_code: '00-HC31-2502M-004', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', revision: 'R0', element_type: 'HCS', building: 'Block H', floor: 'Floor 3', zone: 'Zone 2', length_mm: 6000, width_mm: 1200, thickness_mm: 150, volume_cum: 1.5, weight_tons: 3.75, concrete_grade: 'C60', mix_design: 'MIX-C60-SRC', planned_cast_date: '2026-07-01', bed: 'HCS Bed B', mould: '—', assigned_mould: '—', cast_revision: '', qr_generated: false, qr_generated_at: '', priority: 'Medium', status: 'Planned', cast_date: '', remarks: 'Awaiting QR generation' },
+  { id: 'el11', element_code: '00-BW06-2502M-002', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', revision: 'R2', element_type: 'BW', building: 'Boundary Wall B', floor: 'G', zone: 'Zone 1', length_mm: 3500, width_mm: 1200, thickness_mm: 100, volume_cum: 2.1, weight_tons: 5.25, concrete_grade: 'C45', mix_design: 'MIX-C45-OPC', planned_cast_date: '2026-07-02', bed: 'Mould C', mould: 'Mould C', assigned_mould: 'Mould C', cast_revision: '', qr_generated: false, qr_generated_at: '', priority: 'Medium', status: 'Planned', cast_date: '', remarks: '' },
+  { id: 'el12', element_code: '00-CL10-2502M-001', project_no: 'P25020', drawing_no: 'DWG-KU-CL-401', revision: 'R1', element_type: 'CL', building: 'Facade North', floor: 'L3', zone: 'Zone C', length_mm: 4200, width_mm: 1800, thickness_mm: 120, volume_cum: 0.91, weight_tons: 2.27, concrete_grade: 'C50', mix_design: 'MIX-C50-MS', planned_cast_date: '2026-07-03', bed: 'Mould B', mould: 'Mould B', assigned_mould: 'Mould B', cast_revision: '', qr_generated: false, qr_generated_at: '', priority: 'Medium', status: 'Planned', cast_date: '', remarks: 'Pending drawing re-approval' }
 ]
 
 const castingSchedule = [
-  { id: 'cs1', schedule_date: '2026-06-29', shift: 'Day', bed: 'Mould B', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', element_codes: '00-IW02-2502M-004', qty: 1, status: 'Completed', remarks: 'Battery mould tilt verified' },
-  { id: 'cs2', schedule_date: '2026-06-29', shift: 'Day', bed: 'Mould C', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', element_codes: '00-BW05-2502M-001', qty: 1, status: 'Completed', remarks: 'QC hold — cube test pending' },
-  { id: 'cs3', schedule_date: '2026-06-30', shift: 'Day', bed: 'Bed 1', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', element_codes: '00-IW03-2502M-005, 00-IW03-2502M-006', qty: 2, status: 'QR Generated', remarks: 'Cages ready' },
-  { id: 'cs4', schedule_date: '2026-07-01', shift: 'Day', bed: 'HCS Bed A', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', element_codes: '00-HC31-2502M-003', qty: 1, status: 'Scheduled', remarks: '' },
-  { id: 'cs5', schedule_date: '2026-07-01', shift: 'Night', bed: 'HCS Bed B', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', element_codes: '00-HC31-2502M-004', qty: 1, status: 'Scheduled', remarks: '' },
-  { id: 'cs6', schedule_date: '2026-07-02', shift: 'Day', bed: 'Mould C', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', element_codes: '00-BW06-2502M-002', qty: 1, status: 'Scheduled', remarks: '' }
+  { id: 'cs1', schedule_date: '2026-06-29', shift: 'Day', bed: 'Mould B', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', element_codes: '00-IW02-2502M-004', qty: 1, priority: 'Medium', status: 'Completed', remarks: 'Battery mould tilt verified' },
+  { id: 'cs2', schedule_date: '2026-06-29', shift: 'Day', bed: 'Mould C', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', element_codes: '00-BW05-2502M-001', qty: 1, priority: 'Medium', status: 'Completed', remarks: 'QC hold — cube test pending' },
+  { id: 'cs3', schedule_date: '2026-06-30', shift: 'Day', bed: 'Bed 1', project_no: 'P25044', drawing_no: 'DWG-ACERS-WL-102', element_codes: '00-IW03-2502M-005, 00-IW03-2502M-006', qty: 2, priority: 'Medium', status: 'QR Generated', remarks: 'Cages ready' },
+  { id: 'cs4', schedule_date: '2026-07-01', shift: 'Day', bed: 'HCS Bed A', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', element_codes: '00-HC31-2502M-003', qty: 1, priority: 'Medium', status: 'Scheduled', remarks: '' },
+  { id: 'cs5', schedule_date: '2026-07-01', shift: 'Night', bed: 'HCS Bed B', project_no: 'P25035', drawing_no: 'DWG-BANIYAS-HCS-202', element_codes: '00-HC31-2502M-004', qty: 1, priority: 'Medium', status: 'Scheduled', remarks: '' },
+  { id: 'cs6', schedule_date: '2026-07-02', shift: 'Day', bed: 'Mould C', project_no: 'P25010', drawing_no: 'DWG-DAMAC-BW-301', element_codes: '00-BW06-2502M-002', qty: 1, priority: 'Medium', status: 'Scheduled', remarks: '' }
 ]
 
 // ── PRODUCTION ───────────────────────────────────────────────────────────────
 
 const concreteBatches = [
-  { id: 'cb1', batch_no: 'BATCH-99261', batch_date: '2026-06-29', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 4.2, slump_mm: 180, temp_c: 31, cube_ref: 'TR-C45-0025', plant: 'Safetech Batching Plant 1', status: 'Accepted' },
-  { id: 'cb2', batch_no: 'BATCH-99262', batch_date: '2026-06-29', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 2.1, slump_mm: 175, temp_c: 32, cube_ref: 'TR-C45-0026', plant: 'Safetech Batching Plant 1', status: 'Cube Test Pending' },
-  { id: 'cb3', batch_no: 'BATCH-99250', batch_date: '2026-06-28', mix_code: 'MIX-C60-SRC', grade: 'C60', volume_cum: 1.5, slump_mm: 160, temp_c: 30, cube_ref: 'TR-C60-0014', plant: 'Safetech Batching Plant 2', status: 'Accepted' },
-  { id: 'cb4', batch_no: 'BATCH-99245', batch_date: '2026-06-27', mix_code: 'MIX-C60-SRC', grade: 'C60', volume_cum: 1.5, slump_mm: 165, temp_c: 33, cube_ref: 'TR-C60-0013', plant: 'Safetech Batching Plant 2', status: 'Accepted' },
-  { id: 'cb5', batch_no: 'BATCH-99232', batch_date: '2026-06-26', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 3.12, slump_mm: 185, temp_c: 34, cube_ref: 'TR-C45-0022', plant: 'Safetech Batching Plant 1', status: 'Accepted' }
+  { id: 'cb1', batch_no: 'BATCH-99261', batch_date: '2026-06-29', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 4.2, slump_mm: 180, temp_c: 31, cube_ref: 'TR-C45-0025', plant: 'Safetech Batching Plant 1', water_added_litres: 0, status: 'Accepted' },
+  { id: 'cb2', batch_no: 'BATCH-99262', batch_date: '2026-06-29', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 2.1, slump_mm: 175, temp_c: 32, cube_ref: 'TR-C45-0026', plant: 'Safetech Batching Plant 1', water_added_litres: 0, status: 'Cube Test Pending' },
+  { id: 'cb3', batch_no: 'BATCH-99250', batch_date: '2026-06-28', mix_code: 'MIX-C60-SRC', grade: 'C60', volume_cum: 1.5, slump_mm: 160, temp_c: 30, cube_ref: 'TR-C60-0014', plant: 'Safetech Batching Plant 2', water_added_litres: 0, status: 'Accepted' },
+  { id: 'cb4', batch_no: 'BATCH-99245', batch_date: '2026-06-27', mix_code: 'MIX-C60-SRC', grade: 'C60', volume_cum: 1.5, slump_mm: 165, temp_c: 33, cube_ref: 'TR-C60-0013', plant: 'Safetech Batching Plant 2', water_added_litres: 0, status: 'Accepted' },
+  { id: 'cb5', batch_no: 'BATCH-99232', batch_date: '2026-06-26', mix_code: 'MIX-C45-OPC', grade: 'C45', volume_cum: 3.12, slump_mm: 185, temp_c: 34, cube_ref: 'TR-C45-0022', plant: 'Safetech Batching Plant 1', water_added_litres: 0, status: 'Accepted' }
 ]
 
 const finishingWorks = [
@@ -130,9 +191,9 @@ const finishingWorks = [
 ]
 
 const repairWorks = [
-  { id: 'rw1', element_code: '00-BW05-2502M-001', defect: 'Honeycombing at bottom edge', severity: 'Major', repair_method: 'Chip back + structural repair mortar (SikaRep)', repair_date: '2026-07-01', approved_by: 'QA Manager', status: 'Pending Approval' },
-  { id: 'rw2', element_code: '00-IW01-2502M-002', defect: 'Corner chip during demoulding', severity: 'Minor', repair_method: 'Cosmetic patch + cure', repair_date: '2026-06-26', approved_by: 'QC Inspector', status: 'Completed' },
-  { id: 'rw3', element_code: '00-HC30-2502M-002', defect: 'Surface crazing (cosmetic)', severity: 'Cosmetic', repair_method: 'Monitor — no action', repair_date: '2026-06-29', approved_by: 'QC Inspector', status: 'Closed' }
+  { id: 'rw1', element_code: '00-BW05-2502M-001', defect: 'Honeycombing at bottom edge', severity: 'Major', repair_method: 'Chip back + structural repair mortar (SikaRep)', repair_date: '2026-07-01', approved_by: 'QA Manager', source_ncr_no: 'NCR-2026-014', status: 'Pending Approval' },
+  { id: 'rw2', element_code: '00-IW01-2502M-002', defect: 'Corner chip during demoulding', severity: 'Minor', repair_method: 'Cosmetic patch + cure', repair_date: '2026-06-26', approved_by: 'QC Inspector', source_ncr_no: '', status: 'Completed' },
+  { id: 'rw3', element_code: '00-HC30-2502M-002', defect: 'Surface crazing (cosmetic)', severity: 'Cosmetic', repair_method: 'Monitor — no action', repair_date: '2026-06-29', approved_by: 'QC Inspector', source_ncr_no: '', status: 'Closed' }
 ]
 
 // ── QA / QC ──────────────────────────────────────────────────────────────────
@@ -178,10 +239,10 @@ const ncrRegister = [
 ]
 
 const punchList = [
-  { id: 'pl1', item_no: 'PL-P25044-001', project_no: 'P25044', location: 'Building A — Level 1', description: 'Patch tie-rod holes after erection — 4 panels', raised_date: '2026-06-26', due_date: '2026-07-05', assigned_to: 'Site Finishing Crew', status: 'Open' },
-  { id: 'pl2', item_no: 'PL-P25044-002', project_no: 'P25044', location: 'Building A — Level 1', description: 'Grout verticality shim gap panel IW01-002', raised_date: '2026-06-27', due_date: '2026-07-03', assigned_to: 'Erection Team', status: 'In Progress' },
-  { id: 'pl3', item_no: 'PL-P25035-001', project_no: 'P25035', location: 'Block H — Level 2', description: 'Seal HCS joint gaps > 20mm before topping', raised_date: '2026-06-29', due_date: '2026-07-08', assigned_to: 'Site Finishing Crew', status: 'Open' },
-  { id: 'pl4', item_no: 'PL-P25010-001', project_no: 'P25010', location: 'Boundary Wall Zone A', description: 'Touch-up paint on 6 coping units', raised_date: '2026-06-25', due_date: '2026-06-30', assigned_to: 'Painting Sub', status: 'Closed' }
+  { id: 'pl1', item_no: 'PL-P25044-001', project_no: 'P25044', element_code: '', photo_ref: '', location: 'Building A — Level 1', description: 'Patch tie-rod holes after erection — 4 panels', raised_date: '2026-06-26', due_date: '2026-07-05', assigned_to: 'Site Finishing Crew', status: 'Open' },
+  { id: 'pl2', item_no: 'PL-P25044-002', project_no: 'P25044', element_code: '', photo_ref: '', location: 'Building A — Level 1', description: 'Grout verticality shim gap panel IW01-002', raised_date: '2026-06-27', due_date: '2026-07-03', assigned_to: 'Erection Team', status: 'In Progress' },
+  { id: 'pl3', item_no: 'PL-P25035-001', project_no: 'P25035', element_code: '', photo_ref: '', location: 'Block H — Level 2', description: 'Seal HCS joint gaps > 20mm before topping', raised_date: '2026-06-29', due_date: '2026-07-08', assigned_to: 'Site Finishing Crew', status: 'Open' },
+  { id: 'pl4', item_no: 'PL-P25010-001', project_no: 'P25010', element_code: '', photo_ref: '', location: 'Boundary Wall Zone A', description: 'Touch-up paint on 6 coping units', raised_date: '2026-06-25', due_date: '2026-06-30', assigned_to: 'Painting Sub', status: 'Closed' }
 ]
 
 // ── STOCKYARD ────────────────────────────────────────────────────────────────
@@ -211,11 +272,14 @@ const deliverySchedule = [
 ]
 
 const allocations = [
-  { id: 'al1', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-01', trailer_plate: '44292', trailer_type: 'A-Frame', driver_name: 'Gurwinder Singh', driver_mobile: '056 3770181', project_no: 'P25044', shift: 'Day', status: 'Allocated' },
-  { id: 'al2', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-02', trailer_plate: '56305', trailer_type: 'Flatbed', driver_name: 'Jaspreet Singh', driver_mobile: '058 6589015', project_no: 'P25035', shift: 'Day', status: 'Allocated' },
-  { id: 'al3', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-03', trailer_plate: '62349', trailer_type: 'Flatbed', driver_name: 'Khaled Ibrahim', driver_mobile: '058 2369395', project_no: 'P25035', shift: 'Day', status: 'Standby' },
-  { id: 'al4', alloc_date: '2026-07-01', dispatch_no: 'DISP-2546-01', trailer_plate: '20990', trailer_type: 'A-Frame', driver_name: 'Satwant Singh', driver_mobile: '052 2805133', project_no: 'P25010', shift: 'Day', status: 'Planned' },
-  { id: 'al5', alloc_date: '2026-07-01', dispatch_no: 'DISP-2546-02', trailer_plate: '73749', trailer_type: 'Flatbed', driver_name: 'Sami Ahmed', driver_mobile: '050 4167644', project_no: 'P26003', shift: 'Night', status: 'Planned' }
+  { id: 'al1', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-01', trailer_plate: '44292', trailer_type: 'A-Frame', driver_name: 'Gurwinder Singh', project_no: 'P25044', shift: 'Day', loading_time: '', departure_time: '', destination: 'THE ACRES - PHASE 1', status: 'Allocated' },
+  { id: 'al2', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-02', trailer_plate: '56305', trailer_type: 'Flatbed', driver_name: 'Jaspreet Singh', project_no: 'P25035', shift: 'Day', loading_time: '', departure_time: '', destination: 'WEST BANIYAS SITE', status: 'Allocated' },
+  { id: 'al3', alloc_date: '2026-06-30', dispatch_no: 'DISP-2545-03', trailer_plate: '62349', trailer_type: 'Flatbed', driver_name: 'Khaled Ibrahim', project_no: 'P25035', shift: 'Day', loading_time: '', departure_time: '', destination: 'WEST BANIYAS SITE', status: 'Standby' },
+  { id: 'al4', alloc_date: '2026-07-01', dispatch_no: 'DISP-2546-01', trailer_plate: '20990', trailer_type: 'A-Frame', driver_name: 'Satwant Singh', project_no: 'P25010', shift: 'Day', loading_time: '', departure_time: '', destination: 'DAMAC MOROCCO SITE', status: 'Planned' },
+  { id: 'al5', alloc_date: '2026-07-01', dispatch_no: 'DISP-2546-02', trailer_plate: '73749', trailer_type: 'Flatbed', driver_name: 'Sami Ahmed', project_no: 'P26003', shift: 'Night', loading_time: '', departure_time: '', destination: 'ACERS VILLA SITE', status: 'Planned' },
+  { id: 'al6', alloc_date: '2026-06-29', dispatch_no: 'DISP-2544-01', trailer_plate: '80774', trailer_type: 'Flatbed', driver_name: 'WAQAR', project_no: 'P25044', shift: 'Day', loading_time: '2026-06-29 06:30', departure_time: '2026-06-29 07:15', destination: 'THE ACRES - PHASE 1', status: 'In Transit' },
+  { id: 'al7', alloc_date: '2026-06-29', dispatch_no: 'DISP-2544-02', trailer_plate: '10934', trailer_type: 'Flatbed', driver_name: 'SAJID KHAN', project_no: 'P25044', shift: 'Day', loading_time: '2026-06-29 08:00', departure_time: '2026-06-29 08:45', destination: 'THE ACRES - PHASE 1', status: 'Loading' }
+
 ]
 
 const gatePasses = [
@@ -232,11 +296,11 @@ const dispatchChecklists = [
 ]
 
 const dispatchLog = [
-  { id: 'dl1', trailer_id: 't1', plate_no: '44292', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Gurwinder Singh', driver_mobile: '056 3770181', project_no: 'P26003', do_no: 'SPBM-10368', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
-  { id: 'dl2', trailer_id: 't2', plate_no: '45452', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Babar', driver_mobile: '056 9406193', project_no: 'P25044', do_no: 'SPBM-10369', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
-  { id: 'dl3', trailer_id: 't3', plate_no: '26142', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Rajan', driver_mobile: '056 4688047', project_no: 'P26002', do_no: 'SPBM-10370', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
-  { id: 'dl4', trailer_id: 't4', plate_no: '56305', supplier_name: 'Hil', trailer_type: 'Trailer - Flatbed', driver_name: 'Jaspreet singh', driver_mobile: '058 6589015', project_no: 'P25035', do_no: 'SPBM-10395', shift: 'Day', diesel_status: true, driver_status: true, dn_status: false, leaving_status: false, remarks: 'Loading in progress', log_date: '2026-06-30' },
-  { id: 'dl5', trailer_id: 't8', plate_no: '62349', supplier_name: 'Diplomacy', trailer_type: 'Trailer - Flatbed', driver_name: 'Khaled Ibrahim', driver_mobile: '058 2369395', project_no: 'P25035', do_no: '', shift: 'Day', diesel_status: false, driver_status: true, dn_status: false, leaving_status: false, remarks: 'Standby at yard', log_date: '2026-06-30' }
+  { id: 'dl1', trailer_id: 't1', plate_no: '44292', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Gurwinder Singh', project_no: 'P26003', do_no: 'SPBM-10368', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
+  { id: 'dl2', trailer_id: 't2', plate_no: '45452', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Babar', project_no: 'P25044', do_no: 'SPBM-10369', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
+  { id: 'dl3', trailer_id: 't3', plate_no: '26142', supplier_name: 'Hil (AF)', trailer_type: 'Trailer - A-Frame', driver_name: 'Rajan', project_no: 'P26002', do_no: 'SPBM-10370', shift: 'Day', diesel_status: true, driver_status: true, dn_status: true, leaving_status: true, remarks: '', log_date: '2026-06-29' },
+  { id: 'dl4', trailer_id: 't4', plate_no: '56305', supplier_name: 'Hil', trailer_type: 'Trailer - Flatbed', driver_name: 'Jaspreet singh', project_no: 'P25035', do_no: 'SPBM-10395', shift: 'Day', diesel_status: true, driver_status: true, dn_status: false, leaving_status: false, remarks: 'Loading in progress', log_date: '2026-06-30' },
+  { id: 'dl5', trailer_id: 't8', plate_no: '62349', supplier_name: 'Diplomacy', trailer_type: 'Trailer - Flatbed', driver_name: 'Khaled Ibrahim', project_no: 'P25035', do_no: '', shift: 'Day', diesel_status: false, driver_status: true, dn_status: false, leaving_status: false, remarks: 'Standby at yard', log_date: '2026-06-30' }
 ]
 
 // ── LOGISTICS ────────────────────────────────────────────────────────────────

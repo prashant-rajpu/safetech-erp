@@ -10,7 +10,7 @@ export type SectionKey =
   | 'dashboard' | 'master' | 'design' | 'planning' | 'production'
   | 'qaqc' | 'stockyard' | 'dispatch' | 'logistics' | 'reports' | 'admin'
 
-export type FieldType = 'text' | 'number' | 'date' | 'time' | 'select' | 'boolean' | 'textarea'
+export type FieldType = 'text' | 'number' | 'date' | 'time' | 'select' | 'boolean' | 'textarea' | 'ref'
 
 export type FieldDef = {
   key: string
@@ -19,6 +19,9 @@ export type FieldDef = {
   options?: string[]
   required?: boolean
   placeholder?: string
+  /** for type 'ref': the field stores valueField of a row in another table;
+      the edit form renders a select populated from that table */
+  ref?: { table: string; valueField: string; labelField?: string }
 }
 
 export type ModuleDef = {
@@ -50,8 +53,8 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'project_no', label: 'Project No', required: true, placeholder: 'P26008' },
       { key: 'project_name', label: 'Project Name', required: true },
-      { key: 'client', label: 'Client' },
-      { key: 'consultant', label: 'Consultant' },
+      { key: 'client', label: 'Client', type: 'ref', ref: { table: 'customers', valueField: 'name' } },
+      { key: 'consultant', label: 'Consultant', type: 'ref', ref: { table: 'consultants', valueField: 'name' } },
       { key: 'location', label: 'Location' },
       { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'On Hold'] }
     ]
@@ -60,6 +63,7 @@ export const MODULES: ModuleDef[] = [
     id: 'clients', title: 'Clients', subtitle: 'Client / developer directory', icon: '🤝', section: 'master', table: 'customers', keyField: 'name', statusField: 'status',
     fields: [
       { key: 'name', label: 'Client Name', required: true },
+      { key: 'contact_person', label: 'Contact Person' },
       { key: 'email', label: 'Email' },
       { key: 'phone', label: 'Phone' },
       STATUS(['Active', 'Inactive'])
@@ -113,6 +117,7 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'ref_code', label: 'Ref Code', required: true },
       { key: 'description', label: 'Description', required: true },
+      { key: 'diameter_mm', label: 'Ø (mm)', type: 'number' },
       { key: 'unit', label: 'Unit' },
       { key: 'standard', label: 'Standard' },
       STATUS(['Active', 'Inactive'])
@@ -133,10 +138,10 @@ export const MODULES: ModuleDef[] = [
     id: 'trailers', title: 'Trailers', subtitle: 'Master trailer fleet (72 units)', icon: '🚚', section: 'master', table: 'trailers', keyField: 'plate_no',
     fields: [
       { key: 'plate_no', label: 'Plate No', required: true },
-      { key: 'supplier', label: 'Transport Supplier' },
-      { key: 'type', label: 'Trailer Type' },
-      { key: 'driver_name', label: 'Assigned Driver' },
-      { key: 'driver_mobile', label: 'Driver Mobile' }
+      { key: 'supplier', label: 'Transport Supplier', type: 'ref', ref: { table: 'suppliers', valueField: 'name' } },
+      { key: 'type', label: 'Trailer Type' }
+      // Driver assignment lives on the Drivers master (assigned_plate) — no
+      // duplicated driver fields here.
     ]
   },
   {
@@ -151,9 +156,14 @@ export const MODULES: ModuleDef[] = [
     ]
   },
   {
-    id: 'suppliers', title: 'Suppliers', subtitle: 'Transport & material suppliers', icon: '🏭', section: 'master', table: 'suppliers', keyField: 'name',
+    id: 'suppliers', title: 'Suppliers', subtitle: 'Transport & material suppliers', icon: '🏭', section: 'master', table: 'suppliers', keyField: 'name', statusField: 'status',
     fields: [
-      { key: 'name', label: 'Supplier Name', required: true }
+      { key: 'name', label: 'Supplier Name', required: true },
+      { key: 'supplier_type', label: 'Type', type: 'select', options: ['Transport', 'Ready-Mix Concrete', 'Steel / Rebar', 'Consumables', 'Other'] },
+      { key: 'contact_person', label: 'Contact Person' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'email', label: 'Email' },
+      STATUS(['Active', 'Inactive'])
     ]
   },
 
@@ -262,7 +272,10 @@ export const MODULES: ModuleDef[] = [
       { key: 'weight_tons', label: 'Wt (T)', type: 'number' },
       { key: 'planned_cast_date', label: 'Planned Cast', type: 'date' },
       { key: 'bed', label: 'Bed' },
-      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'QR Generated', 'Cast', 'Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'Rejected'] }
+      { key: 'assigned_mould', label: 'Mould' },
+      { key: 'priority', label: 'Priority', type: 'select', options: ['High', 'Medium', 'Low'] },
+      { key: 'cast_revision', label: 'Cast Rev' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'QR Generated', 'Cast', 'Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'At Site', 'Erected', 'Completed', 'Rejected'] }
     ]
   },
   {
@@ -275,6 +288,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'drawing_no', label: 'Drawing' },
       { key: 'element_codes', label: 'Element Codes' },
       { key: 'qty', label: 'Qty', type: 'number' },
+      { key: 'priority', label: 'Priority', type: 'select', options: ['High', 'Medium', 'Low'] },
       { key: 'status', label: 'Status', type: 'select', options: ['Scheduled', 'QR Generated', 'In Progress', 'Completed', 'Cancelled'] },
       { key: 'remarks', label: 'Remarks' }
     ]
@@ -302,6 +316,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'volume_cum', label: 'Volume (m³)', type: 'number' },
       { key: 'slump_mm', label: 'Slump (mm)', type: 'number' },
       { key: 'temp_c', label: 'Temp (°C)', type: 'number' },
+      { key: 'water_added_litres', label: 'Water Added (L)', type: 'number' },
       { key: 'cube_ref', label: 'Cube Ref' },
       { key: 'plant', label: 'Plant' },
       { key: 'status', label: 'Status', type: 'select', options: ['Accepted', 'Cube Test Pending', 'Rejected'] }
@@ -324,11 +339,19 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'element_code', label: 'Element Code', required: true },
       { key: 'defect', label: 'Defect' },
+      { key: 'source_ncr_no', label: 'Source NCR', placeholder: 'NCR-2026-…' },
       { key: 'severity', label: 'Severity', type: 'select', options: ['Cosmetic', 'Minor', 'Major'] },
       { key: 'repair_method', label: 'Repair Method', type: 'textarea' },
       { key: 'repair_date', label: 'Date', type: 'date' },
       { key: 'approved_by', label: 'Approved By' },
       { key: 'status', label: 'Status', type: 'select', options: ['Pending Approval', 'In Progress', 'Completed', 'Closed'] }
+    ]
+  },
+  {
+    id: 'concrete-grades', title: 'Concrete Grades', subtitle: 'Grade catalogue used by batching & QC', icon: '🧪', section: 'production', table: 'concrete_grades', keyField: 'grade',
+    fields: [
+      { key: 'grade', label: 'Grade', required: true, placeholder: 'C45' },
+      { key: 'grade_name', label: 'Grade Name', required: true }
     ]
   },
 
@@ -378,10 +401,10 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'element_code', label: 'Element Code', required: true },
       { key: 'inspection_date', label: 'Date', type: 'date' },
-      { key: 'surface_finish', label: 'Surface Finish' },
-      { key: 'cracks', label: 'Cracks' },
-      { key: 'honeycombing', label: 'Honeycombing' },
-      { key: 'edges', label: 'Edges' },
+      { key: 'surface_finish', label: 'Surface Finish', type: 'select', options: ['Good', 'Acceptable', 'Poor'] },
+      { key: 'cracks', label: 'Cracks', type: 'select', options: ['None', 'Minor', 'Major'] },
+      { key: 'honeycombing', label: 'Honeycombing', type: 'select', options: ['None', 'Minor', 'Major'] },
+      { key: 'edges', label: 'Edges', type: 'select', options: ['Good', 'Minor Chips', 'Major Damage'] },
       { key: 'result', label: 'Result', type: 'select', options: ['Accepted', 'Rejected', 'Repair Required'] },
       { key: 'inspector', label: 'Inspector' }
     ]
@@ -405,9 +428,9 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'element_code', label: 'Element Code', required: true },
       { key: 'inspection_date', label: 'Date', type: 'date' },
-      { key: 'finish_grade', label: 'Finish Grade' },
-      { key: 'patch_quality', label: 'Patch Quality' },
-      { key: 'paint_ready', label: 'Paint Ready' },
+      { key: 'finish_grade', label: 'Finish Grade', type: 'select', options: ['Grade A', 'Grade B', 'Grade C'] },
+      { key: 'patch_quality', label: 'Patch Quality', type: 'select', options: ['None Required', 'Good', 'Acceptable', 'Rework'] },
+      { key: 'paint_ready', label: 'Paint Ready', type: 'select', options: ['Yes', 'No'] },
       { key: 'result', label: 'Result', type: 'select', options: ['Accepted', 'Rejected'] },
       { key: 'inspector', label: 'Inspector' },
       { key: 'remarks', label: 'Remarks' }
@@ -435,12 +458,22 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'item_no', label: 'Item No', required: true },
       { key: 'project_no', label: 'Project' },
+      { key: 'element_code', label: 'Element' },
       { key: 'location', label: 'Location' },
+      { key: 'photo_ref', label: 'Photo Ref' },
       { key: 'description', label: 'Description', type: 'textarea' },
       { key: 'raised_date', label: 'Raised', type: 'date' },
       { key: 'due_date', label: 'Due', type: 'date' },
       { key: 'assigned_to', label: 'Assigned To' },
       { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In Progress', 'Closed'] }
+    ]
+  },
+  {
+    id: 'qc-inspectors', title: 'QC Inspectors', subtitle: 'Certified inspector register', icon: '📝', section: 'qaqc', table: 'qc_inspectors', keyField: 'name', statusField: 'status',
+    fields: [
+      { key: 'name', label: 'Inspector Name', required: true },
+      { key: 'certification_no', label: 'Certification No' },
+      STATUS(['Active', 'Inactive'])
     ]
   },
 
@@ -469,12 +502,21 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'element_code', label: 'Element Code' },
       { key: 'project_no', label: 'Project' },
+      { key: 'building', label: 'Building' },
+      { key: 'floor', label: 'Floor' },
+      { key: 'zone', label: 'Zone' },
       { key: 'element_type', label: 'Type' },
+      { key: 'revision', label: 'Rev' },
+      { key: 'length_mm', label: 'L (mm)', type: 'number' },
+      { key: 'width_mm', label: 'W (mm)', type: 'number' },
+      { key: 'thickness_mm', label: 'T (mm)', type: 'number' },
       { key: 'volume_cum', label: 'Vol (m³)', type: 'number' },
       { key: 'weight_tons', label: 'Wt (T)', type: 'number' },
       { key: 'cast_date', label: 'Cast', type: 'date' },
       { key: 'bay_location', label: 'Bay' },
-      { key: 'curing_days', label: 'Curing Days', type: 'number' }
+      { key: 'curing_days', label: 'Curing Days', type: 'number' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'Rejected'] },
+      { key: 'remarks', label: 'Remarks' }
     ]
   },
   {
@@ -503,6 +545,14 @@ export const MODULES: ModuleDef[] = [
       { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'In Progress', 'Completed', 'Cancelled'] }
     ]
   },
+  {
+    id: 'crane-operators', title: 'Crane Operators', subtitle: 'Licensed crane operator register', icon: '👷', section: 'stockyard', table: 'crane_operators', keyField: 'name', statusField: 'status',
+    fields: [
+      { key: 'name', label: 'Operator Name', required: true },
+      { key: 'license_no', label: 'Licence No' },
+      STATUS(['Active', 'Inactive'])
+    ]
+  },
 
   // ── DISPATCH ──────────────────────────────────────────────────────────────
   {
@@ -524,13 +574,15 @@ export const MODULES: ModuleDef[] = [
     fields: [
       { key: 'alloc_date', label: 'Date', type: 'date', required: true },
       { key: 'dispatch_no', label: 'Dispatch No' },
-      { key: 'trailer_plate', label: 'Trailer Plate' },
+      { key: 'trailer_plate', label: 'Trailer Plate', type: 'ref', ref: { table: 'trailers', valueField: 'plate_no' } },
       { key: 'trailer_type', label: 'Type' },
-      { key: 'driver_name', label: 'Driver' },
-      { key: 'driver_mobile', label: 'Mobile' },
-      { key: 'project_no', label: 'Project' },
+      { key: 'driver_name', label: 'Driver', type: 'ref', ref: { table: 'drivers', valueField: 'name' } },
+      { key: 'project_no', label: 'Project', type: 'ref', ref: { table: 'projects', valueField: 'project_no' } },
       { key: 'shift', label: 'Shift', type: 'select', options: ['Day', 'Night'] },
-      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'Allocated', 'Standby', 'Released'] }
+      { key: 'loading_time', label: 'Loading Time' },
+      { key: 'departure_time', label: 'Departure Time' },
+      { key: 'destination', label: 'Destination' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'Allocated', 'Standby', 'Loading', 'In Transit', 'Delivered', 'Returning', 'Released'] }
     ]
   },
   {
@@ -586,11 +638,11 @@ export const MODULES: ModuleDef[] = [
       { key: 'inspection_date', label: 'Date', type: 'date', required: true },
       { key: 'plate_no', label: 'Plate No' },
       { key: 'inspection_type', label: 'Type', type: 'select', options: ['Daily Pre-Trip', 'Monthly', 'Annual'] },
-      { key: 'brakes', label: 'Brakes' },
-      { key: 'lights', label: 'Lights' },
-      { key: 'tyres', label: 'Tyres' },
-      { key: 'hydraulics', label: 'Hydraulics' },
-      { key: 'coupling', label: 'Coupling' },
+      { key: 'brakes', label: 'Brakes', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'lights', label: 'Lights', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'tyres', label: 'Tyres', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'hydraulics', label: 'Hydraulics', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'coupling', label: 'Coupling', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
       { key: 'result', label: 'Result', type: 'select', options: ['Pass', 'Conditional Pass', 'Fail — Workshop'] },
       { key: 'inspector', label: 'Inspector' }
     ]
@@ -699,9 +751,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { name: 'Project Auto-Import', path: '/project-import' },
       { name: 'BOM', path: m('bom') },
-      { name: 'Production Planning', path: '/planning?tab=elements' },
       { name: 'Casting Schedule', path: '/casting-schedule' },
-      { name: 'Bed Planning', path: '/planning?tab=beds' },
       { name: 'Element Register', path: m('elements') },
       { name: 'Daily Planning', path: m('daily-planning') },
       { name: 'Weekly Planning', path: '/reports-hub?report=weekly-planning' },
@@ -719,6 +769,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Concrete', path: m('concrete') },
       { name: 'Finishing', path: m('finishing') },
       { name: 'Repairs', path: m('repairs') },
+      { name: 'Concrete Grades', path: m('concrete-grades') },
       { name: 'Daily Production', path: '/reports-hub?report=daily-production' },
       { name: 'Productivity', path: '/reports-hub?report=productivity' }
     ]
@@ -734,6 +785,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Finishing Inspection', path: m('finishing-inspection') },
       { name: 'NCR', path: m('ncr') },
       { name: 'Punch List', path: m('punch-list') },
+      { name: 'QC Inspectors', path: m('qc-inspectors') },
       { name: 'Quality Reports', path: '/reports-hub?report=qa' }
     ]
   },
@@ -746,6 +798,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Ready for Dispatch', path: m('ready-for-dispatch') },
       { name: 'Yard Movement', path: m('yard-movement') },
       { name: 'Crane Planning', path: m('crane-planning') },
+      { name: 'Crane Operators', path: m('crane-operators') },
       { name: 'QR Scanner & Trace', path: '/qr-scanner' }
     ]
   },

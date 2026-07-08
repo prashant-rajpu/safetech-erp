@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
+// Reads/writes the shared `allocations` table (merged with the former
+// dispatch_planning) — same data as the Truck/Trailer/Driver Allocation module.
 type DispatchPlan = {
   id: string
+  alloc_date?: string
   dispatch_no: string
   trailer_plate: string
   driver_name: string
   loading_time: string
   departure_time: string
   destination: string
-  status: 'Available' | 'Loading' | 'In Transit' | 'Delivered' | 'Returning' | 'Maintenance'
+  status: 'Planned' | 'Allocated' | 'Standby' | 'Loading' | 'In Transit' | 'Delivered' | 'Returning' | 'Released'
 }
 
 export default function LogisticsPlanningPage() {
   const [plans, setPlans] = useState<DispatchPlan[]>([])
   const [trailers, setTrailers] = useState<any[]>([])
+  const [drivers, setDrivers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Form State
@@ -30,33 +34,36 @@ export default function LogisticsPlanningPage() {
 
   useEffect(() => {
     async function loadData() {
-      const [planRes, trailRes] = await Promise.all([
-        supabase.from('dispatch_planning').select('*'),
-        supabase.from('trailers').select('*')
+      const [planRes, trailRes, driverRes] = await Promise.all([
+        supabase.from('allocations').select('*'),
+        supabase.from('trailers').select('*'),
+        supabase.from('drivers').select('*')
       ])
       setPlans(planRes.data || [])
       setTrailers(trailRes.data || [])
+      setDrivers(driverRes.data || [])
       if (trailRes.data && trailRes.data.length > 0) {
-        setTrailerPlate(trailRes.data[0].plate_no)
-        setDriverName(trailRes.data[0].driver_name || '')
+        const first = trailRes.data[0]
+        setTrailerPlate(first.plate_no)
+        const d = (driverRes.data || []).find((x: any) => x.assigned_plate === first.plate_no)
+        setDriverName(d?.name || '')
       }
       setLoading(false)
     }
     loadData()
   }, [])
 
-  // Sync driver name when trailer is selected
+  // Sync driver name when trailer is selected — driver assignment lives on
+  // the Drivers master (assigned_plate), not on the trailer row
   const handleTrailerChange = (plate: string) => {
     setTrailerPlate(plate)
-    const match = trailers.find(t => t.plate_no === plate)
-    if (match) {
-      setDriverName(match.driver_name || '')
-    }
+    const d = drivers.find(x => x.assigned_plate === plate)
+    setDriverName(d?.name || '')
   }
 
   // Calculate fleet status counters
   const fleetCounters = useMemo(() => {
-    const counts = { Available: 0, Loading: 0, 'In Transit': 0, Delivered: 0, Returning: 0, Maintenance: 0 }
+    const counts: Record<string, number> = { Available: 0, Loading: 0, 'In Transit': 0, Delivered: 0, Returning: 0, Maintenance: 0 }
     plans.forEach(p => {
       if (counts[p.status] !== undefined) {
         counts[p.status]++
@@ -76,9 +83,12 @@ export default function LogisticsPlanningPage() {
     const newDispNo = dispNo.toUpperCase().trim() || `DISP-${Math.floor(1000 + Math.random() * 9000)}`
 
     const payload = {
+      alloc_date: (loadingTime || '').slice(0, 10) || new Date().toISOString().slice(0, 10),
       dispatch_no: newDispNo,
       trailer_plate: trailerPlate,
+      trailer_type: trailers.find(t => t.plate_no === trailerPlate)?.type || '',
       driver_name: driverName,
+      shift: 'Day',
       loading_time: loadingTime,
       departure_time: departureTime,
       destination,
@@ -86,7 +96,7 @@ export default function LogisticsPlanningPage() {
     }
 
     try {
-      await supabase.from('dispatch_planning').insert([payload])
+      await supabase.from('allocations').insert([payload])
 
       // Auto update status in Kanban fleet status
       await supabase.from('fleet_status').insert([{
@@ -98,7 +108,7 @@ export default function LogisticsPlanningPage() {
       }])
 
       // Refresh list
-      const { data } = await supabase.from('dispatch_planning').select('*')
+      const { data } = await supabase.from('allocations').select('*')
       setPlans(data || [])
       setDispNo('')
       alert('Dispatch Plan saved and fleet status updated!')
@@ -184,11 +194,14 @@ export default function LogisticsPlanningPage() {
               <label className="block">
                 <span className="text-[9px] uppercase font-black text-slate-500">Trip Status</span>
                 <select className="w-full mt-1 px-2.5 py-1.5 rounded-lg glowing-input text-xs" value={dispStatus} onChange={e=>setDispStatus(e.target.value as any)}>
+                  <option value="Planned">Planned</option>
+                  <option value="Allocated">Allocated</option>
+                  <option value="Standby">Standby</option>
                   <option value="Loading">Loading</option>
                   <option value="In Transit">In Transit</option>
                   <option value="Delivered">Delivered</option>
                   <option value="Returning">Returning</option>
-                  <option value="Maintenance">Maintenance</option>
+                  <option value="Released">Released</option>
                 </select>
               </label>
             </div>

@@ -19,6 +19,7 @@ export default function GatePassPage() {
 
   const [passes, setPasses] = useState<any[]>([])
   const [trailers, setTrailers] = useState<any[]>([])
+  const [drivers, setDrivers] = useState<any[]>([])
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [busyRow, setBusyRow] = useState<string | null>(null)
@@ -33,24 +34,26 @@ export default function GatePassPage() {
 
   async function reload() {
     setLoading(true)
-    const [gp, tr, pr] = await Promise.all([
+    const [gp, tr, pr, dr] = await Promise.all([
       fetchRows('gate_passes'),
       fetchRows('trailers'),
-      fetchRows('projects')
+      fetchRows('projects'),
+      fetchRows('drivers')
     ])
     setPasses(gp.sort((a, b) => String(b.gp_no).localeCompare(String(a.gp_no))))
     setTrailers(tr)
     setProjects(pr)
+    setDrivers(dr)
     setLoading(false)
   }
 
   useEffect(() => { reload() }, [])
 
-  // Auto-fill driver from the master trailer record
+  // Auto-fill driver from the Drivers master (assigned_plate linkage)
   useEffect(() => {
-    const t = trailers.find(x => x.plate_no === fTrailer)
-    if (t?.driver_name) setFDriver(t.driver_name)
-  }, [fTrailer, trailers])
+    const d = drivers.find(x => x.assigned_plate === fTrailer)
+    if (d?.name) setFDriver(d.name)
+  }, [fTrailer, drivers])
 
   const kpis = useMemo(() => ({
     today: passes.filter(p => p.gp_date === todayGulf()).length,

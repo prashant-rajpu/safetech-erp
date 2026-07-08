@@ -15,11 +15,9 @@ const ControllerEntry = lazy(() => import('./pages/ControllerEntry'))
 const CsvImport = lazy(() => import('./pages/CsvImport'))
 const DeliveryNotePage = lazy(() => import('./pages/DeliveryNotePage'))
 const DeliveryReportPage = lazy(() => import('./pages/DeliveryReportPage'))
-const PlanningPage = lazy(() => import('./pages/PlanningPage'))
 const ProductionPage = lazy(() => import('./pages/ProductionPage'))
 const StockyardPage = lazy(() => import('./pages/StockyardPage'))
 const LogisticsPlanningPage = lazy(() => import('./pages/LogisticsPlanningPage'))
-const MasterDataPage = lazy(() => import('./pages/MasterDataPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const QrScannerPage = lazy(() => import('./pages/QrScannerPage'))
 const ModuleWorkspace = lazy(() => import('./components/erp/ModuleWorkspace'))
@@ -85,12 +83,15 @@ export default function AppRoutes(){
                 <Route path="/delivery-note" element={<ProtectedRoute allowedRoles={OPS}><DeliveryNotePage /></ProtectedRoute>} />
                 <Route path="/reports" element={<ProtectedRoute allowedRoles={ALL}><DeliveryReportPage /></ProtectedRoute>} />
 
-                {/* Legacy tabbed module pages (kept — linked from new nav) */}
-                <Route path="/planning" element={<ProtectedRoute allowedRoles={ALL}><PlanningPage /></ProtectedRoute>} />
+                {/* Legacy tabbed module pages (kept — linked from new nav).
+                    /planning and /master were retired in the data-model
+                    consolidation: their duplicated tools now live in the
+                    registry modules and Casting Schedule. */}
+                <Route path="/planning" element={<Navigate to="/casting-schedule" replace />} />
+                <Route path="/master" element={<Navigate to="/m/projects" replace />} />
                 <Route path="/production" element={<ProtectedRoute allowedRoles={ALL}><ProductionPage /></ProtectedRoute>} />
                 <Route path="/stockyard" element={<ProtectedRoute allowedRoles={ALL}><StockyardPage /></ProtectedRoute>} />
                 <Route path="/logistics/planning" element={<ProtectedRoute allowedRoles={ALL}><LogisticsPlanningPage /></ProtectedRoute>} />
-                <Route path="/master" element={<ProtectedRoute allowedRoles={ALL}><MasterDataPage /></ProtectedRoute>} />
                 <Route path="/maintenance" element={<ProtectedRoute allowedRoles={ALL}><MaintenancePage /></ProtectedRoute>} />
                 <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={ALL}><QrScannerPage /></ProtectedRoute>} />
 

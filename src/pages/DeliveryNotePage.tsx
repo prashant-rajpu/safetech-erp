@@ -16,9 +16,9 @@ type TrailerRow = {
   plate_no: string
   supplier: string
   type: string
-  driver_name?: string
-  driver_mobile?: string
 }
+
+type DriverRow = { name: string; mobile: string; assigned_plate: string }
 
 const DEMO_ITEMS: DNItem[] = [
   { sNo: 1, elementCode: '00-IW01-2502M-002', buildingType: 'Type B-3RM', villaNo: 'Type B-3RM-002', volume: 3.22, weight: 8.04, qty: 1 },
@@ -69,17 +69,22 @@ export default function DeliveryNotePage() {
 
   // Master Trailers list for searchable select
   const [trailers, setTrailers] = useState<TrailerRow[]>([])
+  const [driversList, setDriversList] = useState<DriverRow[]>([])
   const [trailerSearch, setTrailerSearch] = useState('')
   const [showTrailerDropdown, setShowTrailerDropdown] = useState(false)
 
   // System Save Status
   const [saving, setSaving] = useState(false)
 
-  // Fetch trailers list on mount
+  // Fetch trailers + drivers on mount (driver assignment lives on the Drivers master)
   useEffect(() => {
     async function loadTrailers() {
-      const { data } = await supabase.from('trailers').select('*').limit(200)
+      const [{ data }, { data: drv }] = await Promise.all([
+        supabase.from('trailers').select('*').limit(200),
+        supabase.from('drivers').select('*').limit(200)
+      ])
       if (data) setTrailers(data as TrailerRow[])
+      if (drv) setDriversList(drv as DriverRow[])
     }
     loadTrailers()
   }, [])
@@ -464,8 +469,9 @@ export default function DeliveryNotePage() {
                           setTrailerType(t.type)
                           setTrailerSearch(`${t.plate_no} - ${t.supplier}`)
                           setDnType(`Ex Factory - Transporter: ${t.supplier}`)
-                          setDriverName(t.driver_name || 'WAQAR')
-                          setDriverMobile(t.driver_mobile || '')
+                          const drv = driversList.find(d => d.assigned_plate === t.plate_no)
+                          setDriverName(drv?.name || 'WAQAR')
+                          setDriverMobile(drv?.mobile || '')
                           setShowTrailerDropdown(false)
                         }}
                         className="p-2.5 text-xs text-slate-300 hover:bg-red-500/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"

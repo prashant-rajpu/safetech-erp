@@ -32,6 +32,7 @@ export default function ModuleWorkspace() {
   const [qrRow, setQrRow] = useState<any | null>(null)
   const [saving, setSaving] = useState(false)
   const [snapshotAt, setSnapshotAt] = useState<string | null>(null)
+  const [refOptions, setRefOptions] = useState<Record<string, string[]>>({})
 
   const userEmail = profile?.email || user?.email || ''
   const editable = !!module && !module.readOnly && canEdit(module.section)
@@ -45,6 +46,19 @@ export default function ModuleWorkspace() {
     setLoading(false)
   }
 
+  // Options for 'ref' fields — distinct values pulled from the referenced table
+  async function loadRefOptions() {
+    if (!module) return
+    const refs = module.fields.filter(f => f.type === 'ref' && f.ref)
+    if (!refs.length) { setRefOptions({}); return }
+    const out: Record<string, string[]> = {}
+    await Promise.all(refs.map(async f => {
+      const rows = await fetchRows(f.ref!.table)
+      out[f.key] = [...new Set(rows.map((r: any) => String(r[f.ref!.valueField] ?? '')).filter(Boolean))].sort()
+    }))
+    setRefOptions(out)
+  }
+
   useEffect(() => {
     setSearch(''); setSortKey(null); setPage(0); setEditing(null)
     if (module) {
@@ -52,6 +66,7 @@ export default function ModuleWorkspace() {
       setPrintLandscape(!!module.landscape)
     }
     reload()
+    loadRefOptions()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId])
 
@@ -165,6 +180,17 @@ export default function ModuleWorkspace() {
   const inputFor = (f: FieldDef) => {
     const common = 'w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs'
     const v = form[f.key]
+    if (f.type === 'ref' && f.ref) {
+      const opts = refOptions[f.key] || []
+      return (
+        <select className={common} value={v ?? ''} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}>
+          <option value="">Select…</option>
+          {/* keep a stored value visible even if its master row was removed */}
+          {v && !opts.includes(v) && <option value={v}>{v}</option>}
+          {opts.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      )
+    }
     if (f.type === 'select') return (
       <select className={common} value={v ?? ''} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}>
         <option value="">Select…</option>

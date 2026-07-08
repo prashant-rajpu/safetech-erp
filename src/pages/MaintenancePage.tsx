@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabaseClient'
 
 type MaintenanceLog = {
   id: string
-  equipment_type: 'Trailer' | 'Crane' | 'Mould'
+  equipment_type: 'Trailer' | 'Vehicle' | 'Crane' | 'Mould' | 'Bed' | 'Batching Plant' | 'Other'
   equipment_id: string
   maintenance_date: string
   description: string
@@ -17,7 +17,7 @@ export default function MaintenancePage() {
   const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'breakdowns'>('calendar')
 
   // Form State
-  const [eqType, setEqType] = useState<'Trailer' | 'Crane' | 'Mould'>('Trailer')
+  const [eqType, setEqType] = useState<MaintenanceLog['equipment_type']>('Trailer')
   const [eqId, setEqId] = useState('')
   const [maintDate, setMaintDate] = useState('2026-06-29')
   const [description, setDescription] = useState('')
@@ -122,8 +122,12 @@ export default function MaintenancePage() {
                 <span className="text-[9px] uppercase font-black text-slate-500">Equipment Type</span>
                 <select className="w-full mt-1 px-2 py-1.5 rounded-lg glowing-input text-xs" value={eqType} onChange={e=>setEqType(e.target.value as any)}>
                   <option value="Trailer">Trailer</option>
+                  <option value="Vehicle">Vehicle</option>
                   <option value="Crane">Crane</option>
                   <option value="Mould">Mould</option>
+                  <option value="Bed">Bed</option>
+                  <option value="Batching Plant">Batching Plant</option>
+                  <option value="Other">Other</option>
                 </select>
               </label>
               <label className="block">

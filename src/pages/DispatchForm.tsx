@@ -8,9 +8,11 @@ type TrailerRow = {
   plate_no: string
   supplier: string
   type: string
-  driver_name?: string
-  driver_mobile?: string
 }
+
+// Driver identity comes from the Drivers master (assigned_plate linkage);
+// dispatch_log keeps its own point-in-time driver columns as the gate record.
+type DriverRow = { name: string; mobile: string; assigned_plate: string }
 
 type DispatchLogRow = {
   id: string
@@ -34,6 +36,7 @@ type DispatchLogRow = {
 export default function DispatchForm() {
   const [mode, setMode] = useState<'dropdown' | 'csv'>('dropdown')
   const [trailers, setTrailers] = useState<TrailerRow[]>([])
+  const [drivers, setDrivers] = useState<DriverRow[]>([])
   const [logs, setLogs] = useState<DispatchLogRow[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -68,8 +71,12 @@ export default function DispatchForm() {
     setLoading(true)
     const { data: trData } = await supabase.from('trailers').select('*').limit(200)
     const { data: logData } = await supabase.from('dispatch_log').select('*').limit(200)
+    const { data: drData } = await supabase.from('drivers').select('*').limit(200)
 
     const trList = (trData || []) as TrailerRow[]
+    const drList = (drData || []) as DriverRow[]
+    const driverFor = (plate: string) => drList.find(d => d.assigned_plate === plate)
+    setDrivers(drList)
     let activeLogs = (logData || []) as DispatchLogRow[]
 
     // Auto-seed dispatch logs with the trailers from master list if empty
@@ -79,8 +86,8 @@ export default function DispatchForm() {
         plate_no: t.plate_no,
         supplier_name: t.supplier,
         trailer_type: t.type,
-        driver_name: t.driver_name || '',
-        driver_mobile: t.driver_mobile || '',
+        driver_name: driverFor(t.plate_no)?.name || '',
+        driver_mobile: driverFor(t.plate_no)?.mobile || '',
         project_no: '',
         do_no: '',
         shift: 'Day',
@@ -101,13 +108,13 @@ export default function DispatchForm() {
       let logsNeedUpdate = false
       const updatedActiveLogs = activeLogs.map(l => {
         if (!l.driver_name || !l.driver_mobile) {
-          const tr = trList.find(t => t.plate_no === l.plate_no)
-          if (tr) {
+          const drv = driverFor(l.plate_no)
+          if (drv) {
             logsNeedUpdate = true
             return {
               ...l,
-              driver_name: l.driver_name || tr.driver_name || '',
-              driver_mobile: l.driver_mobile || tr.driver_mobile || ''
+              driver_name: l.driver_name || drv.name || '',
+              driver_mobile: l.driver_mobile || drv.mobile || ''
             }
           }
         }
@@ -141,9 +148,9 @@ export default function DispatchForm() {
     return trailers.filter(t => 
       t.plate_no.toLowerCase().includes(q) ||
       t.supplier.toLowerCase().includes(q) ||
-      (t.driver_name || '').toLowerCase().includes(q)
+      (drivers.find(d => d.assigned_plate === t.plate_no)?.name || '').toLowerCase().includes(q)
     )
-  }, [trailers, trailerSearch, selectedTrailerId])
+  }, [trailers, drivers, trailerSearch, selectedTrailerId])
 
   // Real-time metrics calculations
   const summary = useMemo(() => {
@@ -350,7 +357,8 @@ export default function DispatchForm() {
     csv += 'Gate / Yard Daily Vehicle Dispatch Record,,,,,,,,,,,,\n\n';
     csv += 'Sl No,Supplier Name,Trailer Type,Plate No,Driver Name,Driver Mobile No.,Project No,DO No.,Shift,Diesel Status,Driver Status,DN Status,Leaving Status,Remarks\n';
     trailers.forEach((t, idx) => {
-      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${t.driver_name || ''}","${t.driver_mobile || ''}",,,,,,,,\n`;
+      const drv = drivers.find(d => d.assigned_plate === t.plate_no)
+      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -366,7 +374,8 @@ export default function DispatchForm() {
     csv += 'Gate / Yard Daily Vehicle Dispatch Record,,,,,,,,,,,,\n\n';
     csv += 'Sl No,Supplier Name,Trailer Type,Plate No,Driver Name,Driver Mobile No.,Project No,DO No.,Shift,Diesel Status,Driver Status,DN Status,Leaving Status,Remarks\n';
     trailers.forEach((t, idx) => {
-      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${t.driver_name || ''}","${t.driver_mobile || ''}",,,,,,,,\n`;
+      const drv = drivers.find(d => d.assigned_plate === t.plate_no)
+      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -432,8 +441,8 @@ export default function DispatchForm() {
           <td>${t.supplier}</td>
           <td>${t.type}</td>
           <td><strong>${t.plate_no}</strong></td>
-          <td>${t.driver_name || ''}</td>
-          <td>${t.driver_mobile || ''}</td>
+          <td>${drivers.find(d => d.assigned_plate === t.plate_no)?.name || ''}</td>
+          <td>${drivers.find(d => d.assigned_plate === t.plate_no)?.mobile || ''}</td>
           <td></td>
           <td></td>
           <td></td>
@@ -587,8 +596,9 @@ export default function DispatchForm() {
                         onClick={async () => {
                           setSelectedTrailerId(t.id)
                           setTrailerSearch(`${t.plate_no} - ${t.supplier}`)
-                          setDriverName(t.driver_name || '')
-                          setDriverMobile(t.driver_mobile || '')
+                          const drv = drivers.find(d => d.assigned_plate === t.plate_no)
+                          setDriverName(drv?.name || '')
+                          setDriverMobile(drv?.mobile || '')
                           setShowTrailerDropdown(false)
                           
                           // Load current values if they exist
@@ -610,7 +620,7 @@ export default function DispatchForm() {
                       >
                         <span className="font-extrabold text-red-400">{t.plate_no}</span>
                         <span className="text-[10px] text-slate-400 font-semibold">{t.supplier} ({t.type})</span>
-                        {t.driver_name && <span className="text-[9px] text-slate-500">Driver: {t.driver_name}</span>}
+                        {drivers.find(d => d.assigned_plate === t.plate_no)?.name && <span className="text-[9px] text-slate-500">Driver: {drivers.find(d => d.assigned_plate === t.plate_no)?.name}</span>}
                       </div>
                     ))
                   )}
