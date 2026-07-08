@@ -36,7 +36,9 @@ export default function AppRoutes(){
 
   return (
     <AuthProvider>
-      <BrowserRouter>
+      {/* basename follows Vite's base so the app works at / locally and
+          under /safetech-erp/ on GitHub Pages */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="min-h-screen concrete-bg flex flex-col md:flex-row transition-colors duration-200">
 
           {/* Responsive Sidebar Menu */}

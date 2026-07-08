@@ -1,5 +1,11 @@
 # Safetech Precast ERP — Production Build
 
+**🌐 Live demo: https://prashant-rajpu.github.io/safetech-erp/**
+
+The demo runs entirely in your browser (localStorage-backed mock database,
+auto-signed-in as admin) — no server, no signup. Data you enter stays on
+your device; clear site data to reset the seeded demo content.
+
 Full ERP for **Safetech Precast Building Manufacturing LLC (Dubai)**, strictly scoped to
 precast concrete manufacturing operations (no finance / accounting / payroll / billing /
 taxation / procurement). React 18 + Vite + TypeScript + Tailwind, red/black Safetech
