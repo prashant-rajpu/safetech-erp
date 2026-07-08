@@ -797,6 +797,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Permissions', path: '/permissions' },
       { name: 'Audit Logs', path: m('audit-logs') },
       { name: 'System Settings', path: m('system-settings') },
+      { name: 'Backup & Restore', path: '/backup' },
       { name: 'Pending Approvals', path: m('approvals') },
       { name: 'CSV Import (Legacy)', path: '/import' }
     ]

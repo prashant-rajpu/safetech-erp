@@ -83,6 +83,9 @@ VITE_SUPABASE_ANON_KEY=<your-anon-key>
 
 The client (`src/lib/supabaseClient.ts`) detects these at build time and uses
 the real backend automatically; remove them to fall back to offline mock mode.
+Full company-rollout instructions (schema, users, master data, hosting,
+backups): see **PRODUCTION_SETUP.md**. In offline mode, protect your data via
+**Administration → Backup & Restore**.
 
 ## Architecture notes
 

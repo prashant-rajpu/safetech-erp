@@ -28,6 +28,7 @@ const GatePassPage = lazy(() => import('./pages/GatePassPage'))
 const ProjectAutoImportPage = lazy(() => import('./pages/ProjectAutoImportPage'))
 const ReportsHubPage = lazy(() => import('./pages/ReportsHubPage'))
 const PermissionsPage = lazy(() => import('./pages/PermissionsPage'))
+const BackupPage = lazy(() => import('./pages/BackupPage'))
 
 const PageLoader = () => (
   <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
@@ -100,6 +101,7 @@ export default function AppRoutes(){
                 <Route path="/project-import" element={<ProtectedRoute allowedRoles={OPS}><ProjectAutoImportPage /></ProtectedRoute>} />
                 <Route path="/reports-hub" element={<ProtectedRoute allowedRoles={ALL}><ReportsHubPage /></ProtectedRoute>} />
                 <Route path="/permissions" element={<ProtectedRoute allowedRoles={["admin"]}><PermissionsPage /></ProtectedRoute>} />
+                <Route path="/backup" element={<ProtectedRoute allowedRoles={["admin"]}><BackupPage /></ProtectedRoute>} />
 
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
