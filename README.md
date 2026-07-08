@@ -59,6 +59,31 @@ through a single generic workspace at `/m/:moduleId`.
 - **Administration**: role × section permission matrix (admin fixed full access;
   Edit auto-grants View), audit logs on every write, system settings.
 
+## Legacy boards vs. module screens
+
+Some flows appear twice in the nav on purpose — they read/write the same
+tables, so data is always consistent:
+
+- **Interactive boards** (Production Planning, Bed Planning, Element Location,
+  Fleet Status Board, Dispatch Gate Log) are the tabbed operational screens
+  for day-to-day work.
+- **Module screens** (`/m/…`) are the registry-driven CRUD views — use them
+  for bulk CSV import/export, printing registers, and record maintenance.
+
+## Switching to a real shared database
+
+By default the app runs on a per-browser localStorage mock (each device has
+its own sandbox). To share data across devices, create a Supabase project,
+apply `db/init.sql`, and set in `.env`:
+
+```
+VITE_SUPABASE_URL=https://<your-project>.supabase.co
+VITE_SUPABASE_ANON_KEY=<your-anon-key>
+```
+
+The client (`src/lib/supabaseClient.ts`) detects these at build time and uses
+the real backend automatically; remove them to fall back to offline mock mode.
+
 ## Architecture notes
 
 - `src/lib/supabaseClient.ts` — PostgREST-style mock over localStorage (`mock_db_<table>`),

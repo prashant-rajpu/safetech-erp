@@ -15,7 +15,7 @@ import { supabase } from '../lib/supabaseClient'
 import { fetchRows } from '../lib/erp/db'
 import CountUpCard from '../components/CountUpCard'
 import AlertsPanel from '../components/AlertsPanel'
-import { statusChipClass } from '../components/erp/ModuleWorkspace'
+import { statusChipClass } from '../lib/erp/uiHelpers'
 
 const KANBAN_COLUMNS = [
   { key: 'empty', label: 'Empty', statuses: ['IN FACTORY EMPTY'], color: '#94a3b8' },

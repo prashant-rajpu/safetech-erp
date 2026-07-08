@@ -754,15 +754,13 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { name: 'Delivery Planning', path: '/logistics/planning' },
       { name: 'Delivery Schedule', path: m('delivery-schedule') },
-      { name: 'Truck Allocation', path: m('allocations') },
-      { name: 'Trailer Allocation', path: m('allocations') },
-      { name: 'Driver Allocation', path: m('allocations') },
+      { name: 'Truck / Trailer / Driver Allocation', path: m('allocations') },
       { name: 'Gate Pass', path: '/gate-pass' },
       { name: 'Dispatch Checklist', path: m('dispatch-checklist') },
       { name: 'Dispatch Gate Log', path: '/dispatch' },
       { name: 'Delivery Notes', path: '/delivery-note' },
       { name: 'Delivery Reports', path: '/reports' },
-      { name: 'GPS Status', path: '/fleet' }
+      { name: 'Fleet Status Board', path: '/fleet' }
     ]
   },
   {

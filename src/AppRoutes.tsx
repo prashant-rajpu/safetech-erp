@@ -1,32 +1,39 @@
-import React, { useState } from 'react'
+import React, { useState, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './lib/useAuth'
 import Sidebar from './components/Sidebar'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import AdminPanel from './pages/AdminPanel'
-import ControllerEntry from './pages/ControllerEntry'
-import CsvImport from './pages/CsvImport'
-import DeliveryNotePage from './pages/DeliveryNotePage'
-import DeliveryReportPage from './pages/DeliveryReportPage'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 
-// ERP Module Pages
-import PlanningPage from './pages/PlanningPage'
-import ProductionPage from './pages/ProductionPage'
-import StockyardPage from './pages/StockyardPage'
-import LogisticsPlanningPage from './pages/LogisticsPlanningPage'
-import MasterDataPage from './pages/MasterDataPage'
-import MaintenancePage from './pages/MaintenancePage'
-import QrScannerPage from './pages/QrScannerPage'
+// Route-level code splitting: only the shell (sidebar, auth, login) ships in
+// the main chunk; every page — including Dashboard, which pulls the heavy
+// charting library — loads on demand. Keeps the first download small on
+// yard phones.
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel'))
+const ControllerEntry = lazy(() => import('./pages/ControllerEntry'))
+const CsvImport = lazy(() => import('./pages/CsvImport'))
+const DeliveryNotePage = lazy(() => import('./pages/DeliveryNotePage'))
+const DeliveryReportPage = lazy(() => import('./pages/DeliveryReportPage'))
+const PlanningPage = lazy(() => import('./pages/PlanningPage'))
+const ProductionPage = lazy(() => import('./pages/ProductionPage'))
+const StockyardPage = lazy(() => import('./pages/StockyardPage'))
+const LogisticsPlanningPage = lazy(() => import('./pages/LogisticsPlanningPage'))
+const MasterDataPage = lazy(() => import('./pages/MasterDataPage'))
+const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
+const QrScannerPage = lazy(() => import('./pages/QrScannerPage'))
+const ModuleWorkspace = lazy(() => import('./components/erp/ModuleWorkspace'))
+const CastingSchedulePage = lazy(() => import('./pages/CastingSchedulePage'))
+const GatePassPage = lazy(() => import('./pages/GatePassPage'))
+const ProjectAutoImportPage = lazy(() => import('./pages/ProjectAutoImportPage'))
+const ReportsHubPage = lazy(() => import('./pages/ReportsHubPage'))
+const PermissionsPage = lazy(() => import('./pages/PermissionsPage'))
 
-// Unified ERP framework pages
-import ModuleWorkspace from './components/erp/ModuleWorkspace'
-import CastingSchedulePage from './pages/CastingSchedulePage'
-import GatePassPage from './pages/GatePassPage'
-import ProjectAutoImportPage from './pages/ProjectAutoImportPage'
-import ReportsHubPage from './pages/ReportsHubPage'
-import PermissionsPage from './pages/PermissionsPage'
+const PageLoader = () => (
+  <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
+    Loading module…
+  </div>
+)
 
 export default function AppRoutes(){
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -65,6 +72,7 @@ export default function AppRoutes(){
 
             {/* Sub-page router body */}
             <main className="flex-grow p-4 md:p-6 z-10 w-full max-w-7xl mx-auto box-border overflow-x-hidden">
+              <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={<ProtectedRoute allowedRoles={ALL}><Dashboard /></ProtectedRoute>} />
@@ -95,6 +103,7 @@ export default function AppRoutes(){
 
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
+              </Suspense>
             </main>
           </div>
 

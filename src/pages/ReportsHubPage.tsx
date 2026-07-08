@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchRows } from '../lib/erp/db'
 import { printSectionsDoc, exportCsv, exportExcel, type ReportSection } from '../lib/erp/printDoc'
-import { statusChipClass } from '../components/erp/ModuleWorkspace'
+import { statusChipClass } from '../lib/erp/uiHelpers'
 
 // All operational reports derive live from the module tables and respect the
 // 06:00 GMT+4 reporting-day boundary for timestamped records.

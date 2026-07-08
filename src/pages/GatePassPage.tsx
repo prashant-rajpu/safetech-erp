@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { fetchRows, insertAudited, updateAudited, nowStamp, todayGulf, getSettings } from '../lib/erp/db'
 import { openPrintWindow, exportCsv } from '../lib/erp/printDoc'
 import { qrSvg } from '../lib/qr'
-import { statusChipClass } from '../components/erp/ModuleWorkspace'
+import { statusChipClass } from '../lib/erp/uiHelpers'
 import { usePermissions } from '../lib/erp/usePermissions'
 import { useAuth } from '../lib/useAuth'
 

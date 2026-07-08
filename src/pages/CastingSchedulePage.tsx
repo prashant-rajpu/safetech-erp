@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { fetchRows, insertAudited, updateAudited, nowStamp, todayGulf } from '../lib/erp/db'
 import { printRegister, exportCsv, printQrLabels, type QrLabel } from '../lib/erp/printDoc'
-import { statusChipClass } from '../components/erp/ModuleWorkspace'
+import { statusChipClass } from '../lib/erp/uiHelpers'
 import { usePermissions } from '../lib/erp/usePermissions'
 import { useAuth } from '../lib/useAuth'
 

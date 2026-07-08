@@ -500,8 +500,19 @@ const seedTable = (name: string, defaultData: any[], forceReset = false) => {
   }
 };
 
-const hasSeededV6 = localStorage.getItem('mock_db_seeded_v9') === 'true';
+// Backend switch: when a real Supabase project is configured via env vars,
+// use it directly (shared multi-device data). Otherwise fall back to the
+// offline localStorage mock so the app runs with zero setup.
+const REAL_URL = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+const REAL_KEY = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY as string | undefined;
+export const USE_REAL_BACKEND = !!(
+  REAL_URL && REAL_URL.startsWith('https://') && REAL_URL.includes('.supabase.co') &&
+  REAL_KEY && REAL_KEY.length > 20
+);
 
+const hasSeededV6 = USE_REAL_BACKEND || localStorage.getItem('mock_db_seeded_v9') === 'true';
+
+if (!USE_REAL_BACKEND) {
 seedTable('projects', defaultProjects, !hasSeededV6);
 seedTable('trailers', defaultTrailers, !hasSeededV6);
 seedTable('suppliers', defaultSuppliers, !hasSeededV6);
@@ -534,9 +545,10 @@ for (const [tableName, rows] of Object.entries(ERP_SEED_TABLES)) {
 }
 
 localStorage.setItem('mock_db_seeded_v9', 'true');
+}
 
-// Export mocked supabase client
-export const supabase = {
+// Offline mock client (default when no real backend is configured)
+const mockSupabase = {
   auth: {
     async getSession() {
       return {
@@ -579,3 +591,8 @@ export const supabase = {
     return new MockBuilder(table);
   }
 } as any;
+
+// Real client when env vars are present (see .env.example); mock otherwise.
+export const supabase = USE_REAL_BACKEND
+  ? createClient(REAL_URL!, REAL_KEY!)
+  : mockSupabase;
