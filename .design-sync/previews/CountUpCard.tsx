@@ -15,3 +15,7 @@ export function RedAccent() {
 export function WithSuffix() {
   return <CountUpCard label="Today's Volume (m³)" value={42.6} suffix=" m³" />
 }
+
+export function LargeValue() {
+  return <CountUpCard label="Elements Tracked" value={1247} />
+}
