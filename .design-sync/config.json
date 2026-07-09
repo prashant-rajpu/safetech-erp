@@ -1,0 +1,15 @@
+{
+  "projectId": "b09fcd1c-6cca-4d27-9b9e-f6bf00501631",
+  "shape": "package",
+  "pkg": "safetech-control-center",
+  "globalName": "SafetechDS",
+  "srcDir": "src/components",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": ".design-sync/.cache/tailwind-compiled.css",
+  "buildCmd": "npx tailwindcss -i src/styles/tailwind.css -o .design-sync/.cache/tailwind-compiled.css --config tailwind.config.cjs --minify",
+  "runtimeFontPrefixes": ["Outfit", "Inter"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "libOverrides": {
+    "source-kit.mjs": "repo's components are all `export default` (app, not a library) — stock synth-entry writer used `export * from` per file, which never re-exports `default`, so 0/7 components landed on window.SafetechDS. Fork adds a recovered `export { default as Name } from` line per file."
+  }
+}

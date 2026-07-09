@@ -13,3 +13,10 @@ Safetech_ERP_Handoff_Guide.txt
 erp_handoff_guide.txt
 PROJECT_MEMORY.md
 .github/PHASE2_COMMIT_MESSAGE.json
+
+# design-sync (see .design-sync/NOTES.md)
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
