@@ -8,10 +8,16 @@ operation**. Time needed: roughly one hour.
 
 1. Create a free project at https://supabase.com (choose a region near Dubai,
    e.g. `me-central-1` / `ap-south-1`).
-2. In the SQL Editor run, in order:
+2. In the SQL Editor run, **in this order**:
    - `db/init.sql` — legacy core tables (users, projects, trailers, deliveries…)
-   - `db/erp_schema.sql` — all 36 ERP operations tables (generated to match
-     the frontend exactly)
+   - `db/erp_schema.sql` — all ERP operations tables (generated to match the
+     frontend exactly)
+   - `db/rls_policies.sql` — **the permission engine**: converts users.role to a
+     dynamic role, seeds the roles/departments permission matrix, defines
+     `has_permission(section, action)`, and replaces the placeholder
+     "authenticated full access" policies with real per-section Row-Level
+     Security. Run this last; it is idempotent (re-running resets the matrix to
+     defaults).
 3. Note your **Project URL** and **anon key** (Settings → API).
 
 ## Step 2 — Point the app at the database
@@ -33,8 +39,9 @@ the localStorage mock to the real backend automatically — no code changes.
 2. Seed the first admin row:
    `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed_admin.js <AUTH_UID> <email>`
 3. Log in as admin → **Administration → Users** to set each person's role
-   (viewer / controller / admin), and **Administration → Permissions** to
-   tune per-section access.
+   (viewer / controller / supervisor / admin) and **department**, and
+   **Administration → Permissions** to tune per-section access. Grants apply
+   immediately at the database level (RLS reads the matrix live) — no redeploy.
 
 ## Step 4 — Load your real master data
 
@@ -70,10 +77,13 @@ Pick one:
   sheets on the office printer once (Chrome print dialog, margins default).
 - **QR scanning**: any phone camera or the built-in **Stockyard → QR Scanner**
   screen reads the labels; `token[1]` of the payload is the element code.
-- **Security tightening (recommended before wide rollout)**: the generated
-  RLS policies allow any signed-in user full access. Restrict the gate
-  security columns (`diesel_status`, `driver_status`, `leaving_status`) and
-  role management to specific roles via Supabase RLS policies.
+- **Security**: with `db/rls_policies.sql` applied, access is enforced
+  server-side by Row-Level Security keyed to the live permission matrix — a
+  signed-in user can only read/write the sections their role or department
+  grants. The gate security columns (`diesel_status`, `driver_status`,
+  `leaving_status`) are locked to Dispatch *approve* authority by a database
+  trigger, and Administration / Role Management is admin-only. Verify by logging
+  in as a non-admin and confirming a direct write is rejected.
 
 ## What is intentionally NOT in this system
 

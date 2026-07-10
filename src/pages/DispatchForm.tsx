@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo } from 'react'
 import Papa from 'papaparse'
 import { supabase } from '../lib/supabaseClient'
 import Typeahead from '../components/Typeahead'
+import { usePermissions } from '../lib/erp/usePermissions'
+import { useAuth } from '../lib/useAuth'
+import { updateAudited } from '../lib/erp/db'
 
 type TrailerRow = {
   id: string
@@ -33,7 +36,15 @@ type DispatchLogRow = {
   log_date: string
 }
 
+// Gate security flags: only users with Approve on Dispatch (gate authority)
+// may change these. Enforced at the single write choke point (saveLogRow).
+const GATE_PROTECTED_FIELDS = ['diesel_status', 'driver_status', 'leaving_status'] as const
+
 export default function DispatchForm() {
+  const { can } = usePermissions()
+  const { profile, user } = useAuth()
+  const userEmail = profile?.email || user?.email || ''
+  const gateAuthority = can('dispatch', 'approve')
   const [mode, setMode] = useState<'dropdown' | 'csv'>('dropdown')
   const [trailers, setTrailers] = useState<TrailerRow[]>([])
   const [drivers, setDrivers] = useState<DriverRow[]>([])
@@ -105,24 +116,26 @@ export default function DispatchForm() {
       }
     } else if (activeLogs.length > 0 && trList.length > 0) {
       // Self-healing migration check: Auto-populate driver names & mobiles for existing logs
-      let logsNeedUpdate = false
+      const patches: Array<{ id: string; patch: Partial<DispatchLogRow> }> = []
       const updatedActiveLogs = activeLogs.map(l => {
         if (!l.driver_name || !l.driver_mobile) {
           const drv = driverFor(l.plate_no)
           if (drv) {
-            logsNeedUpdate = true
-            return {
-              ...l,
+            const patch = {
               driver_name: l.driver_name || drv.name || '',
               driver_mobile: l.driver_mobile || drv.mobile || ''
             }
+            patches.push({ id: l.id, patch })
+            return { ...l, ...patch }
           }
         }
         return l
       })
 
-      if (logsNeedUpdate) {
-        localStorage.setItem('mock_db_dispatch_log', JSON.stringify(updatedActiveLogs))
+      if (patches.length > 0) {
+        await Promise.all(patches.map(p =>
+          updateAudited('dispatch_log', p.id, p.patch, userEmail, 'auto-populated driver name/mobile from drivers master')
+        ))
         activeLogs = updatedActiveLogs
       }
     }
@@ -215,6 +228,17 @@ export default function DispatchForm() {
 
   // Update a single dispatch log row (Inline or via Form)
   async function saveLogRow(updatedRow: Partial<DispatchLogRow> & { id: string }) {
+    // Gate protection: strip the protected security flags for users without
+    // Approve on Dispatch — every write path (form, inline grid, CSV import)
+    // funnels through here, so this cannot be bypassed from the UI.
+    if (!gateAuthority) {
+      const touched = GATE_PROTECTED_FIELDS.filter(f => (updatedRow as any)[f] !== undefined)
+      if (touched.length) {
+        touched.forEach(f => { delete (updatedRow as any)[f] })
+        alert('Gate security flags (Diesel / Driver Check / Leaving) require gate authority — Approve permission on Dispatch.')
+        if (Object.keys(updatedRow).length <= 1) return
+      }
+    }
     await supabase.from('dispatch_log').update(updatedRow).eq('id', updatedRow.id)
     
     // Update local state reactively
@@ -892,7 +916,9 @@ export default function DispatchForm() {
                   <td className="p-3 text-center">
                     <button 
                       onClick={() => saveLogRow({ id: l.id, diesel_status: !l.diesel_status })}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${l.diesel_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
+                      disabled={!gateAuthority}
+                      title={gateAuthority ? '' : 'Requires gate authority (Approve on Dispatch)'}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.diesel_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
                     >
                       {l.diesel_status ? 'FILLED' : 'PENDING'}
                     </button>
@@ -900,7 +926,9 @@ export default function DispatchForm() {
                   <td className="p-3 text-center">
                     <button 
                       onClick={() => saveLogRow({ id: l.id, driver_status: !l.driver_status })}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${l.driver_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
+                      disabled={!gateAuthority}
+                      title={gateAuthority ? '' : 'Requires gate authority (Approve on Dispatch)'}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.driver_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
                     >
                       {l.driver_status ? 'OK' : 'PENDING'}
                     </button>
@@ -916,7 +944,9 @@ export default function DispatchForm() {
                   <td className="p-3 text-center">
                     <button 
                       onClick={() => saveLogRow({ id: l.id, leaving_status: !l.leaving_status })}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${l.leaving_status ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}
+                      disabled={!gateAuthority}
+                      title={gateAuthority ? '' : 'Requires gate authority (Approve on Dispatch)'}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.leaving_status ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}
                     >
                       {l.leaving_status ? 'EXITED' : 'YARD'}
                     </button>

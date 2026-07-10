@@ -1,7 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabaseClient'
+import { fetchRows, updateAudited } from '../lib/erp/db'
+import { logTraceEvent, type TraceStage } from '../lib/erp/elementTrace'
+import { statusChipClass } from '../lib/erp/uiHelpers'
+import { usePermissions } from '../lib/erp/usePermissions'
+import { useAuth } from '../lib/useAuth'
+
+const STAGES: TraceStage[] = [
+  'Planning', 'Casting', 'QC', 'Curing', 'Stockyard', 'Loading',
+  'Dispatch', 'Delivered', 'At Site', 'Erected', 'Completed'
+]
 
 type ElementProfile = {
+  elementId?: string
+  stockId?: string
   element_code: string
   project_no: string
   project_name: string
@@ -20,7 +33,7 @@ type ElementProfile = {
   status: string
   remarks: string
   curing_days: number
-  
+
   // QC details
   qc_pre_pour?: boolean
   qc_rebar?: boolean
@@ -44,12 +57,34 @@ type ElementProfile = {
   trace?: any
 }
 
+const CAMERA_REGION_ID = 'qr-camera-region'
+
 export default function QrScannerPage() {
+  const { profile: authProfile, user } = useAuth()
+  const { canEdit } = usePermissions()
+  const editable = canEdit('stockyard')
+  const userEmail = authProfile?.email || user?.email || ''
+  const department = (authProfile as any)?.department || ''
+
   const [scanInput, setScanInput] = useState('')
   const [profile, setProfile] = useState<ElementProfile | null>(null)
   const [availableElements, setAvailableElements] = useState<any[]>([])
   const [isScanning, setIsScanning] = useState(false)
   const [scanSuccess, setScanSuccess] = useState(false)
+
+  const [cameraOn, setCameraOn] = useState(false)
+  const [cameraError, setCameraError] = useState('')
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+
+  const [events, setEvents] = useState<any[]>([])
+  const [showStatusForm, setShowStatusForm] = useState(false)
+  const [showDefectForm, setShowDefectForm] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [stStage, setStStage] = useState<TraceStage>('Stockyard')
+  const [stStatus, setStStatus] = useState('')
+  const [dfStage, setDfStage] = useState<TraceStage>('Stockyard')
+  const [dfSeverity, setDfSeverity] = useState<'Cosmetic' | 'Minor' | 'Major'>('Minor')
+  const [dfDescription, setDfDescription] = useState('')
 
   useEffect(() => {
     async function loadElements() {
@@ -59,102 +94,172 @@ export default function QrScannerPage() {
     loadElements()
   }, [])
 
+  useEffect(() => () => { scannerRef.current?.stop().catch(() => {}) }, [])
+
+  async function startCamera() {
+    setCameraError('')
+    try {
+      const scanner = new Html5Qrcode(CAMERA_REGION_ID)
+      scannerRef.current = scanner
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: 220 },
+        (decodedText: string) => {
+          // Printed labels encode SPBM-EL|<code>|... — token[1] is the lookup key
+          // (same convention as elementQrPayload / buildQrPayload elsewhere).
+          const parts = decodedText.split('|')
+          const code = parts.length > 1 ? parts[1] : decodedText
+          setScanInput(code)
+          handleScan(code)
+          stopCamera()
+        },
+        () => { /* ignore per-frame decode misses */ }
+      )
+      setCameraOn(true)
+    } catch (err: any) {
+      setCameraError(err?.message || 'Camera unavailable — use manual entry below')
+      setCameraOn(false)
+    }
+  }
+
+  async function stopCamera() {
+    try { await scannerRef.current?.stop() } catch { /* already stopped */ }
+    scannerRef.current = null
+    setCameraOn(false)
+  }
+
   const handleScan = async (codeStr: string) => {
     if (!codeStr) return
     const code = codeStr.toUpperCase().trim()
     setIsScanning(true)
     setScanSuccess(false)
-    
-    // Simulate camera scan delay
-    setTimeout(async () => {
-      try {
-        const [stockRes, qcRes, moveRes, delRes, traceRes] = await Promise.all([
-          supabase.from('stockyard_inventory').select('*').eq('element_code', code).maybeSingle(),
-          supabase.from('qc_inspections').select('*').eq('element_code', code).maybeSingle(),
-          supabase.from('yard_movement').select('*').eq('element_code', code),
-          supabase.from('deliveries').select('*').limit(1000),
-          supabase.from('element_traceability').select('*').eq('element_code', code).maybeSingle()
-        ])
+    setShowStatusForm(false)
+    setShowDefectForm(false)
 
-        if (!stockRes.data) {
-          alert(`Element ID ${code} not found in inventory!`)
-          setIsScanning(false)
-          return
-        }
+    try {
+      const [stockRes, qcRes, moveRes, delRes, traceRes, elRes, eventsRes] = await Promise.all([
+        supabase.from('stockyard_inventory').select('*').eq('element_code', code).maybeSingle(),
+        supabase.from('qc_inspections').select('*').eq('element_code', code).maybeSingle(),
+        supabase.from('yard_movement').select('*').eq('element_code', code),
+        supabase.from('deliveries').select('*').limit(1000),
+        supabase.from('element_traceability').select('*').eq('element_code', code).maybeSingle(),
+        supabase.from('elements').select('id').eq('element_code', code).maybeSingle(),
+        fetchRows('traceability_events', { field: 'element_code', value: code })
+      ])
 
-        const item = stockRes.data
-        const qc = qcRes.data
-        const movements = moveRes.data || []
-        
-        // Find if this element has been shipped on a delivery note (DN/DO)
-        // Check if item's element code is listed in any committed delivery remarks
-        const matchDel = (delRes.data || []).find((d: any) => 
-          d.remarks && d.remarks.toUpperCase().includes(code)
-        )
-
-        // Find Project Name
-        const { data: proj } = await supabase.from('projects').select('project_name').eq('project_no', item.project_no).maybeSingle()
-
-        // Calculate curing age
-        const diffTime = Math.abs(new Date('2026-06-29').getTime() - new Date(item.cast_date).getTime())
-        const curingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-        setProfile({
-          element_code: item.element_code,
-          project_no: item.project_no,
-          project_name: proj?.project_name || 'THE ACRES - PHASE 1',
-          building: item.building || 'Building A',
-          floor: item.floor || 'G',
-          zone: item.zone || 'Zone 1',
-          element_type: item.element_type,
-          revision: item.revision || 'R0',
-          length_mm: item.length_mm || 3000,
-          width_mm: item.width_mm || 1200,
-          thickness_mm: item.thickness_mm || 150,
-          volume_cum: item.volume_cum || 1.5,
-          weight_tons: item.weight_tons || 3.75,
-          cast_date: item.cast_date,
-          bay_location: item.bay_location || 'Bay 01',
-          status: item.status,
-          remarks: item.remarks || '',
-          curing_days: curingDays,
-
-          // QC Details
-          qc_pre_pour: qc?.pre_pour_check ?? true,
-          qc_rebar: qc?.reinforcement_check ?? true,
-          qc_cover: qc?.cover_check ?? true,
-          qc_embeds: qc?.embedded_items_check ?? true,
-          qc_dims: qc?.dimensions_check ?? true,
-          qc_test_ref: qc?.concrete_test_ref ?? 'TR-C45-3312',
-          qc_inspector: qc?.inspector ?? 'John Doe',
-          qc_result: qc?.qc_result ?? 'PASSED',
-
-          // Delivery details
-          do_no: matchDel?.dn_no ?? (item.status === 'Delivered' ? 'SPBM-10369' : undefined),
-          driver_name: matchDel ? 'WAQAR' : undefined,
-          trailer_plate: matchDel ? '80774' : undefined,
-
-          // Movements
-          movements,
-          trace: traceRes.data || {
-            planning_timestamp: '2026-06-25 09:00',
-            casting_timestamp: item.cast_date ? `${item.cast_date} 07:30` : 'Pending',
-            qc_timestamp: qc ? '2026-06-25 10:15' : 'Pending',
-            curing_timestamp: item.cast_date ? `${item.cast_date} 11:00` : 'Pending',
-            stockyard_timestamp: item.bay_location ? '2026-06-26 14:30' : 'Pending',
-            loading_timestamp: matchDel ? '2026-06-29 06:30' : 'Pending',
-            dispatch_timestamp: matchDel ? '2026-06-29 07:15' : 'Pending',
-            delivery_timestamp: matchDel ? '2026-06-29 09:30' : 'Pending'
-          }
-        })
-        setScanSuccess(true)
-      } catch (err) {
-        console.error(err)
-        alert('Error loading scanned element profile')
-      } finally {
+      if (!stockRes.data) {
+        alert(`Element ID ${code} not found in inventory!`)
         setIsScanning(false)
+        return
       }
-    }, 800)
+
+      const item = stockRes.data
+      const qc = qcRes.data
+      const movements = moveRes.data || []
+
+      const matchDel = (delRes.data || []).find((d: any) =>
+        d.remarks && d.remarks.toUpperCase().includes(code)
+      )
+
+      const { data: proj } = await supabase.from('projects').select('project_name').eq('project_no', item.project_no).maybeSingle()
+
+      const diffTime = Math.abs(new Date('2026-06-29').getTime() - new Date(item.cast_date).getTime())
+      const curingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      setProfile({
+        elementId: elRes.data?.id,
+        stockId: item.id,
+        element_code: item.element_code,
+        project_no: item.project_no,
+        project_name: proj?.project_name || 'THE ACRES - PHASE 1',
+        building: item.building || 'Building A',
+        floor: item.floor || 'G',
+        zone: item.zone || 'Zone 1',
+        element_type: item.element_type,
+        revision: item.revision || 'R0',
+        length_mm: item.length_mm || 3000,
+        width_mm: item.width_mm || 1200,
+        thickness_mm: item.thickness_mm || 150,
+        volume_cum: item.volume_cum || 1.5,
+        weight_tons: item.weight_tons || 3.75,
+        cast_date: item.cast_date,
+        bay_location: item.bay_location || 'Bay 01',
+        status: item.status,
+        remarks: item.remarks || '',
+        curing_days: curingDays,
+
+        qc_pre_pour: qc?.pre_pour_check ?? true,
+        qc_rebar: qc?.reinforcement_check ?? true,
+        qc_cover: qc?.cover_check ?? true,
+        qc_embeds: qc?.embedded_items_check ?? true,
+        qc_dims: qc?.dimensions_check ?? true,
+        qc_test_ref: qc?.concrete_test_ref ?? 'TR-C45-3312',
+        qc_inspector: qc?.inspector ?? 'John Doe',
+        qc_result: qc?.qc_result ?? 'PASSED',
+
+        do_no: matchDel?.dn_no ?? (item.status === 'Delivered' ? 'SPBM-10369' : undefined),
+        driver_name: matchDel ? 'WAQAR' : undefined,
+        trailer_plate: matchDel ? '80774' : undefined,
+
+        movements,
+        // Honest: no fabricated fallback. A missing row means no trace has
+        // been logged yet — the timeline below already renders "Pending" /
+        // "Not Started" per-stage when trace is null, which is the truth.
+        trace: traceRes.data || null
+      })
+      setEvents((eventsRes || []).slice().sort((a: any, b: any) => String(b.created_at).localeCompare(String(a.created_at))))
+      setScanSuccess(true)
+    } catch (err) {
+      console.error(err)
+      alert('Error loading scanned element profile')
+    } finally {
+      setIsScanning(false)
+    }
+  }
+
+  async function submitStatusUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!profile || busy) return
+    if (!stStatus.trim()) { alert('Enter a status.'); return }
+    setBusy(true)
+    try {
+      await logTraceEvent({
+        elementCode: profile.element_code, stage: stStage, eventType: 'Status Update',
+        status: stStatus, loggedBy: userEmail, department
+      })
+      if (profile.elementId) {
+        await updateAudited('elements', profile.elementId, { status: stStatus }, userEmail, `Status update via scan — ${profile.element_code} → ${stStatus}`)
+      }
+      // The profile card's visible status chip reads stockyard_inventory, not
+      // elements — keep both in sync so the logged update is actually visible
+      // here, not just in the canonical elements table.
+      if (profile.stockId) {
+        await updateAudited('stockyard_inventory', profile.stockId, { status: stStatus }, userEmail, `Status update via scan — ${profile.element_code} → ${stStatus}`)
+      }
+      setStStatus('')
+      setShowStatusForm(false)
+      await handleScan(profile.element_code)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitDefect(e: React.FormEvent) {
+    e.preventDefault()
+    if (!profile || busy) return
+    if (!dfDescription.trim()) { alert('Describe the defect.'); return }
+    setBusy(true)
+    try {
+      await logTraceEvent({
+        elementCode: profile.element_code, stage: dfStage, eventType: 'Defect Reported',
+        defectSeverity: dfSeverity, defectDescription: dfDescription, loggedBy: userEmail, department
+      })
+      setDfDescription('')
+      setShowDefectForm(false)
+      await handleScan(profile.element_code)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -165,43 +270,57 @@ export default function QrScannerPage() {
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
             QR / Barcode <span className="text-red-500 font-light">Scanner Terminal</span>
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Scan element ID labels from mobile cameras, USB guns, or look up structural profiles</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Scan element ID labels with a device camera, USB gun, or manual entry — log status updates and defects on the spot</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Side: Scanner Input & Simulation */}
+
+        {/* Left Side: Scanner Input */}
         <div className="lg:col-span-1 glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/5 space-y-5 h-fit">
           <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2">
-            Scan Input Simulation
+            Scan Input
           </h3>
 
-          {/* Camera Scanning simulation frame */}
+          {/* Real camera scan region */}
           <div className="w-full aspect-video bg-neutral-900 rounded-2xl relative overflow-hidden border border-slate-200 dark:border-white/5 flex flex-col items-center justify-center p-4 text-center">
-            {/* Holographic targeting scan line */}
-            <div className={`absolute left-0 right-0 h-0.5 bg-red-500 shadow-[0_0_10px_#ef4444] ${isScanning ? 'animate-bounce top-1/2' : 'top-1/3'}`} />
-            
-            {isScanning ? (
-              <div className="space-y-2 animate-pulse text-white">
-                <span className="text-2xl">⏳</span>
-                <span className="text-[10px] uppercase font-black tracking-widest block text-red-500">De-serializing QR code...</span>
-              </div>
-            ) : scanSuccess ? (
-              <div className="space-y-2 text-white">
-                <span className="text-2xl text-emerald-500">✅</span>
-                <span className="text-[10px] uppercase font-black tracking-widest block text-emerald-500">Scan Complete! Profile Locked</span>
-              </div>
-            ) : (
-              <div className="space-y-1 text-slate-500">
-                <span className="text-3xl">📷</span>
-                <span className="text-[10px] uppercase font-black tracking-widest block">Camera scanner active</span>
-                <span className="text-[8px] block text-slate-600">Align label QR Code within boundary targets</span>
-              </div>
+            <div id={CAMERA_REGION_ID} className={cameraOn ? 'w-full h-full [&_video]:!w-full [&_video]:!h-full [&_video]:!object-cover' : 'hidden'} />
+            {!cameraOn && (
+              isScanning ? (
+                <div className="space-y-2 animate-pulse text-white">
+                  <span className="text-2xl">⏳</span>
+                  <span className="text-[10px] uppercase font-black tracking-widest block text-red-500">Looking up element…</span>
+                </div>
+              ) : scanSuccess ? (
+                <div className="space-y-2 text-white">
+                  <span className="text-2xl text-emerald-500">✅</span>
+                  <span className="text-[10px] uppercase font-black tracking-widest block text-emerald-500">Scan Complete! Profile Loaded</span>
+                </div>
+              ) : (
+                <div className="space-y-2 text-slate-500">
+                  <span className="text-3xl">📷</span>
+                  <span className="text-[10px] uppercase font-black tracking-widest block">Camera not started</span>
+                  <button
+                    onClick={startCamera}
+                    className="min-h-[44px] px-4 py-2.5 mt-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-[11px] font-extrabold uppercase rounded-lg btn-interactive"
+                  >
+                    📷 Start Camera
+                  </button>
+                  {cameraError && <span className="text-[9px] text-red-400 block mt-1">{cameraError}</span>}
+                </div>
+              )
+            )}
+            {cameraOn && (
+              <button
+                onClick={stopCamera}
+                className="absolute bottom-2 right-2 min-h-[36px] px-3 py-1.5 bg-black/70 text-white text-[9px] font-extrabold uppercase rounded-lg"
+              >
+                Stop Camera
+              </button>
             )}
           </div>
 
-          {/* USB Scanner Input field */}
+          {/* USB Scanner / manual entry — always available regardless of camera state */}
           <div className="space-y-3.5 pt-3 border-t border-slate-100 dark:border-white/5">
             <label className="block">
               <span className="text-[9px] uppercase font-black text-slate-500">USB Gun Input / Type Code ID</span>
@@ -209,23 +328,22 @@ export default function QrScannerPage() {
                 <input
                   type="text"
                   placeholder="Scan or type (E.g. 00-IW01-2502M-002)..."
-                  className="flex-grow px-3 py-2 rounded-lg glowing-input text-xs font-mono font-bold"
+                  className="flex-grow px-3 py-2 rounded-lg glowing-input text-xs font-mono font-bold min-h-[44px]"
                   value={scanInput}
                   onChange={e => setScanInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleScan(scanInput)}
                 />
                 <button
                   onClick={() => handleScan(scanInput)}
-                  className="px-4 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-lg btn-interactive"
+                  className="min-h-[44px] px-4 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-lg btn-interactive"
                 >
                   Scan
                 </button>
               </div>
             </label>
 
-            {/* Quick Demo selector list */}
             <div>
-              <span className="text-[9px] uppercase font-black text-slate-500 block mb-1.5">Quick lookup simulation</span>
+              <span className="text-[9px] uppercase font-black text-slate-500 block mb-1.5">Quick lookup</span>
               <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto pr-1">
                 {availableElements.map(el => (
                   <button
@@ -249,21 +367,78 @@ export default function QrScannerPage() {
           {profile ? (
             <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6 animate-fadeIn relative">
               <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-red-800 to-black rounded-t-3xl" />
-              
+
               {/* Header */}
-              <div className="flex justify-between items-start pb-4 border-b border-slate-200 dark:border-white/5">
+              <div className="flex flex-wrap justify-between items-start gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
                 <div>
                   <span className="text-[10px] text-red-500 font-extrabold uppercase tracking-widest block">Structural Element Profile</span>
                   <h3 className="text-xl font-black text-neutral-900 dark:text-white font-mono mt-1">{profile.element_code}</h3>
                   <p className="text-xs text-slate-500 font-semibold">{profile.project_no} — {profile.project_name}</p>
                 </div>
-                <div className="text-right">
-                  <span className="text-[9px] uppercase font-black text-slate-400 block">Status indicators</span>
-                  <span className="inline-block mt-1 px-3 py-1 bg-red-500/10 text-red-500 font-black uppercase text-[10px] rounded-lg border border-red-500/20">
+                <div className="flex items-center gap-2">
+                  {editable && (
+                    <>
+                      <button onClick={() => { setShowStatusForm(v => !v); setShowDefectForm(false) }} className="min-h-[40px] px-3 py-2 border border-red-500/30 text-red-500 bg-red-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
+                        📍 Update Status
+                      </button>
+                      <button onClick={() => { setShowDefectForm(v => !v); setShowStatusForm(false) }} className="min-h-[40px] px-3 py-2 border border-amber-500/30 text-amber-500 bg-amber-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
+                        ⚠️ Report Defect
+                      </button>
+                    </>
+                  )}
+                  <span className="inline-block px-3 py-1 bg-red-500/10 text-red-500 font-black uppercase text-[10px] rounded-lg border border-red-500/20">
                     {profile.status}
                   </span>
                 </div>
               </div>
+
+              {/* Update Status form */}
+              {showStatusForm && (
+                <form onSubmit={submitStatusUpdate} className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-[9px] uppercase font-black text-slate-500">Stage</span>
+                      <select className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={stStage} onChange={e => setStStage(e.target.value as TraceStage)}>
+                        {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[9px] uppercase font-black text-slate-500">Status</span>
+                      <input type="text" className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={stStatus} onChange={e => setStStatus(e.target.value)} placeholder="e.g. Erected" />
+                    </label>
+                  </div>
+                  <button type="submit" disabled={busy} className="min-h-[44px] w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
+                    {busy ? 'Saving…' : 'Log Status Update'}
+                  </button>
+                </form>
+              )}
+
+              {/* Report Defect form */}
+              {showDefectForm && (
+                <form onSubmit={submitDefect} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-[9px] uppercase font-black text-slate-500">Stage</span>
+                      <select className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={dfStage} onChange={e => setDfStage(e.target.value as TraceStage)}>
+                        {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-[9px] uppercase font-black text-slate-500">Severity</span>
+                      <select className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={dfSeverity} onChange={e => setDfSeverity(e.target.value as any)}>
+                        <option>Cosmetic</option><option>Minor</option><option>Major</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label className="block">
+                    <span className="text-[9px] uppercase font-black text-slate-500">Description</span>
+                    <textarea className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs" rows={2} value={dfDescription} onChange={e => setDfDescription(e.target.value)} placeholder="Describe the defect…" />
+                  </label>
+                  <button type="submit" disabled={busy} className="min-h-[44px] w-full bg-gradient-to-br from-amber-500 to-amber-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
+                    {busy ? 'Saving…' : 'Log Defect'}
+                  </button>
+                </form>
+              )}
 
               {/* Technical Specifications Grid */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -296,6 +471,11 @@ export default function QrScannerPage() {
               {/* Complete Traceability Timeline (Section 11 Requirement) */}
               <div className="space-y-3">
                 <span className="text-[10px] uppercase font-black text-slate-500 block">Complete Traceability Lifecycle Timeline</span>
+                {!profile.trace && (
+                  <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
+                    ⚠️ No traceability record found for this element yet — every stage below reflects no logged activity.
+                  </div>
+                )}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {[
                     { key: 'planning_timestamp', label: '1. Planning', icon: '📝' },
@@ -311,11 +491,11 @@ export default function QrScannerPage() {
                     const isDone = timeVal && timeVal !== 'Pending'
 
                     return (
-                      <div 
-                        key={stage.key} 
+                      <div
+                        key={stage.key}
                         className={`p-3 border rounded-2xl flex flex-col justify-between h-20 transition-all ${
-                          isDone 
-                            ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                          isDone
+                            ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                             : 'bg-slate-50 dark:bg-black/10 border-slate-200 dark:border-white/5 text-slate-400'
                         }`}
                       >
@@ -333,6 +513,32 @@ export default function QrScannerPage() {
                       </div>
                     )
                   })}
+                </div>
+              </div>
+
+              {/* Recent scan / status / defect events */}
+              <div className="border-t border-slate-100 dark:border-white/5 pt-4 space-y-2">
+                <span className="text-[10px] uppercase font-black text-slate-500 block">Recent Events</span>
+                <div className="space-y-1.5">
+                  {events.length === 0 && (
+                    <span className="text-xs text-slate-500 italic block py-2">No status updates or defects logged for this element yet</span>
+                  )}
+                  {events.map((ev: any) => (
+                    <div key={ev.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100 dark:border-white/5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded border ${statusChipClass(ev.event_type === 'Defect Reported' ? 'reject' : 'approved')}`}>
+                          {ev.event_type}
+                        </span>
+                        <span className="font-semibold text-slate-600 dark:text-slate-300 truncate">
+                          {ev.stage}{ev.status ? ` → ${ev.status}` : ''}{ev.defect_description ? `: ${ev.defect_description}` : ''}
+                        </span>
+                      </div>
+                      <div className="text-right shrink-0 pl-2">
+                        <span className="block font-bold text-neutral-800 dark:text-white text-[10px]">{ev.logged_by || '—'}</span>
+                        <span className="text-[9px] text-slate-400">{String(ev.created_at).slice(0, 16).replace('T', ' ')}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -2,43 +2,50 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../useAuth'
 import { fetchRows } from './db'
 import type { SectionKey } from './registry'
-
-type PermRow = { role_key: string; section_key: string; can_view: boolean; can_edit: boolean }
+import {
+  hasPermission, type PermAction, type RolePermRow, type DeptPermRow
+} from './permissionEngine'
 
 /**
- * Role-based section permissions, driven by the role_permissions table so
- * admins can adjust access from the Permissions screen without code changes.
- * Unknown roles fall back to view-only; missing rows deny access.
+ * Live permission guard driven by the roles / role_permissions /
+ * department_permissions tables — admins adjust access from the Permissions
+ * screen and it applies immediately, without code changes.
+ *
+ * Effective grant = union(role grants, department grants); admin always full;
+ * missing rows deny. See permissionEngine.ts for the pure logic (unit-tested).
  */
 export function usePermissions() {
   const { profile } = useAuth()
-  const [perms, setPerms] = useState<PermRow[]>([])
+  const [rolePerms, setRolePerms] = useState<RolePermRow[]>([])
+  const [deptPerms, setDeptPerms] = useState<DeptPermRow[]>([])
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     let mounted = true
-    fetchRows('role_permissions').then(rows => {
+    Promise.all([fetchRows('role_permissions'), fetchRows('department_permissions')]).then(([rp, dp]) => {
       if (!mounted) return
-      setPerms(rows as PermRow[])
+      setRolePerms(rp as RolePermRow[])
+      setDeptPerms(dp as DeptPermRow[])
       setLoaded(true)
     })
     return () => { mounted = false }
   }, [])
 
   const role = profile?.role || 'viewer'
+  const department = (profile as any)?.department || ''
 
-  const canView = (section: SectionKey): boolean => {
-    if (!loaded) return true // avoid nav flicker before permissions load
-    const row = perms.find(p => p.role_key === role && p.section_key === section)
-    if (row) return !!row.can_view
-    return role === 'admin'
+  const can = (section: SectionKey | string, action: PermAction): boolean => {
+    // avoid nav flicker before permissions load; deny-by-default once loaded
+    if (!loaded) return action === 'view'
+    return hasPermission({ role, department, rolePerms, deptPerms }, section, action)
   }
 
-  const canEdit = (section: SectionKey): boolean => {
-    const row = perms.find(p => p.role_key === role && p.section_key === section)
-    if (row) return !!row.can_edit
-    return role === 'admin'
-  }
+  // Back-compat helpers (existing pages use these)
+  const canView = (section: SectionKey | string) => can(section, 'view')
+  const canEdit = (section: SectionKey | string) => can(section, 'edit')
+  const canCreate = (section: SectionKey | string) => can(section, 'create')
+  const canDelete = (section: SectionKey | string) => can(section, 'delete')
+  const canApprove = (section: SectionKey | string) => can(section, 'approve')
 
-  return { role, loaded, canView, canEdit }
+  return { role, department, loaded, can, canView, canEdit, canCreate, canDelete, canApprove }
 }

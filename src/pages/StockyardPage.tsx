@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../lib/useAuth'
+import { updateAudited } from '../lib/erp/db'
 import safetechLogo from '../assets/safetech_logo.png'
 
 type StockyardItem = {
@@ -36,6 +38,8 @@ type YardMovement = {
 }
 
 export default function StockyardPage() {
+  const { profile, user } = useAuth()
+  const userEmail = profile?.email || user?.email || ''
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab = searchParams.get('tab') || 'inventory'
 
@@ -141,16 +145,12 @@ export default function StockyardPage() {
       await supabase.from('yard_movement').insert([payload])
 
       // Auto-update bay location of element in stockyard
-      const localKey = 'mock_db_stockyard_inventory'
-      const stockStr = localStorage.getItem(localKey)
-      if (stockStr) {
-        const stockItems = JSON.parse(stockStr)
-        const matchIdx = stockItems.findIndex((s: any) => s.element_code === moveCode.toUpperCase().trim())
-        if (matchIdx !== -1) {
-          stockItems[matchIdx].bay_location = toBay
-          stockItems[matchIdx].remarks = `Moved to ${toBay} via ${crane}`
-          localStorage.setItem(localKey, JSON.stringify(stockItems))
-        }
+      const { data: stockRow } = await supabase.from('stockyard_inventory').select('id').eq('element_code', moveCode.toUpperCase().trim()).maybeSingle()
+      if (stockRow) {
+        await updateAudited('stockyard_inventory', stockRow.id, {
+          bay_location: toBay,
+          remarks: `Moved to ${toBay} via ${crane}`
+        }, userEmail, 'bay location updated via crane move')
       }
 
       // Refresh states

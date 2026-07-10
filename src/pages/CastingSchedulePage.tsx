@@ -5,12 +5,7 @@ import { printRegister, exportCsv, printQrLabels, type QrLabel } from '../lib/er
 import { statusChipClass } from '../lib/erp/uiHelpers'
 import { usePermissions } from '../lib/erp/usePermissions'
 import { useAuth } from '../lib/useAuth'
-
-// Element mark prefix by element type — matches existing plant code style
-// (00-IW01-2502M-002 → 00-<MARK><NN>-<YYMM>M-<serial>)
-const TYPE_MARK: Record<string, string> = {
-  'WL/PC': 'IW', 'WL': 'IW', 'HCS': 'HC', 'BW': 'BW', 'CL': 'CL', 'BM': 'BM'
-}
+import { generateElementCodes } from '../lib/erp/elementCodes'
 
 /** Full-detail QR payload for one element — token[1] is the scanner lookup key. */
 export function elementQrPayload(el: any): string {
@@ -117,25 +112,6 @@ export default function CastingSchedulePage() {
     return elements.filter(e => codes.includes(e.element_code))
   }
 
-  /** Generate unique element codes in plant format for a new schedule. */
-  function generateCodes(drawing: any, qty: number): string[] {
-    const mark = TYPE_MARK[drawing?.element_type] || 'EL'
-    const now = new Date()
-    const yymm = `${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, '0')}`
-    // per-mark group number derived from drawing sequence within project
-    const sameType = drawings.filter(d => d.project_no === drawing.project_no && d.element_type === drawing.element_type)
-    const groupNo = String(Math.max(1, sameType.findIndex(d => d.drawing_no === drawing.drawing_no) + 1)).padStart(2, '0')
-    const existing = new Set(elements.map(e => e.element_code))
-    const codes: string[] = []
-    let serial = elements.length + 1
-    while (codes.length < qty) {
-      const code = `00-${mark}${groupNo}-${yymm}M-${String(serial).padStart(3, '0')}`
-      if (!existing.has(code)) codes.push(code)
-      serial++
-    }
-    return codes
-  }
-
   async function planCasting(e: React.FormEvent) {
     e.preventDefault()
     if (saving) return
@@ -147,7 +123,7 @@ export default function CastingSchedulePage() {
     try {
       const drawing = drawings.find(d => d.drawing_no === fDrawing)
       const template = elements.find(el => el.drawing_no === fDrawing) // reuse dims from sibling elements
-      const codes = generateCodes(drawing, fQty)
+      const codes = generateElementCodes(drawing, fQty, new Set(elements.map(e => e.element_code)), drawings)
 
       const newElements = codes.map(code => ({
         element_code: code,
@@ -233,13 +209,13 @@ export default function CastingSchedulePage() {
             volume_cum: el.volume_cum, weight_tons: el.weight_tons, cast_date: row.schedule_date, bay_location: 'Curing Area',
             status: 'Curing', curing_days: 0, remarks: `Cast on ${row.bed} (${row.shift} shift)`
           }])
-          await supabase.from('element_traceability').insert([{
+          await supabase.from('element_traceability').upsert([{
             element_code: el.element_code,
             planning_timestamp: el.qr_generated_at || nowStamp(),
             casting_timestamp: `${row.schedule_date} —`,
             qc_timestamp: 'Pending', curing_timestamp: nowStamp(), stockyard_timestamp: nowStamp(),
             loading_timestamp: 'Pending', dispatch_timestamp: 'Pending', delivery_timestamp: 'Pending'
-          }])
+          }], { onConflict: 'element_code' })
         }
       }
       await reload()

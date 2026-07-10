@@ -811,10 +811,16 @@ create table if not exists role_permissions (
   role_key text,
   section_key text,
   can_view boolean,
+  can_create boolean,
   can_edit boolean,
+  can_delete boolean,
+  can_approve boolean,
   created_at timestamptz not null default now()
 );
 alter table role_permissions enable row level security;
+-- Placeholder open policy; replaced by real per-section policies in
+-- db/rls_policies.sql (run that last). Do not open the system to many users
+-- until rls_policies.sql has been applied.
 create policy "authenticated full access" on role_permissions for all to authenticated using (true) with check (true);
 
 create table if not exists audit_logs (

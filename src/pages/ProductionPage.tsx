@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../lib/useAuth'
+import { updateAudited, insertAudited } from '../lib/erp/db'
 
 type CastingLog = {
   id: string
@@ -45,6 +47,8 @@ type QcInspection = {
 }
 
 export default function ProductionPage() {
+  const { profile, user } = useAuth()
+  const userEmail = profile?.email || user?.email || ''
   const [searchParams, setSearchParams] = useSearchParams()
   const activeTab = searchParams.get('tab') || 'casting'
 
@@ -191,35 +195,25 @@ export default function ProductionPage() {
 
       // Update Element Traceability with Casting and Curing timestamps
       const code = elementCode.toUpperCase().trim()
-      const traceKey = 'mock_db_element_traceability'
-      const traceStr = localStorage.getItem(traceKey)
-      if (traceStr) {
-        try {
-          const traces = JSON.parse(traceStr)
-          const idx = traces.findIndex((t: any) => t.element_code === code)
-          const currentTimestamp = `${castDate} ${startTime}`
-          if (idx !== -1) {
-            traces[idx].casting_timestamp = currentTimestamp
-            traces[idx].curing_timestamp = currentTimestamp
-            localStorage.setItem(traceKey, JSON.stringify(traces))
-          } else {
-            traces.push({
-              id: `tr-${Math.random().toString(36).substr(2, 9)}`,
-              element_code: code,
-              planning_timestamp: `${castDate} 09:00`,
-              casting_timestamp: currentTimestamp,
-              qc_timestamp: 'Pending',
-              curing_timestamp: currentTimestamp,
-              stockyard_timestamp: 'Pending',
-              loading_timestamp: 'Pending',
-              dispatch_timestamp: 'Pending',
-              delivery_timestamp: 'Pending'
-            })
-            localStorage.setItem(traceKey, JSON.stringify(traces))
-          }
-        } catch (err) {
-          console.error('Error updating traceability:', err)
-        }
+      const currentTimestamp = `${castDate} ${startTime}`
+      const { data: traceRow } = await supabase.from('element_traceability').select('id').eq('element_code', code).maybeSingle()
+      if (traceRow) {
+        await updateAudited('element_traceability', traceRow.id, {
+          casting_timestamp: currentTimestamp,
+          curing_timestamp: currentTimestamp
+        }, userEmail, 'casting/curing timestamps stamped')
+      } else {
+        await insertAudited('element_traceability', [{
+          element_code: code,
+          planning_timestamp: `${castDate} 09:00`,
+          casting_timestamp: currentTimestamp,
+          qc_timestamp: 'Pending',
+          curing_timestamp: currentTimestamp,
+          stockyard_timestamp: 'Pending',
+          loading_timestamp: 'Pending',
+          dispatch_timestamp: 'Pending',
+          delivery_timestamp: 'Pending'
+        }], userEmail, 'traceability record created on casting')
       }
 
       // Refresh list
@@ -293,62 +287,37 @@ export default function ProductionPage() {
 
       // Update Element Traceability with QC and Stockyard timestamps
       const code = qcCode.toUpperCase().trim()
-      const traceKey = 'mock_db_element_traceability'
-      const traceStr = localStorage.getItem(traceKey)
-      if (traceStr) {
-        try {
-          const traces = JSON.parse(traceStr)
-          const idx = traces.findIndex((t: any) => t.element_code === code)
-          const currentTimestamp = new Date().toISOString().slice(0, 16).replace('T', ' ')
-          if (idx !== -1) {
-            traces[idx].qc_timestamp = currentTimestamp
-            if (qcResult === 'PASSED') {
-              traces[idx].stockyard_timestamp = currentTimestamp
-            }
-            localStorage.setItem(traceKey, JSON.stringify(traces))
-          }
-        } catch (err) {
-          console.error('Error updating traceability:', err)
-        }
+      const currentTimestamp = new Date().toISOString().slice(0, 16).replace('T', ' ')
+      const { data: traceRow } = await supabase.from('element_traceability').select('id').eq('element_code', code).maybeSingle()
+      if (traceRow) {
+        const tracePatch: Record<string, string> = { qc_timestamp: currentTimestamp }
+        if (qcResult === 'PASSED') tracePatch.stockyard_timestamp = currentTimestamp
+        await updateAudited('element_traceability', traceRow.id, tracePatch, userEmail, 'QC timestamp stamped')
       }
 
       // If QC result is PASSED, update production_casting and stockyard status!
       if (qcResult === 'PASSED') {
         // Update casting log state
-        const localKey = 'mock_db_production_casting'
-        const castStr = localStorage.getItem(localKey)
-        if (castStr) {
-          const items = JSON.parse(castStr)
-          const idx = items.findIndex((i: any) => i.element_code === qcCode.toUpperCase().trim())
-          if (idx !== -1) {
-            items[idx].qc_status = 'PASSED'
-            localStorage.setItem(localKey, JSON.stringify(items))
-          }
+        const { data: castRow } = await supabase.from('production_casting').select('id').eq('element_code', code).maybeSingle()
+        if (castRow) {
+          await updateAudited('production_casting', castRow.id, { qc_status: 'PASSED' }, userEmail, 'QC passed')
         }
         // Update stockyard state to CURING
-        const stockKey = 'mock_db_stockyard_inventory'
-        const stockStr = localStorage.getItem(stockKey)
-        if (stockStr) {
-          const items = JSON.parse(stockStr)
-          const idx = items.findIndex((i: any) => i.element_code === qcCode.toUpperCase().trim())
-          if (idx !== -1) {
-            items[idx].status = 'Curing'
-            items[idx].remarks = 'QC Passed - Curing in progress'
-            localStorage.setItem(stockKey, JSON.stringify(items))
-          }
+        const { data: stockRow } = await supabase.from('stockyard_inventory').select('id').eq('element_code', code).maybeSingle()
+        if (stockRow) {
+          await updateAudited('stockyard_inventory', stockRow.id, {
+            status: 'Curing',
+            remarks: 'QC Passed - Curing in progress'
+          }, userEmail, 'QC passed, moved to curing')
         }
       } else {
         // Update stockyard state to REJECTED
-        const stockKey = 'mock_db_stockyard_inventory'
-        const stockStr = localStorage.getItem(stockKey)
-        if (stockStr) {
-          const items = JSON.parse(stockStr)
-          const idx = items.findIndex((i: any) => i.element_code === qcCode.toUpperCase().trim())
-          if (idx !== -1) {
-            items[idx].status = 'Rejected'
-            items[idx].remarks = 'QC Check FAILED'
-            localStorage.setItem(stockKey, JSON.stringify(items))
-          }
+        const { data: stockRow } = await supabase.from('stockyard_inventory').select('id').eq('element_code', code).maybeSingle()
+        if (stockRow) {
+          await updateAudited('stockyard_inventory', stockRow.id, {
+            status: 'Rejected',
+            remarks: 'QC Check FAILED'
+          }, userEmail, 'QC failed')
         }
       }
 

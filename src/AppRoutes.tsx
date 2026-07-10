@@ -22,11 +22,13 @@ const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const QrScannerPage = lazy(() => import('./pages/QrScannerPage'))
 const ModuleWorkspace = lazy(() => import('./components/erp/ModuleWorkspace'))
 const CastingSchedulePage = lazy(() => import('./pages/CastingSchedulePage'))
+const CastBedPlanPage = lazy(() => import('./pages/CastBedPlanPage'))
 const GatePassPage = lazy(() => import('./pages/GatePassPage'))
 const ProjectAutoImportPage = lazy(() => import('./pages/ProjectAutoImportPage'))
 const ReportsHubPage = lazy(() => import('./pages/ReportsHubPage'))
 const PermissionsPage = lazy(() => import('./pages/PermissionsPage'))
-const BackupPage = lazy(() => import('./pages/BackupPage'))
+const HSEDashboardPage = lazy(() => import('./pages/HSEDashboardPage'))
+const WorkforceDashboardPage = lazy(() => import('./pages/WorkforceDashboardPage'))
 
 const PageLoader = () => (
   <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
@@ -36,9 +38,6 @@ const PageLoader = () => (
 
 export default function AppRoutes(){
   const [mobileOpen, setMobileOpen] = useState(false)
-
-  const ALL = ["viewer","controller","admin"]
-  const OPS = ["controller","admin"]
 
   return (
     <AuthProvider>
@@ -51,7 +50,7 @@ export default function AppRoutes(){
           <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
           {/* Main Layout Area */}
-          <div className="flex-grow flex flex-col md:pl-64 min-w-0 min-h-screen">
+          <div className="flex-grow flex flex-col md:pl-64 print:pl-0 min-w-0 min-h-screen">
 
             {/* Top mobile header bar (Visible only on mobile screen sizes) */}
             <header className="flex md:hidden items-center justify-between px-4 py-3 bg-white dark:bg-[#0c0c0f] border-b border-slate-200 dark:border-red-500/10 z-30 no-print">
@@ -70,18 +69,18 @@ export default function AppRoutes(){
             </header>
 
             {/* Sub-page router body */}
-            <main className="flex-grow p-4 md:p-6 z-10 w-full max-w-7xl mx-auto box-border overflow-x-hidden">
+            <main className="flex-grow p-4 md:p-6 print:p-0 z-10 w-full max-w-7xl print:max-w-none mx-auto print:mx-0 box-border overflow-x-hidden">
               <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<ProtectedRoute allowedRoles={ALL}><Dashboard /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminPanel /></ProtectedRoute>} />
-                <Route path="/entry" element={<ProtectedRoute allowedRoles={OPS}><ControllerEntry /></ProtectedRoute>} />
-                <Route path="/dispatch" element={<ProtectedRoute allowedRoles={OPS}><ControllerEntry defaultTab="dispatch" /></ProtectedRoute>} />
-                <Route path="/fleet" element={<ProtectedRoute allowedRoles={OPS}><ControllerEntry defaultTab="fleet" /></ProtectedRoute>} />
-                <Route path="/import" element={<ProtectedRoute allowedRoles={["admin"]}><CsvImport /></ProtectedRoute>} />
-                <Route path="/delivery-note" element={<ProtectedRoute allowedRoles={OPS}><DeliveryNotePage /></ProtectedRoute>} />
-                <Route path="/reports" element={<ProtectedRoute allowedRoles={ALL}><DeliveryReportPage /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute section="dashboard"><Dashboard /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute section="admin"><AdminPanel /></ProtectedRoute>} />
+                <Route path="/entry" element={<ProtectedRoute section="dispatch"><ControllerEntry /></ProtectedRoute>} />
+                <Route path="/dispatch" element={<ProtectedRoute section="dispatch"><ControllerEntry defaultTab="dispatch" /></ProtectedRoute>} />
+                <Route path="/fleet" element={<ProtectedRoute section="logistics"><ControllerEntry defaultTab="fleet" /></ProtectedRoute>} />
+                <Route path="/import" element={<ProtectedRoute section="admin"><CsvImport /></ProtectedRoute>} />
+                <Route path="/delivery-note" element={<ProtectedRoute section="dispatch"><DeliveryNotePage /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute section="reports"><DeliveryReportPage /></ProtectedRoute>} />
 
                 {/* Legacy tabbed module pages (kept — linked from new nav).
                     /planning and /master were retired in the data-model
@@ -89,21 +88,23 @@ export default function AppRoutes(){
                     registry modules and Casting Schedule. */}
                 <Route path="/planning" element={<Navigate to="/casting-schedule" replace />} />
                 <Route path="/master" element={<Navigate to="/m/projects" replace />} />
-                <Route path="/production" element={<ProtectedRoute allowedRoles={ALL}><ProductionPage /></ProtectedRoute>} />
-                <Route path="/stockyard" element={<ProtectedRoute allowedRoles={ALL}><StockyardPage /></ProtectedRoute>} />
-                <Route path="/logistics/planning" element={<ProtectedRoute allowedRoles={ALL}><LogisticsPlanningPage /></ProtectedRoute>} />
-                <Route path="/maintenance" element={<ProtectedRoute allowedRoles={ALL}><MaintenancePage /></ProtectedRoute>} />
-                <Route path="/qr-scanner" element={<ProtectedRoute allowedRoles={ALL}><QrScannerPage /></ProtectedRoute>} />
+                <Route path="/production" element={<ProtectedRoute section="production"><ProductionPage /></ProtectedRoute>} />
+                <Route path="/stockyard" element={<ProtectedRoute section="stockyard"><StockyardPage /></ProtectedRoute>} />
+                <Route path="/logistics/planning" element={<ProtectedRoute section="dispatch"><LogisticsPlanningPage /></ProtectedRoute>} />
+                <Route path="/maintenance" element={<ProtectedRoute section="maintenance"><MaintenancePage /></ProtectedRoute>} />
+                <Route path="/qr-scanner" element={<ProtectedRoute section="stockyard"><QrScannerPage /></ProtectedRoute>} />
 
-                {/* Unified ERP framework */}
-                <Route path="/m/:moduleId" element={<ProtectedRoute allowedRoles={ALL}><ModuleWorkspace /></ProtectedRoute>} />
-                <Route path="/casting-schedule" element={<ProtectedRoute allowedRoles={ALL}><CastingSchedulePage /></ProtectedRoute>} />
-                <Route path="/gate-pass" element={<ProtectedRoute allowedRoles={ALL}><GatePassPage /></ProtectedRoute>} />
-                <Route path="/project-import" element={<ProtectedRoute allowedRoles={OPS}><ProjectAutoImportPage /></ProtectedRoute>} />
-                <Route path="/reports-hub" element={<ProtectedRoute allowedRoles={ALL}><ReportsHubPage /></ProtectedRoute>} />
-                <Route path="/permissions" element={<ProtectedRoute allowedRoles={["admin"]}><PermissionsPage /></ProtectedRoute>} />
-                <Route path="/backup" element={<ProtectedRoute allowedRoles={["admin"]}><BackupPage /></ProtectedRoute>} />
-
+                {/* Unified ERP framework — auth-only at the route; ModuleWorkspace
+                    gates view/create/edit/delete by the module's own section. */}
+                <Route path="/m/:moduleId" element={<ProtectedRoute><ModuleWorkspace /></ProtectedRoute>} />
+                <Route path="/casting-schedule" element={<ProtectedRoute section="planning"><CastingSchedulePage /></ProtectedRoute>} />
+                <Route path="/cast-bed-plan" element={<ProtectedRoute section="planning"><CastBedPlanPage /></ProtectedRoute>} />
+                <Route path="/gate-pass" element={<ProtectedRoute section="dispatch"><GatePassPage /></ProtectedRoute>} />
+                <Route path="/project-import" element={<ProtectedRoute section="planning"><ProjectAutoImportPage /></ProtectedRoute>} />
+                <Route path="/reports-hub" element={<ProtectedRoute section="reports"><ReportsHubPage /></ProtectedRoute>} />
+                <Route path="/permissions" element={<ProtectedRoute section="admin"><PermissionsPage /></ProtectedRoute>} />
+                <Route path="/hse" element={<ProtectedRoute section="hse"><HSEDashboardPage /></ProtectedRoute>} />
+                <Route path="/workforce" element={<ProtectedRoute section="workforce"><WorkforceDashboardPage /></ProtectedRoute>} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
               </Suspense>

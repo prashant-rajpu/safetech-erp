@@ -41,30 +41,32 @@ export async function deleteAudited(table: string, id: string, userEmail: string
 }
 
 // ── Import rollback support ──────────────────────────────────────────────────
-// Snapshot the physical localStorage table before a bulk import; restoring
-// brings back the exact pre-import state.
+// Snapshot the table (via the import_snapshots table) before a bulk import;
+// restoring brings back the exact pre-import state via a server-side atomic
+// function (see db/import_snapshots.sql — delete-all + reinsert must not
+// partially apply, so it runs as one transaction in Postgres, not two
+// separate client round-trips).
 
-export function snapshotTable(table: string) {
-  const cur = localStorage.getItem(`mock_db_${table}`) || '[]'
-  localStorage.setItem(`mock_snapshot_${table}`, cur)
-  localStorage.setItem(`mock_snapshot_${table}_at`, nowStamp())
+export async function snapshotTable(table: string, userEmail: string) {
+  const rows = await fetchRows(table)
+  await supabase.from('import_snapshots').upsert([{
+    table_name: table, rows, snapshot_by: userEmail || 'system'
+  }], { onConflict: 'table_name' })
 }
 
-export function hasSnapshot(table: string): boolean {
-  return localStorage.getItem(`mock_snapshot_${table}`) !== null
+export async function hasSnapshot(table: string): Promise<boolean> {
+  const { data } = await supabase.from('import_snapshots').select('table_name').eq('table_name', table).maybeSingle()
+  return !!data
 }
 
-export function snapshotInfo(table: string): string | null {
-  return localStorage.getItem(`mock_snapshot_${table}_at`)
+export async function snapshotInfo(table: string): Promise<string | null> {
+  const { data } = await supabase.from('import_snapshots').select('snapshot_at').eq('table_name', table).maybeSingle()
+  return data?.snapshot_at ?? null
 }
 
-export function restoreSnapshot(table: string): boolean {
-  const snap = localStorage.getItem(`mock_snapshot_${table}`)
-  if (snap === null) return false
-  localStorage.setItem(`mock_db_${table}`, snap)
-  localStorage.removeItem(`mock_snapshot_${table}`)
-  localStorage.removeItem(`mock_snapshot_${table}_at`)
-  return true
+export async function restoreSnapshot(table: string): Promise<boolean> {
+  const { error } = await supabase.rpc('restore_snapshot_table', { p_table: table })
+  return !error
 }
 
 // ── System settings (company identity for printed documents) ────────────────

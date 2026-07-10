@@ -1,0 +1,722 @@
+SAFETECH PRECAST ERP — PROGRESS LOG
+Last updated: 2026-07-10 (v2 Phases 1-3 complete + beds/moulds/projects master data populated)
+
+=====================================================================
+STACK / ENVIRONMENT
+=====================================================================
+- React 18 + TypeScript + Vite 5 + Tailwind CSS. Dark-theme red/black
+  glassmorphism design system (glass-panel, glass-card-3d, glowing-input,
+  btn-interactive, concrete-accent-*, glow-text-*, status-live,
+  warning-card, safety-accent, rev-badge). App is light-by-default at the
+  CSS level — every custom style must ship both light and dark: variants.
+- Supabase (Postgres + Auth + RLS). Project ref umlrgsozzjjbwjonziid,
+  URL https://umlrgsozzjjbwjonziid.supabase.co
+- Canonical source: /mnt/Gemini Cli/build (git repo, Android SD-card mount,
+  cannot run node natively — symlink restrictions).
+  Toolchain copy: /root/build (ext4, where npm/vite/tsc actually run).
+  Sync via tar, NOT cp/rsync with cd (caused failed syncs earlier):
+    tar -cf /root/syncN.tar -C "<src>" --exclude=node_modules --exclude=.git --exclude=dist .
+    tar -xf /root/syncN.tar -C /root/build
+    rm -f /root/syncN.tar
+  Always edit BOTH copies (or edit one, then sync) — changes must exist in
+  both before considering a task done.
+- CLAUDE.md lives at /mnt/Gemini Cli/build/CLAUDE.md and /root/build/CLAUDE.md
+  — permanent dev context, scope boundaries, and the module target list.
+  Its own rule: "Never continue automatically. Wait for approval before
+  starting the next phase."
+- LAN dev server: scripts/dev-lan.sh (kills/restarts via
+  `pkill -f "vite --host"` then `sh scripts/dev-lan.sh` if the sidebar/nav
+  doesn't pick up changes — Vite's watcher has been observed to silently
+  miss edits to widely-imported files like registry.ts).
+- Login: admin@safetech.ae / SafetechPhase2!  (also supervisor/controller/
+  viewer/production-dept test users — see db/seed_test_users.sql)
+- Claude Design project synced: "Safetech Precast ERP",
+  projectId b09fcd1c-6cca-4d27-9b9e-f6bf00501631 (7 components synced,
+  3 with authored previews). NOT re-synced since HSE/Workforce work —
+  would need another /design-sync pass if new components should appear
+  there.
+
+=====================================================================
+DONE — VERIFIED COMPLETE
+=====================================================================
+1. Applied db/init.sql, db/erp_schema.sql, db/rls_policies.sql to Supabase.
+   db/phase2_acceptance.sh passing 7/7.
+
+2. CLAUDE.md permanent context document authored and saved.
+
+3. Earlier-session audit: removed localStorage/mock-DB usage across the
+   codebase per CLAUDE.md's "single source of truth, no localStorage
+   fallback, no mock database" rule.
+
+4. /design-sync run — synced 7 real components to the Claude Design
+   project above.
+
+5. LAN hosting set up (scripts/dev-lan.sh), credentials provided.
+
+6. Delivery Note / Delivery Report print-CSS fully debugged and fixed.
+   Both now print as exactly 1 page (verified via Playwright
+   page.pdf({preferCSSPageSize:true}) + pdftoppm PNG inspection).
+   Key fixes: @page size/margin injection, fixed mm heights (h-[297mm]
+   not min-h), print:break-inside-avoid, print:pl-0/p-0/max-w-none/mx-0
+   on the shared layout wrapper, empirically-tuned page heights
+   (print:h-[288mm] for Note, print:h-[411mm] for Report A3 view,
+   print:h-[288mm] for Report traceability view).
+   NOTE: traceability sub-view was not independently re-verified with
+   real test data — spot-check if it becomes relevant again.
+
+7. PHASE 1 ERP EXPANSION — "HSE + Workforce modules + ModuleWorkspace
+   usability upgrade" (this was scoped as MY OWN prioritization from an
+   open-ended "do all further required developments" instruction — see
+   the approved plan for full reasoning). FULLY COMPLETE AND VERIFIED:
+
+   a) DB migration db/hse_workforce.sql — applied live. 9 new tables,
+      all with created_at/updated_at/created_by/updated_by (the standard
+      the 58 PRE-EXISTING tables do NOT follow — see gap list below):
+        hse_incidents, toolbox_talks, risk_assessments, hse_permits,
+        safety_audits, crew_members, crew_assignments, shift_schedules,
+        certifications (shared between HSE "Certifications" and
+        Workforce "Certification Tracking" via cert_category column).
+      RLS: per-(table,section) policies via has_permission(), NOT the
+      placeholder "authenticated full access" policy the old tables use.
+      RBAC seeded: admin full; supervisor full CRUD both sections;
+      controller/viewer view-only; production dept gets workforce edit.
+      Verified via list_tables / get_advisors(security) — no new warnings.
+
+   b) registry.ts: SectionKey extended with 'hse' | 'workforce'. 9 new
+      ModuleDef entries added to MODULES[] (full CRUD via the generic
+      /m/:moduleId route — zero new component code needed). 2 new
+      NAV_SECTIONS entries inserted between qaqc and stockyard.
+
+   c) New pages: HSEDashboardPage.tsx (/hse) and
+      WorkforceDashboardPage.tsx (/workforce) — KPI cards, Recharts donut
+      charts, AlertsPanel, MiniTable, matching Dashboard.tsx's established
+      "good design" pattern. Routed + ProtectedRoute-gated in
+      AppRoutes.tsx.
+
+   d) DashboardWidgets.tsx (new file) — extracted SectionTitle/MiniTable
+      out of Dashboard.tsx so HSE/Workforce dashboards can reuse them.
+
+   e) ModuleWorkspace.tsx usability upgrade — benefits ALL ~55 modules,
+      old and new:
+        - per-column filter row (in addition to existing global search)
+        - bulk actions: checkbox column, bulk delete, bulk status-update
+        - inline status quick-edit (click a status chip to edit in place,
+          skips the full modal for the most common edit)
+        - responsive card view below md breakpoint (was horizontal-scroll
+          table only before)
+        - table text bumped ~9-10px -> ~11.5px, more cell padding
+
+   f) Sidebar.tsx — nav search box added (filters sections/items live),
+      auto-expands sections that match a search.
+
+   g) BUG FOUND AND FIXED (this is a real product bug, not new-module-
+      specific — affects every module with an optional date field):
+      ModuleWorkspace.tsx's saveForm() sent empty string '' for blank
+      fields. Postgres date columns reject '' (only NULL or a valid date
+      literal are legal) -> insert failed with
+      `22007 invalid input syntax for type date: ""`. Fixed by coercing
+      blank date-typed fields to null before the insert/update payload
+      is built. Fixed in BOTH /root/build and the canonical mount copy.
+
+   h) End-to-end Playwright verification against the LIVE LAN dev server
+      (Chrome extension not connected this session, so all UI
+      verification this whole session was via Playwright, launched from
+      /root/build/.ds-sync/node_modules/playwright/index.mjs):
+        - tsc --noEmit clean
+        - vite build succeeds
+        - RLS acceptance spot-check: viewer read-only / write-denied,
+          supervisor write-allowed, admin has_permission() true — all as
+          expected for both new sections
+        - Created a real hse_incidents record through the Add-Record
+          modal -> confirmed it appears in the table
+        - Inline status quick-edit -> confirmed status changed
+        - Bulk select + bulk delete -> confirmed row removed
+        - Responsive mobile card view, light theme, sidebar nav search —
+          all screenshot-verified correct
+
+   DEFERRED FROM PHASE 1 (explicitly, not forgotten):
+     - Prestressing, Document Control, Customer Handover, Sustainability
+       modules (4 of CLAUDE.md's 17 target categories still fully unbuilt
+       at the time Phase 1 was scoped)
+     - Retrofitting updated_at/created_by/updated_by onto the 58
+       PRE-EXISTING tables (only created_at today)
+     - init.sql / erp_schema.sql duplicate-table-definition cleanup
+     - Full mobile-first redesign beyond the ModuleWorkspace card fallback
+     - Converting existing text-typed date columns to real date/timestamptz
+   (NOTE: the audit-column retrofit and the 4 modules above are now DONE
+   as of the v2 Phase 1 entry below — see item 8.)
+
+8. V2 ROADMAP — PHASE 1: "Core Data Spine" (schema + RLS/permissions fix).
+   User pasted a new 8-phase roadmap ("Full Execution Plan v2") and
+   directed: (a) treat it as the new roadmap superseding the ad-hoc
+   Phase 1/2 framing above (HSE/Workforce fold in as its own "Phase 5",
+   already done); (b) start with this plan's own Phase 1; (c) since the
+   plan referenced "18 missing tables" without ever listing them, DERIVE
+   the real list by cross-referencing the v2 module names + CLAUDE.md's
+   17 categories against the live schema, rather than trust the figure.
+   FULLY COMPLETE AND VERIFIED:
+
+   a) DERIVATION (before writing any code): pulled the authoritative
+      table list straight from db/*.sql (grep for `create table`) instead
+      of trusting the registry or the "18" figure. Found 3 tables the v2
+      plan's LATER phases would have needed that ALREADY EXIST —
+      production_casting (Phase 2), element_traceability (Phase 3),
+      maintenance_logs (generic equipment log) — creating them would have
+      duplicated live data. The real gaps were whole CATEGORIES with zero
+      tables: Prestressing (§11), Site Erection (§8), plant-Maintenance
+      (§9, partial — maintenance_logs already covers breakdown/general),
+      Document Control (§12), Customer Handover/DLP (§14), Environmental/
+      Sustainability (§15). User then chose (via AskUserQuestion): create
+      ALL missing tables now (not just spine-critical ones), AND fold the
+      RLS/audit-column retrofit into this same migration.
+
+   b) CORRECTION mid-build: the plan assumed the 58 pre-existing tables
+      were still on the placeholder "authenticated full access" RLS
+      policy. Reading db/rls_policies.sql showed that was already
+      replaced with real has_permission() policies for EVERY table
+      (applied in an earlier session — db/phase2_acceptance.sh 7/7 was
+      the tell). So the only genuine existing-table gap was the missing
+      audit columns, not RLS. Dropped the redundant RLS-rewrite step
+      rather than duplicate ~150 lines of already-correct policy logic.
+
+   c) DB migration db/phase1_data_spine.sql — applied live via the
+      Supabase MCP (see "MCP AUTH" note below for how that got unstuck).
+      Idempotent (create table if not exists / add column if not exists
+      throughout — safe to re-run, no data loss risk even against live
+      data: elements had 26 rows, deliveries 961 rows, before the run).
+        1. Audit-column retrofit: a generic do $$ loop over
+           information_schema.tables adds updated_at/created_by/
+           updated_by to EVERY existing public table that lacks them —
+           the full 58-table gap from the old Phase 1 deferred list,
+           closed in one idempotent pass, no table hand-listed.
+        2. elements.shape_type added (Box/Solid Wall/Hollow-core/Beam/
+           Column/Panel/Slab/Stairs/Custom) — the field Phase 6's 3D
+           renderer will need to pick element geometry. elements' RLS
+           was already real, untouched.
+        3. 22 new tables across 6 new sections:
+             prestressing: pt_strands, pt_tensioning, pt_release,
+               pt_long_line_plans
+             erection: erection_planning, erection_log,
+               grouting_records, connection_inspections
+             maintenance: equipment_register, preventive_maintenance,
+               calibration_records (+ reused existing maintenance_logs,
+               re-sectioned — see (d))
+             documents: rfi_register, method_statements, submittals
+             handover: handover_packages, dlp_records, handover_defects,
+               customer_acceptance
+             environmental: carbon_records, waste_records, water_records,
+               environmental_reports
+           Explicitly NOT created (avoids CLAUDE.md scope/dup violations):
+           Spare Parts / raw-material stock tables (inventory-valuation-
+           adjacent, out of scope); no new Batching/Formwork master
+           tables (concrete_batches / moulds already cover those module
+           names — v2's naming just didn't match the existing schema).
+        4. RLS: same dynamic drop-and-recreate (table,section) loop
+           pattern as rls_policies.sql/hse_workforce.sql, reusing
+           has_permission() — for all 22 new tables + maintenance_logs.
+        5. RBAC seed for the 6 new sections: admin full CRUD+approve;
+           supervisor full CRUD on prestressing/erection/maintenance
+           (shop-floor daily work); controller/viewer view-only on all
+           six; documents/handover/environmental additionally granted to
+           design dept (documents) and management dept (handover,
+           environmental) — narrower than the operational sections since
+           these are office-driven, not daily shop-floor work.
+
+   d) maintenance_logs RE-SECTIONED from 'logistics' to the new
+      'maintenance' section (it's a generic equipment log, not fleet-
+      specific — belongs with the new category, not duplicated).
+      Consistently updated in 3 places so nothing drifts out of sync:
+      src/lib/erp/tableSections.ts (EXTRA_TABLE_SECTIONS), the migration's
+      RLS loop, and src/AppRoutes.tsx's /maintenance route
+      (ProtectedRoute section="logistics" -> "maintenance"). RBAC seed
+      grants logistics dept edit on the new 'maintenance' section so it
+      keeps the access it had before the move (no regression).
+
+   e) registry.ts: SectionKey extended with 6 new keys (prestressing,
+      erection, maintenance, documents, handover, environmental). 22 new
+      ModuleDef entries (full CRUD via /m/:moduleId, zero new component
+      code). shape_type select field added to the Element Register
+      module. 6 new NAV_SECTIONS entries in lifecycle order (Prestressing
+      after Production; Site Erection + Maintenance after Logistics;
+      Document Control/Customer Handover/Environmental before Reports).
+
+   f) MCP AUTH: the Supabase MCP was disconnected for most of this phase
+      (apply_migration/execute_sql/list_tables/get_advisors all
+      unavailable). First re-auth attempt failed with a real OAuth error
+      ("Unrecognized client_id" — a broken client registration, not a
+      transient issue). User then tried sharing raw credentials directly
+      in chat (a live sb_secret_ Data API key, then a sb_publishable_
+      key) — REFUSED to use these: (1) a Bash command embedding the
+      literal secret got auto-blocked by the environment's safety
+      classifier as credential leakage before it could run; (2) even if
+      usable, PostgREST Data API keys of either tier cannot execute raw
+      DDL (create table/alter table/do $$ blocks) — that capability
+      doesn't exist over that API regardless of key privilege. Advised
+      the user to rotate both keys since they're now in the chat
+      transcript. Installed `psql` via apt-get as a Plan-C fallback
+      (never used — user said "retry" instead). The SECOND MCP
+      authenticate() call generated a fresh client_id/redirect port and
+      that one worked — user completed the browser OAuth flow and pasted
+      the localhost callback URL back, MCP reconnected cleanly. Lesson
+      for future sessions: if Supabase MCP auth fails with "unrecognized
+      client_id", retrying authenticate() (not complete_authentication on
+      the stale URL) gets a fresh registration that may succeed.
+
+   g) VERIFICATION (all passed):
+        - tsc --noEmit clean, vite build clean (before applying the
+          migration).
+        - Post-migration list_tables: all 22 new tables present, RLS
+          enabled on every one. role_permissions +24 rows (6 sections x
+          4 roles, exact match), department_permissions +4 rows (exact
+          match).
+        - get_advisors(security): zero NEW warnings — every flagged item
+          (audit_logs unrestricted insert, several SECURITY DEFINER
+          functions, leaked-password protection) is pre-existing and
+          unrelated to this migration.
+        - pg_policies spot-check: 4 CRUD policies (SELECT/INSERT/UPDATE/
+          DELETE) confirmed present on 8 sampled tables incl. elements
+          (proves its pre-existing RLS was untouched) and maintenance_logs
+          (proves the re-section applied).
+        - Playwright E2E against the LIVE LAN dev server (11/11 checks
+          passed): admin login; all 6 new sidebar sections render; nav
+          search finds "RFI Register"; created a real record in
+          pt_tensioning through the Add-Record modal and confirmed it
+          lists; same for rfi_register; Element Register form shows the
+          new "Shape" field. Test records deleted afterward via
+          execute_sql — live tables confirmed back to 0 rows.
+        - Dev server was restarted (registry.ts is the known HMR-flaky
+          file) using the Bash tool's run_in_background flag — a manual
+          `nohup ... &` attempt died silently first; run_in_background
+          is the reliable way to background scripts/dev-lan.sh in this
+          harness.
+
+   DEFERRED FROM V2 PHASE 1 (explicitly, not forgotten):
+     - Text-typed date columns (planned_cast_date, cast_date,
+       qr_generated_at, and the same pattern across most pre-existing
+       tables) still NOT converted to real date/timestamptz — existing
+       rows may hold non-parseable text; app's date handling already
+       tolerates text; not worth the data-migration risk in this pass.
+     - init.sql / erp_schema.sql duplicate-table-definition cleanup.
+     - All rich/custom UI for the 6 new sections (dashboards, KPI cards,
+       bespoke workflows like Dashboard.tsx/HSEDashboardPage.tsx) — the
+       22 new modules are generic CRUD only right now, by design; custom
+       UIs are v2 Phases 2-8, not Phase 1's job.
+     - The design-system conflict (next section) — still open, still not
+       needed until Phase 7.
+
+9. V2 ROADMAP — PHASE 2: Production Planning ("Cast Bed Plan"). Exploration
+   corrected the premise first: production_casting is NOT unused —
+   ProductionPage.tsx already has a working per-element casting-log UI
+   writing to it with real downstream cascades. What was actually missing
+   was a spatial/temporal SCHEDULING VISUALIZATION. The right entity to
+   visualize is `casting_schedule` (schedule_date/shift/bed/status),
+   which already had a full form+list UI in CastingSchedulePage.tsx
+   (route /casting-schedule) with the complete lifecycle (Scheduled → QR
+   Generated → In Progress → Completed/Cancelled) and correct downstream
+   cascades. No 2D grid/calendar/drag-drop pattern existed anywhere in
+   the codebase, and no dnd library was installed. FULLY COMPLETE AND
+   VERIFIED:
+
+   a) User decisions (via AskUserQuestion): build Cast Bed Plan as a
+      SEPARATE new page (own route/nav entry) rather than a view-toggle
+      on CastingSchedulePage.tsx — keeps that proven, shipped page
+      completely untouched, zero regression risk on it. Add
+      @dnd-kit/core + @dnd-kit/utilities as new deps (purpose-built
+      draggable/droppable with real collision detection) rather than
+      hand-rolling pointer-math on framer-motion. Leave the orphaned,
+      unrouted dead-code file src/pages/CastingLogPage.tsx untouched
+      (found during exploration, noted here as a future cleanup item,
+      out of scope for this phase).
+
+   b) New shared utility src/lib/erp/elementCodes.ts: extracted the
+      plant element-code generation algorithm (00-<MARK><NN>-<YYMM>M-
+      <serial>) out of CastingSchedulePage.tsx as a pure function
+      generateElementCodes(drawing, qty, existingCodes, drawings) — the
+      ONE piece of real business logic that must not fork between the
+      old page and the new one. CastingSchedulePage.tsx was updated to
+      import it (the only edit to that file — pure-function swap,
+      behavior-preserving, near-zero regression risk).
+
+   c) New page src/pages/CastBedPlanPage.tsx (self-contained, does not
+      import from CastingSchedulePage.tsx except the shared util):
+        - Grid: rows = production_beds ∪ moulds, columns = a navigable
+          7-day rolling window (Prev/Next/Today controls) with Day/Night
+          sub-cells per date — genuinely 2D (bed × date) with shift as a
+          compact third axis.
+        - Draggable cards (@dnd-kit useDraggable) = one per
+          casting_schedule row in its (bed, schedule_date, shift) cell.
+          Completed/Cancelled rows are locked (not draggable).
+        - Droppable cells (@dnd-kit useDroppable) — dropping a card on a
+          different cell calls updateAudited('casting_schedule', ...)
+          to reschedule bed/date/shift in one action, then reloads.
+        - Card click -> detail popover with the same action set as the
+          list view (Generate QR / Start Casting / Complete → Stockyard
+          / Cancel) — cascade logic on Completion (stockyard_inventory +
+          element_traceability inserts) copied verbatim from
+          CastingSchedulePage.tsx to keep it identical.
+        - Empty-cell click -> Quick Plan modal (project/drawing/qty/
+          remarks), pre-filled with that cell's bed/date/shift, using
+          the shared generateElementCodes + the same two-insert pattern
+          (elements then casting_schedule) as the existing page's form.
+        - KPI strip (Scheduled This Week / Beds In Use Today / Completed
+          This Week / Utilization %), matching the established
+          glass-card-3d tile style.
+      Routed at /cast-bed-plan (ProtectedRoute section="planning"),
+      sidebar entry added directly after "Casting Schedule" in the
+      Planning nav section.
+
+   d) IMPORTANT PRE-EXISTING GAP FOUND (not caused by this phase, but
+      discovered while verifying it): production_beds and moulds BOTH
+      have 0 rows in the live database, and all 3 existing
+      casting_schedule rows have bed="" as a result — meaning even the
+      OLD CastingSchedulePage.tsx's bed dropdown has always been empty
+      of real options. Separately, the only projects that have drawings
+      (P26010, P26011) have NO matching row in the `projects` master
+      table at all — so the project->drawing cascade in BOTH the old
+      form and the new Quick Plan modal can never resolve for a brand
+      new casting with the CURRENT seed data. Neither of these is a bug
+      in this phase's code (same cascade logic, deliberately kept
+      identical to the proven original) — they're missing/inconsistent
+      MASTER DATA that predates this session. The user will need to:
+        - populate production_beds / moulds via /m/production-beds and
+          /m/moulds (generic CRUD, already works) before the Cast Bed
+          Plan grid has any rows to show, and
+        - either add projects P26010/P26011 to the projects table, or
+          confirm those drawings' project_no values were a data-entry
+          mistake and should point at an existing project instead.
+      Flagged here rather than silently invented fictional master data.
+
+   e) VERIFICATION (all passed): tsc --noEmit clean, vite build clean
+      (CastBedPlanPage chunks separately, 53.57 kB). Playwright E2E
+      against the live LAN dev server, 11/11 checks: admin login; nav
+      search finds "Cast Bed Plan"; page loads with KPI strip; grid
+      renders 54+ empty droppable cells; Quick Plan modal opens/wires
+      correctly on an empty-cell click (full insert path not exercised
+      live due to the seed-data gap in (d), but shares the exact
+      insert shape already proven in CastingSchedulePage.tsx); a
+      schedule row temporarily pointed at a test bed (via execute_sql,
+      reverted after) rendered as a card in the correct cell; the
+      detail popover opened on card click; a REAL mouse-drag gesture
+      (pointer down -> move -> up, not just a synthetic event) moved a
+      card and was confirmed via direct SQL re-query to have actually
+      updated schedule_date in the database — the full drag pipeline
+      (drag -> onDragEnd -> updateAudited -> persisted write) is proven
+      working end-to-end, not just UI-deep. /casting-schedule confirmed
+      still loads correctly (regression check on the one shared-utility
+      edit). All test master-data (TEST-BED-1, TEST-MOULD-1) and the one
+      temporarily-modified pre-existing row were cleaned up / restored
+      to their exact original values afterward — confirmed via SQL
+      re-query that the database matches its pre-test state exactly.
+
+   DEFERRED FROM PHASE 2 (explicitly, not forgotten):
+     - CastingLogPage.tsx dead-code cleanup (noted, not touched).
+     - Month/multi-week calendar views (7-day rolling window only).
+     - A true "unscheduled backlog" panel (v1 covers reschedule-via-drag
+       + quick-plan-on-empty-cell only).
+     - Mobile/touch drag UX tuning (dnd-kit supports touch, but no
+       touch-specific polish was done).
+     - The production_beds/moulds/projects master-data gaps in (d) —
+       these are DATA issues for the user to resolve, not code.
+
+10. V2 ROADMAP — PHASE 3: Element Traceability (real scan + status/defect
+    logging). Exploration corrected the premise on two points: (a) QR
+    GENERATION already exists and works (CastingSchedulePage.tsx's
+    generateQr(), printed via the app's own dependency-free QR encoder,
+    lib/qr.ts — nothing to build there); (b) QrScannerPage.tsx
+    (/qr-scanner) already existed but its "scanning" was 100% fake — a
+    setTimeout animation, no camera, no barcode library anywhere in the
+    repo — and it was READ-ONLY, never writing anything. When no
+    element_traceability row existed for a scanned code, it silently
+    fell back to FABRICATED, hardcoded-looking-real timestamps,
+    presenting fake data as if it were a real trace. FULLY COMPLETE AND
+    VERIFIED:
+
+    a) Two more load-bearing findings from exploration: element_traceability
+       (11 bare text timestamp columns, no audit columns, no per-stage
+       user/department/status/remarks — CLAUDE.md's own documented
+       per-stage design was never actually implemented) is written by
+       THREE different pages (ProductionPage.tsx, CastingSchedulePage.tsx/
+       CastBedPlanPage.tsx, DeliveryNotePage.tsx) with NO unique
+       constraint on element_code — a latent duplicate-row bug that would
+       break QrScannerPage.tsx's .maybeSingle() lookup the moment two
+       writers touched the same element. Confirmed via direct query the
+       table was empty (0 rows) at the time, so fixable with a zero-risk
+       migration before it ever manifested. Also: erection_timestamp/
+       completed_timestamp are dead columns, written nowhere in the app.
+
+    b) User decisions (via AskUserQuestion): extend QrScannerPage.tsx IN
+       PLACE rather than build a separate page (its scanning was never
+       real, so unlike Phase 2's CastingSchedulePage.tsx there was no
+       proven behavior to protect). Add html5-qrcode as a new dependency
+       for real camera-based decoding (fully client-side, no runtime
+       network calls — consistent with the app's LAN-only QR module).
+       DEFER photo logging — no Supabase Storage precedent exists
+       anywhere in the codebase (confirmed via full-repo search), so
+       that's meaningfully separate scope saved for a later pass.
+
+    c) DB migration db/phase3_traceability.sql — applied live:
+         - New table traceability_events: the append-only per-stage
+           event log that actually fulfills CLAUDE.md's "every stage
+           records Timestamp/User/Department/Status/Remarks" design —
+           element_code, stage (11-value enum matching the full
+           CLAUDE.md lifecycle incl. At Site/Erected/Completed),
+           event_type (Scan/Status Update/Defect Reported), status,
+           defect_severity (Cosmetic/Minor/Major, reusing repair_works'
+           existing vocabulary), defect_description, remarks, logged_by,
+           department, full audit columns. RLS reuses the 'stockyard'
+           section has_permission() policies (same as element_traceability
+           today, since this is co-located functionality on one page).
+         - unique constraint on element_traceability.element_code —
+           closes the latent duplicate-row bug. Verified via
+           get_advisors(security): zero new warnings.
+
+    d) REQUIRED COMPANION FIX, caught during PLANNING (not left to
+       verification to discover): the new unique constraint would have
+       broken CastingSchedulePage.tsx's and CastBedPlanPage.tsx's
+       "Complete -> Stockyard" cascade, which did a BLIND .insert() into
+       element_traceability (unlike ProductionPage.tsx/DeliveryNotePage.tsx,
+       both of which already look up the existing row before writing —
+       verified firsthand by reading their exact call sites, not just
+       trusting the exploration summary). Both blind-insert call sites
+       switched to .upsert([...], {onConflict:'element_code'}) — a
+       one-line, behavior-preserving change per file. VERIFIED via a
+       direct SQL simulation of the exact collision scenario (a trace
+       row already existing, then the cascade's upsert running against
+       it): merged cleanly into one row with the new cascade fields
+       applied and the original planning_timestamp preserved — no error,
+       no duplicate. This was the precise scenario that would have
+       thrown before the fix.
+
+    e) New shared util src/lib/erp/elementTrace.ts: single
+       logTraceEvent(params) wrapping insertAudited('traceability_events',
+       ...) — mirrors the elementCodes.ts extraction pattern from Phase 2
+       (one small shared utility for the one piece of logic that must
+       stay consistent).
+
+    f) QrScannerPage.tsx extended in place:
+         - Real camera scan via html5-qrcode's Html5Qrcode class
+           (facingMode 'environment', started on a "Start Camera" button
+           tap rather than proactively grabbing permission on page load).
+           On decode, parses the payload exactly as manual entry already
+           did (split '|', token[1] = element_code, matching the
+           existing SPBM-EL|code|... convention) and reuses handleScan()
+           unchanged. Manual USB-gun/type entry stays fully functional
+           regardless of camera state — the honest fallback for
+           environments with no camera (incl. this sandboxed dev/test
+           environment).
+         - Fabricated element_traceability fallback REMOVED — a missing
+           trace row now shows an explicit "No traceability record found
+           for this element yet" banner instead of fake timestamps. (NOTE:
+           other fabricated demo data on this same page — QC checklist
+           defaults, a hardcoded '2026-06-29' curing-date reference,
+           fake driver/trailer names on delivery match — was found during
+           exploration but deliberately LEFT UNTOUCHED, out of this
+           phase's approved scope. Flagged here, not silently fixed, same
+           discipline as leaving CastingLogPage.tsx alone in Phase 2.)
+         - New logging actions on the profile card: "Update Status"
+           (stage + status, on submit logs a Status Update event AND
+           patches both elements.status and stockyard_inventory.status —
+           see the bug-fix note below) and "Report Defect" (stage +
+           severity + description, logs a Defect Reported event, no
+           status change). A "Recent Events" list renders
+           traceability_events for the scanned element, reverse-
+           chronological.
+         - Touch-friendly sizing (min-h-[44px] on interactive controls)
+           added for the new elements; the outer grid was already
+           grid-cols-1 lg:grid-cols-3 (correctly single-column on mobile
+           before this phase too — the real "mobile" gap was the lack of
+           real camera input, not the layout).
+         - BUG FOUND AND FIXED DURING VERIFICATION (real product bug, not
+           a test artifact): first E2E pass showed "Update Status"
+           updating elements.status but the profile card's visible status
+           chip not changing. Root cause: the chip reads from
+           profile.status, which is sourced from stockyard_inventory.status
+           — a DIFFERENT table than the one being patched. Fixed by also
+           patching stockyard_inventory.status (added profile.stockId,
+           captured from the same stockyard_inventory row already being
+           fetched). Re-verified after the fix: chip updates correctly.
+
+    g) VERIFICATION (all passed after the fix above): tsc --noEmit clean,
+       vite build clean (QrScannerPage chunk grew to 357 kB gzip 105 kB —
+       html5-qrcode's bundled decoder — but it's a separate lazy-loaded
+       route chunk, not part of the main bundle). Migration applied live,
+       traceability_events confirmed with 4 RLS policies, unique
+       constraint confirmed live, get_advisors(security) shows zero new
+       warnings. Playwright E2E against the live LAN dev server using
+       temporary test data (elements + stockyard_inventory rows,
+       clearly TEST-prefixed, deleted after): manual-entry scan resolves
+       a real profile; honest empty state renders (no fabricated trace);
+       Update Status logs the event AND updates the visible status chip;
+       Report Defect logs correctly; Recent Events renders both; Start
+       Camera fails gracefully in this camera-less sandboxed environment
+       without crashing the page (manual entry remains the proven
+       fallback path); mobile viewport (390x844) renders a usable
+       single-column layout. Separately verified via direct SQL: the
+       exact collision scenario the upsert fix was designed to prevent
+       (a pre-existing trace row + the cascade's upsert) merges cleanly
+       with no error. All test data (elements/stockyard_inventory/
+       traceability_events rows, plus a temporary collision-test row in
+       element_traceability) deleted afterward — confirmed via re-query.
+
+    DEFERRED FROM PHASE 3 (explicitly, not forgotten):
+      - Photo logging + Supabase Storage integration (explicit user
+        decision — no precedent exists anywhere in the codebase,
+        meaningfully separate scope).
+      - erection_timestamp/completed_timestamp on the wide
+        element_traceability table remain unpopulated — the new `stage`
+        enum on traceability_events covers the full lifecycle including
+        At Site/Erected/Completed going forward, so this isn't blocking,
+        just noting the old wide table's tail stays historically
+        incomplete.
+      - Other fabricated demo data on QrScannerPage.tsx (QC checklist
+        defaults, hardcoded curing-date reference, fake driver/trailer
+        names) — found during exploration, deliberately not touched,
+        out of this phase's scope. Worth a dedicated cleanup pass later.
+      - Reconciling element_traceability's schema with CLAUDE.md's full
+        per-stage spec beyond the new events table (would require
+        migrating three existing writers — out of scope here).
+
+11. MASTER-DATA POPULATION (production_beds/moulds/projects), at the
+    user's explicit request. Two of the three gaps flagged in items
+    9d/10a are now resolved:
+      - projects: inserted P26010 and P26011 as minimal, HONEST stub
+        records (project_name literally set to the project number
+        itself, e.g. project_name='P26010' — not a fabricated real-
+        sounding name) since drawings already reference these project
+        numbers but no master record existed. User explicitly chose
+        this over guessing real project names from the drawing-number
+        prefixes (DWG-MGT-.../DWG-AQV-...). Rename via /m/projects once
+        real names/clients are known.
+      - production_beds: 4 generic entries (Bed 1-4, two Long Line +
+        two Battery type, placeholder dimensions) — user explicitly
+        chose generic placeholders over providing real plant specs.
+      - moulds: 2 generic entries (Mould A/B).
+      Also surfaced a pre-existing SCHEMA DRIFT while inserting: the
+      live `projects` table has columns id/project_no/project_name/
+      location/active(boolean) + audit cols — it does NOT have the
+      client/consultant/status columns the registry.ts 'projects'
+      ModuleDef implies (those fields would silently no-op or error
+      if the Projects CRUD form tries to save them — NOT fixed here,
+      flagged as a separate future cleanup item, out of scope for a
+      data-population task).
+    Verified via Playwright: Cast Bed Plan grid now renders 6 real rows
+    (4 beds + 2 moulds) instead of the "No beds or moulds registered"
+    empty state — screenshot-confirmed.
+    STILL NOT POPULATED (not asked for this round): stockyard_inventory
+    is still empty, so QrScannerPage.tsx still can't resolve a real scan
+    yet — same category of gap, not yet addressed.
+
+=====================================================================
+V2 ROADMAP — REMAINING PHASES (context for continuation)
+=====================================================================
+
+NEW ROADMAP — Phase structure (8 phases total):
+  Phase 1: Core data spine — elements table gaps, "18 missing tables"
+           (list NOT actually provided — see reconciliation note below),
+           RLS/permissions fix on existing tables. Depends on: nothing.
+  Phase 2: Production planning — production_casting, Cast Bed Plan
+           (2D grid, drag-drop, calendar-linked). Depends on: Phase 1.
+  Phase 3: Element traceability — QR generation, mobile scan flow,
+           status/defect/photo logging. Depends on: Phase 1, 2.
+  Phase 4: Logistics — Stack Planning, Transport Planning,
+           Crane/Erection sequencing (list+table UI first).
+           Depends on: Phase 2, 3.
+  Phase 5: Nine new modules — Pre-Stress/PT, HSE(DONE), Formwork,
+           Batching, Maintenance, Document Control, Workforce
+           Scheduling(DONE), Handover/DLP, Environmental.
+           Depends on: Phase 1.
+  Phase 6: 3D Visualization layer (NEW addition vs. the user's original
+           plan) — Three.js/react-three-fiber element renderer:
+             - Cast Bed 3D view (elements on bed/mould, colored by status)
+             - Yard/Stack 3D view (colored by erection-readiness)
+             - Erection sequence simulation (step through erection IDs,
+               simplified crane capacity box, no real physics)
+           Explicit non-goals: no rebar/reinforcement 3D detail, no
+           Revit/Tekla/IFC import, no physics-based lift simulation.
+           Depends on: Phase 2, 3, 4.
+  Phase 7: Premium UI pass — design system enforcement, empty/loading
+           states, dashboard, mobile companion app shell.
+           Depends on: all above.
+  Phase 8: Reporting/analytics + final "no other software needed" gap
+           check (shop drawing viewer, cost estimation tied to
+           Batching/Raw Material, custom report builder, mobile
+           companion covering at least Element Control).
+           Depends on: all above.
+
+NEW DESIGN SYSTEM SPEC (locked in, restated in the pasted plan — NOTE:
+this is a DIFFERENT visual language than the red/black glassmorphism
+CLAUDE.md currently specifies and the app currently uses — this
+conflict has NOT been resolved/discussed with the user yet):
+  Base: concrete-grey #F4F4F2 bg / #1C1C1E text
+  Primary accent: blueprint-blue #1B4B8C
+  Alert accent: safety-orange #E8622C
+  Success (new): muted teal #2C7A6B
+  Headings: Space Grotesk. Data/codes/tables: IBM Plex Mono.
+  Grid metaphor: "Cast Bed Plan" grid used as the general layout language
+  Density: compact by default, "comfortable" toggle in settings
+  Icons: Lucide, one consistent set
+
+  *** OPEN CONFLICT NOT YET FLAGGED FOR RESOLUTION: CLAUDE.md says
+  "Always preserve existing UI/UX / branding ... Never redesign completed
+  pages unless absolutely necessary." The new plan's Phase 7 explicitly
+  calls for a different color system/typography than what's live today.
+  This needs an explicit decision from the user before Phase 7 starts:
+  is the new visual system replacing CLAUDE.md's red/black glass system,
+  or is it aspirational language from the other planning session that
+  should be reconciled back to the existing design system? ***
+
+SCHEMA STATUS as of v2 Phase 1 completion: `elements` now has shape_type
++ full audit columns + real RLS (all confirmed live). All 22 new tables
+across the 6 previously-empty categories exist with real RLS + RBAC.
+The "18 missing tables" figure from the original pasted plan turned out
+to be inaccurate once derived against the live schema (22 tables were
+actually needed; 3 tables the plan assumed missing already existed) —
+see item 8 above for the full derivation record.
+
+=====================================================================
+NEXT STEPS (in order)
+=====================================================================
+1. Phases 1, 2 AND 3 are DONE and their master-data blockers are now
+   PARTIALLY resolved (item 11 above): Cast Bed Plan now has real beds/
+   moulds to show, and new castings can reference P26010/P26011.
+   stockyard_inventory is STILL empty though, which still blocks
+   QrScannerPage.tsx from resolving any real scan — confirmed during
+   Phase 3 verification, same root-cause pattern as the beds/moulds gap
+   was before item 11. Worth populating this too, or seeding it
+   naturally by actually running a casting through Cast Bed Plan /
+   ProductionPage.tsx now that beds/moulds/projects exist.
+2. Per CLAUDE.md's "wait for approval before starting the next phase"
+   rule, get explicit sign-off on what's next: Phase 4 (logistics —
+   Stack Planning, Transport Planning, Crane/Erection sequencing;
+   depends on Phases 2+3, both done) and/or Phase 5's remaining
+   new-module UI work (the 22 Phase-1 tables are generic CRUD only right
+   now — richer dashboards for Prestressing/Erection/Maintenance/etc.
+   are still undone, same pattern as HSEDashboardPage.tsx/
+   WorkforceDashboardPage.tsx) and/or the photo-logging follow-up
+   deferred from Phase 3.
+3. Resolve the design-system conflict flagged above (red/black glass
+   vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
+   ask the user directly rather than guessing. Not urgent yet (Phase 7
+   is last in the dependency chain), but don't let it go unresolved.
+4. Remaining phases in order: Phase 4 (logistics, depends on 2+3, both
+   done), Phase 5 (finish the 6 new sections' custom UI + the 9
+   HSE/Workforce/Prestressing/etc. modules, depends on 1), Phase 6
+   (3D viz, depends on 2+3+4 — elements.shape_type is ready for it),
+   Phase 7 (UI pass — pending the conflict resolution above), Phase 8
+   (reporting/gap-check).
+
+=====================================================================
+KNOWN TROUBLESHOOTING NOTES (carry forward)
+=====================================================================
+- Vite dev server can silently fail to hot-reload changes to widely-
+  imported files (registry.ts is the confirmed case). Symptom: code is
+  correct on disk but the running app doesn't reflect it, no HMR log
+  line for that file. Fix: pkill -f "vite --host" then restart
+  scripts/dev-lan.sh.
+- Always sync BOTH /mnt/Gemini Cli/build and /root/build copies for any
+  edit — use tar with -C flags, never cd first (caused several failed/
+  reversed syncs earlier in the project).
+- Playwright is the only available UI verification method this session
+  (Chrome extension not connected). Installed at
+  /root/build/.ds-sync/node_modules/playwright/index.mjs from earlier
+  /design-sync work.

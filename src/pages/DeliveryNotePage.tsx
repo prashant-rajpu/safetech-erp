@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { useAuth } from '../lib/useAuth'
+import { updateAudited } from '../lib/erp/db'
 
 type DNItem = {
   sNo: number
@@ -31,6 +33,23 @@ const DEMO_ITEMS: DNItem[] = [
 ]
 
 export default function DeliveryNotePage() {
+  const { profile, user } = useAuth()
+  const userEmail = profile?.email || user?.email || ''
+
+  // The print template is sized in mm assuming A4 (w-[210mm] h-[297mm]) and
+  // fills the entire physical page edge-to-edge — .print-area already zeroes
+  // margin/padding (see tailwind.css) and the content div supplies its own
+  // breathing room via p-6. @page margin must stay 0: any non-zero margin
+  // steals usable print height the 297mm-tall box was never sized to give
+  // up, pushing content onto a spurious second page even though it fits
+  // exactly within one full-bleed A4 sheet.
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = '@page { size: A4 portrait; margin: 0; }'
+    document.head.appendChild(style)
+    return () => { style.remove() }
+  }, [])
+
   // Metadata States
   const [doNo, setDoNo] = useState('SP2544P00002')
   const [date, setDate] = useState('2026-06-29')
@@ -261,39 +280,24 @@ export default function DeliveryNotePage() {
       // --- AUTO-DISPATCH ELEMENTS FROM STOCKYARD INVENTORY ---
       for (const item of validItems) {
         const code = (item.elementCode || '').toUpperCase().trim()
-        const localKey = 'mock_db_stockyard_inventory'
-        const localData = localStorage.getItem(localKey)
-        if (localData) {
-          try {
-            const stockItems = JSON.parse(localData)
-            const matchIndex = stockItems.findIndex((s: any) => s.element_code === code)
-            if (matchIndex !== -1) {
-              stockItems[matchIndex].status = 'DISPATCHED'
-              stockItems[matchIndex].remarks = `Shipped on DN: ${doNo.includes('___') ? 'SP2544P-TEMP' : doNo}`
-              localStorage.setItem(localKey, JSON.stringify(stockItems))
-            }
-          } catch (err) {
-            console.error('Error auto-dispatching stockyard item:', err)
-          }
+
+        const { data: stockRow } = await supabase.from('stockyard_inventory').select('id').eq('element_code', code).maybeSingle()
+        if (stockRow) {
+          await updateAudited('stockyard_inventory', stockRow.id, {
+            status: 'DISPATCHED',
+            remarks: `Shipped on DN: ${doNo.includes('___') ? 'SP2544P-TEMP' : doNo}`
+          }, userEmail, 'auto-dispatched via delivery note')
         }
 
         // Update traceability timestamps
-        const traceKey = 'mock_db_element_traceability'
-        const traceData = localStorage.getItem(traceKey)
-        if (traceData) {
-          try {
-            const traces = JSON.parse(traceData)
-            const matchIdx = traces.findIndex((t: any) => t.element_code === code)
-            const currentTimestamp = `${date} 10:00`
-            if (matchIdx !== -1) {
-              traces[matchIdx].loading_timestamp = `${date} 06:30`
-              traces[matchIdx].dispatch_timestamp = `${date} 07:15`
-              traces[matchIdx].delivery_timestamp = currentTimestamp
-              localStorage.setItem(traceKey, JSON.stringify(traces))
-            }
-          } catch (err) {
-            console.error('Error updating traceability:', err)
-          }
+        const currentTimestamp = `${date} 10:00`
+        const { data: traceRow } = await supabase.from('element_traceability').select('id').eq('element_code', code).maybeSingle()
+        if (traceRow) {
+          await updateAudited('element_traceability', traceRow.id, {
+            loading_timestamp: `${date} 06:30`,
+            dispatch_timestamp: `${date} 07:15`,
+            delivery_timestamp: currentTimestamp
+          }, userEmail, 'traceability stamped via delivery note')
         }
       }
 
@@ -367,7 +371,7 @@ export default function DeliveryNotePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 print:gap-0 items-start">
         {/* LEFT COLUMN: Data Form (Inputs) */}
         <div className="xl:col-span-2 space-y-4 no-print">
           <div className="glass-panel rounded-2xl p-5 border border-white/5 shadow-xl space-y-4">
@@ -600,11 +604,11 @@ export default function DeliveryNotePage() {
             return (
               <div 
                 key={pageIdx} 
-                className="w-[210mm] min-h-[297mm] bg-white text-black p-6 font-sans border border-neutral-300 shadow-2xl relative flex flex-col justify-between text-xs leading-normal page-break mb-8 print:mb-0 print:border-none print:shadow-none overflow-hidden"
+                className="w-[210mm] h-[297mm] print:h-[288mm] bg-white text-black p-6 font-sans border border-neutral-300 shadow-2xl relative flex flex-col justify-between text-xs leading-normal page-break mb-8 print:mb-0 print:border-none print:shadow-none overflow-hidden"
               >
                 {/* Header Block */}
                 <div className="space-y-3.5">
-                  <div className="flex justify-between items-center border-b border-black pb-3">
+                  <div className="flex justify-between items-center border-b border-black pb-2">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 border border-black p-1 bg-black shrink-0 flex items-center justify-center">
                         <img src="/safetech_logo.png" alt="Logo" className="w-full h-full object-contain" />
@@ -625,37 +629,37 @@ export default function DeliveryNotePage() {
                   {/* Metadata Grid Table - Spacious and clean */}
                   <div className="grid grid-cols-2 border border-black divide-x divide-black text-[10px]">
                     <div className="divide-y divide-black">
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">D/O. No:</span>
                         <span className="font-semibold">{doNo || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Job / Project No.:</span>
                         <span className="font-semibold">{projectNo || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Project Name:</span>
                         <span className="font-semibold uppercase truncate max-w-[170px]">{projectName || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Requesting:</span>
                         <span className="font-semibold">{requesting || '____________________'}</span>
                       </div>
                     </div>
                     <div className="divide-y divide-black">
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Date:</span>
                         <span className="font-semibold">{formattedDate || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Station:</span>
                         <span className="font-semibold uppercase">{station || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Location:</span>
                         <span className="font-semibold uppercase">{location || '____________________'}</span>
                       </div>
-                      <div className="p-2 flex justify-between">
+                      <div className="p-1.5 flex justify-between">
                         <span className="font-extrabold">Mobile:</span>
                         <span className="font-semibold">{mobile || '____________________'}</span>
                       </div>
@@ -664,7 +668,7 @@ export default function DeliveryNotePage() {
                 </div>
 
                 {/* Elements Table - Capped at exactly 20 items. Spacious 22px rows and 9.5px readable text */}
-                <div className="my-4 flex-grow">
+                <div className="my-2">
                   <table className="w-full border-collapse border border-black text-[9.5px]">
                     <thead>
                       <tr className="bg-neutral-100 border-b border-black text-center font-extrabold text-[9.5px]">
@@ -684,28 +688,28 @@ export default function DeliveryNotePage() {
                         const globalSNo = pageIdx * 20 + idx + 1
                         
                         return (
-                          <tr key={idx} className="border-b border-black last:border-b-2 text-center h-[22px]">
-                            <td className="border-r border-black p-1 font-bold">{globalSNo}</td>
-                            <td className="border-r border-black p-1 text-left font-mono font-medium truncate max-w-[190px]">{item?.elementCode || ''}</td>
-                            <td className="border-r border-black p-1 text-left truncate max-w-[120px]">{item?.buildingType || ''}</td>
-                            <td className="border-r border-black p-1 text-left truncate max-w-[110px]">{item?.villaNo || ''}</td>
-                            <td className="border-r border-black p-1 font-semibold">{item?.volume || ''}</td>
-                            <td className="border-r border-black p-1 font-semibold">{item?.weight || ''}</td>
-                            <td className="p-1 font-extrabold">{item?.qty || ''}</td>
+                          <tr key={idx} className="border-b border-black last:border-b-2 text-center h-[20px]">
+                            <td className="border-r border-black py-0.5 px-1 font-bold">{globalSNo}</td>
+                            <td className="border-r border-black py-0.5 px-1 text-left font-mono font-medium truncate max-w-[190px]">{item?.elementCode || ''}</td>
+                            <td className="border-r border-black py-0.5 px-1 text-left truncate max-w-[120px]">{item?.buildingType || ''}</td>
+                            <td className="border-r border-black py-0.5 px-1 text-left truncate max-w-[110px]">{item?.villaNo || ''}</td>
+                            <td className="border-r border-black py-0.5 px-1 font-semibold">{item?.volume || ''}</td>
+                            <td className="border-r border-black py-0.5 px-1 font-semibold">{item?.weight || ''}</td>
+                            <td className="py-0.5 px-1 font-extrabold">{item?.qty || ''}</td>
                           </tr>
                         )
                       })}
                       
                       {/* Total / Subtotal Row */}
                       {isLastPage ? (
-                        <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[26px]">
+                        <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[24px]">
                           <td className="border-r border-black p-1.5 text-red-600 uppercase" colSpan={4}>GRAND TOTAL:</td>
                           <td className="border-r border-black p-1.5 text-red-600">{grandTotals.volume > 0 ? grandTotals.volume : ''}</td>
                           <td className="border-r border-black p-1.5 text-red-600">{grandTotals.weight > 0 ? grandTotals.weight : ''}</td>
                           <td className="p-1.5 text-red-600">{grandTotals.qty > 0 ? grandTotals.qty : ''}</td>
                         </tr>
                       ) : (
-                        <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[26px]">
+                        <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[24px]">
                           <td className="border-r border-black p-1.5 uppercase" colSpan={4}>PAGE SUBTOTAL (Carried Forward):</td>
                           <td className="border-r border-black p-1.5">{pageVolume > 0 ? Number(pageVolume.toFixed(2)) : ''}</td>
                           <td className="border-r border-black p-1.5">{pageWeight > 0 ? Number(pageWeight.toFixed(2)) : ''}</td>
@@ -717,9 +721,9 @@ export default function DeliveryNotePage() {
                 </div>
 
                 {/* Logistics, Driver details, and Signatures Row */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 border border-black divide-x divide-black p-2.5 bg-neutral-50/50 text-[10px] space-y-0">
-                    <div className="space-y-1">
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 border border-black divide-x divide-black p-1.5 bg-neutral-50/50 text-[10px] space-y-0">
+                    <div className="space-y-0.5">
                       <div className="flex justify-between">
                         <span className="font-extrabold">Driver's Name:</span>
                         <span className="font-semibold">{driverName || '____________________'}</span>
@@ -733,7 +737,7 @@ export default function DeliveryNotePage() {
                         <span className="font-semibold">{trailerType || '____________________'}</span>
                       </div>
                     </div>
-                    <div className="pl-3 space-y-1">
+                    <div className="pl-3 space-y-0.5">
                       <div className="flex justify-between">
                         <span className="font-extrabold">Trailer Head No:</span>
                         <span className="font-semibold">{trailerHead || '____________________'}</span>
@@ -746,25 +750,25 @@ export default function DeliveryNotePage() {
                   </div>
 
                   {/* Signatures Row */}
-                  <div className="grid grid-cols-5 gap-2 border-t border-black pt-3 text-center text-[9px] font-bold">
-                    <div className="space-y-5">
+                  <div className="grid grid-cols-5 gap-2 border-t border-black pt-2 text-center text-[9px] font-bold">
+                    <div className="space-y-3">
                       <span>QC Inspector</span>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[8px] font-normal">Signature / Date</div>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       <span>Foreman</span>
                       <div className="font-semibold text-neutral-800 text-[10px] truncate max-w-[70px]">{foreman}</div>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[8px] font-normal">Signature / Date</div>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       <span>Safety Officer</span>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[8px] font-normal">Signature / Date</div>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       <span>Logistics Incharge</span>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[8px] font-normal">Signature / Date</div>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-3">
                       <span>D/N Generated By</span>
                       <div className="font-semibold text-neutral-800 text-[10px] truncate max-w-[70px]">{dnGeneratedBy}</div>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[8px] font-normal">Signature / Date</div>
@@ -773,15 +777,15 @@ export default function DeliveryNotePage() {
 
                   {/* Security Checked block - 38px height */}
                   <div className="grid grid-cols-3 border border-black divide-x divide-black text-[9.5px] text-center bg-neutral-50/50">
-                    <div className="p-1 flex flex-col justify-between h-[38px]">
+                    <div className="p-1 flex flex-col justify-between h-[34px]">
                       <span className="font-extrabold uppercase text-[8px]">DN Type</span>
                       <span className="font-semibold text-red-600">{dnType || '____________________'}</span>
                     </div>
-                    <div className="p-1 flex flex-col justify-between h-[38px]">
+                    <div className="p-1 flex flex-col justify-between h-[34px]">
                       <span className="font-extrabold uppercase text-[8px]">Security Checker</span>
                       <span className="font-semibold">{securityName || '____________________'}</span>
                     </div>
-                    <div className="p-1 flex flex-col justify-between h-[38px]">
+                    <div className="p-1 flex flex-col justify-between h-[34px]">
                       <span className="font-extrabold uppercase text-[8px]">Security Checked Date / Time</span>
                       <span className="font-semibold">{securityDateTime || '____________________'}</span>
                     </div>
@@ -789,15 +793,15 @@ export default function DeliveryNotePage() {
 
                   {/* Site Delivery & Receipt Verification (Mandatory Logistics Enhancement) */}
                   <div className="grid grid-cols-4 border border-black divide-x divide-black text-[9.5px] bg-neutral-50/50">
-                    <div className="p-1.5 flex flex-col justify-between h-[52px]">
+                    <div className="p-1.5 flex flex-col justify-between h-[48px]">
                       <span className="font-extrabold uppercase text-[7.5px] block font-black">Driver Signature</span>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[7.5px] font-normal text-center mt-auto">Acknowledged by Driver</div>
                     </div>
-                    <div className="p-1.5 flex flex-col justify-between h-[52px]">
+                    <div className="p-1.5 flex flex-col justify-between h-[48px]">
                       <span className="font-extrabold uppercase text-[7.5px] block font-black">Customer Signature & Stamp</span>
                       <div className="border-t border-dashed border-black/40 pt-1 text-[7.5px] font-normal text-center mt-auto">Site Representative</div>
                     </div>
-                    <div className="p-1.5 flex flex-col justify-between h-[52px] col-span-2">
+                    <div className="p-1.5 flex flex-col justify-between h-[48px] col-span-2">
                       <span className="font-extrabold uppercase text-[7.5px] block font-black">Delivery Photos & Remarks</span>
                       <div className="flex items-center gap-2 mt-1.5">
                         <div className="w-12 h-7 border border-neutral-300 rounded flex items-center justify-center text-[7px] text-neutral-400 font-bold bg-white leading-none">Photo 1</div>
@@ -808,7 +812,7 @@ export default function DeliveryNotePage() {
                   </div>
 
                   {/* Watermark Stamps / Footer */}
-                  <div className="flex justify-between items-center text-[8.5px] text-neutral-500 border-t border-neutral-200 pt-2">
+                  <div className="flex justify-between items-center text-[8.5px] text-neutral-500 border-t border-neutral-200 pt-1">
                     <span>System Generated Document</span>
                     <span className="font-bold text-red-600 uppercase tracking-widest border border-red-500/25 px-2 py-0.5 rounded text-[8px]">
                       SECURITY APPROVED

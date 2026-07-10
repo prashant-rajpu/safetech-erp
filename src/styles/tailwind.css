@@ -266,6 +266,12 @@
   .page-break {
     page-break-after: always;
     break-after: page;
+    /* Without this, a box taller than one physical page can still be split
+       across pages by the print engine even with overflow:hidden — overflow
+       clips pixels within a page, it doesn't stop pagination from breaking
+       the box itself mid-content. */
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .page-break:last-child {
     page-break-after: avoid;

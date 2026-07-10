@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-type UserRow = { id: string, email: string, role: 'admin' | 'controller' | 'viewer' }
+type UserRow = { id: string, email: string, role: string, department?: string }
+type RoleRow = { id: string, role_key: string, label?: string }
+type DepartmentRow = { id: string, department_key: string, label?: string }
 type ProjectRow = { id: string, project_no: string, project_name: string | null, location: string | null, active: boolean }
 type SupplierRow = { id: string, name: string }
 
-const ROLES: UserRow['role'][] = ['admin', 'controller', 'viewer']
 type Tab = 'users' | 'projects' | 'suppliers'
 
 export default function AdminPanel(){
@@ -67,20 +68,31 @@ export default function AdminPanel(){
 
 function UsersTab({ onError }: { onError: (e?: string) => void }){
   const [users, setUsers] = useState<UserRow[]>([])
+  const [roles, setRoles] = useState<RoleRow[]>([])
+  const [departments, setDepartments] = useState<DepartmentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
 
   async function loadUsers(){
     setLoading(true)
-    const { data, error } = await supabase.from('users').select('id,email,role').order('email')
-    if(error) onError(error.message)
-    else setUsers((data || []) as UserRow[])
+    // Roles and departments are loaded from their tables, not hardcoded — so any
+    // role created in Administration (e.g. a new QA Engineer role) is assignable
+    // here without a code change.
+    const [usersRes, rolesRes, deptsRes] = await Promise.all([
+      supabase.from('users').select('id,email,role,department').order('email'),
+      supabase.from('roles').select('id,role_key,label').order('role_key'),
+      supabase.from('departments').select('id,department_key,label').order('department_key'),
+    ])
+    if(usersRes.error) onError(usersRes.error.message)
+    else setUsers((usersRes.data || []) as UserRow[])
+    setRoles((rolesRes.data || []) as RoleRow[])
+    setDepartments((deptsRes.data || []) as DepartmentRow[])
     setLoading(false)
   }
 
   useEffect(()=>{ loadUsers() }, [])
 
-  const handleRoleChange = async (id: string, role: UserRow['role']) => {
+  const handleRoleChange = async (id: string, role: string) => {
     setSavingId(id)
     const { error } = await supabase.from('users').update({ role }).eq('id', id)
     if(error) onError(error.message)
@@ -88,11 +100,19 @@ function UsersTab({ onError }: { onError: (e?: string) => void }){
     setSavingId(null)
   }
 
+  const handleDepartmentChange = async (id: string, department: string) => {
+    setSavingId(id)
+    const { error } = await supabase.from('users').update({ department }).eq('id', id)
+    if(error) onError(error.message)
+    else setUsers(prev => prev.map(u => u.id === id ? { ...u, department } : u))
+    setSavingId(null)
+  }
+
   return (
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-bold text-white uppercase tracking-wide">Authorized Personnel Roles</h3>
-        <p className="text-xs text-slate-400">Configure access levels for dispatch controllers and yard viewers</p>
+        <p className="text-xs text-slate-400">Assign each user a role and department — permissions follow the union of both grants (configure grants in Permissions)</p>
       </div>
 
       <div className="overflow-hidden border border-white/5 rounded-2xl bg-slate-950/40">
@@ -106,24 +126,41 @@ function UsersTab({ onError }: { onError: (e?: string) => void }){
               <tr className="text-left text-slate-400 border-b border-white/5 bg-white/5">
                 <th className="p-4 font-bold text-xs uppercase tracking-wider">Email Address</th>
                 <th className="p-4 font-bold text-xs uppercase tracking-wider">Access Role</th>
+                <th className="p-4 font-bold text-xs uppercase tracking-wider">Department</th>
               </tr>
             </thead>
             <tbody>
               {users.map(u => (
                 <tr key={u.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors duration-150">
                   <td className="p-4 font-medium text-slate-200">{u.email}</td>
-                  <td className="p-4 flex items-center gap-3">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <select
+                        className="glowing-input px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
+                        value={u.role}
+                        disabled={savingId === u.id}
+                        onChange={e => handleRoleChange(u.id, e.target.value)}
+                      >
+                        {roles.map(r => <option key={r.role_key} value={r.role_key} className="bg-neutral-900 text-white">{r.role_key}</option>)}
+                        {/* keep an unknown stored role visible */}
+                        {u.role && !roles.some(r => r.role_key === u.role) && <option value={u.role} className="bg-neutral-900 text-white">{u.role}</option>}
+                      </select>
+                      {savingId === u.id && (
+                        <span className="text-[10px] font-bold text-red-500 tracking-wider uppercase animate-pulse">Saving…</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-4">
                     <select
                       className="glowing-input px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
-                      value={u.role}
+                      value={u.department || ''}
                       disabled={savingId === u.id}
-                      onChange={e => handleRoleChange(u.id, e.target.value as UserRow['role'])}
+                      onChange={e => handleDepartmentChange(u.id, e.target.value)}
                     >
-                      {ROLES.map(r => <option key={r} value={r} className="bg-neutral-900 text-white">{r}</option>)}
+                      <option value="" className="bg-neutral-900 text-white">— none —</option>
+                      {departments.map(d => <option key={d.department_key} value={d.department_key} className="bg-neutral-900 text-white">{d.department_key}</option>)}
+                      {u.department && !departments.some(d => d.department_key === u.department) && <option value={u.department} className="bg-neutral-900 text-white">{u.department}</option>}
                     </select>
-                    {savingId === u.id && (
-                      <span className="text-[10px] font-bold text-red-500 tracking-wider uppercase animate-pulse">Saving…</span>
-                    )}
                   </td>
                 </tr>
               ))}

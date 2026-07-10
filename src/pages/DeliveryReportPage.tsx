@@ -33,6 +33,23 @@ type ReportMode = 'daily' | 'weekly' | 'monthly' | 'custom'
 export default function DeliveryReportPage() {
   const [mode, setMode] = useState<ReportMode>('daily')
   const [reportView, setReportView] = useState<'a3' | 'traceability'>('a3')
+
+  // The two print templates are sized in mm assuming A3 (delivery report,
+  // 297mm × 420mm) or A4 (traceability audit certificate, 210mm × 297mm) and
+  // fill the entire physical page edge-to-edge — .print-area already zeroes
+  // margin/padding (see tailwind.css) and each content div supplies its own
+  // breathing room via p-6/p-10. @page margin must stay 0: any non-zero
+  // margin steals usable print height the box was never sized to give up,
+  // pushing content onto a spurious second page. Must switch page size with
+  // the active view since the two templates need different dimensions.
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = reportView === 'a3'
+      ? '@page { size: A3 portrait; margin: 0; }'
+      : '@page { size: A4 portrait; margin: 0; }'
+    document.head.appendChild(style)
+    return () => { style.remove() }
+  }, [reportView])
   const [traces, setTraces] = useState<any[]>([])
   const [searchTraceCode, setSearchTraceCode] = useState('')
   
@@ -412,7 +429,7 @@ export default function DeliveryReportPage() {
           {/* REPORT SHEET CONTAINER (A3 styled layout: 297mm x 420mm) */}
           <div className="w-full overflow-x-auto print:overflow-visible print-area">
             <div className="flex justify-center min-w-[1122px] print:min-w-0">
-              <div className="w-[1122px] print:w-[297mm] print:h-[420mm] bg-white text-black p-6 md:p-8 font-sans border border-neutral-300 shadow-2xl relative flex flex-col text-xs leading-normal box-border mb-8 print:mb-0 print:border-none print:shadow-none print:overflow-hidden print:justify-between overflow-visible">
+              <div className="w-[1122px] print:w-[297mm] print:h-[411mm] bg-white text-black p-6 md:p-8 font-sans border border-neutral-300 shadow-2xl relative flex flex-col text-xs leading-normal box-border mb-8 print:mb-0 print:border-none print:shadow-none print:overflow-hidden print:justify-between print:break-inside-avoid overflow-visible">
               
               <div className="space-y-4">
                 {/* Header branding with Bold Black and Red accent line */}
@@ -733,7 +750,7 @@ export default function DeliveryReportPage() {
                 )
 
                 return (
-                  <div className="w-[210mm] h-[297mm] bg-white text-black p-10 font-sans border border-neutral-300 shadow-2xl relative flex flex-col justify-between text-xs box-border overflow-hidden print:border-none print:shadow-none">
+                  <div className="w-[210mm] h-[297mm] print:h-[288mm] bg-white text-black p-10 font-sans border border-neutral-300 shadow-2xl relative flex flex-col justify-between text-xs box-border overflow-hidden print:border-none print:shadow-none print:break-inside-avoid">
                     
                     <div className="space-y-6">
                       {/* Logo header */}

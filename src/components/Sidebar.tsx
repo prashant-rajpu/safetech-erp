@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import safetechLogo from '../assets/safetech_logo.png'
 import { NAV_SECTIONS } from '../lib/erp/registry'
@@ -16,6 +16,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const { canView } = usePermissions()
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({ dashboard: true })
+  const [navQuery, setNavQuery] = useState('')
 
   // Load and apply theme on mount
   useEffect(() => {
@@ -57,6 +58,33 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
 
   const visibleSections = NAV_SECTIONS.filter(s => canView(s.key))
 
+  // Nav search: filters sections/items by name. A section whose own name
+  // matches keeps all its items; otherwise only matching items survive.
+  const searchedSections = useMemo(() => {
+    const q = navQuery.trim().toLowerCase()
+    if (!q) return visibleSections
+    return visibleSections
+      .map(section => {
+        if (section.name.toLowerCase().includes(q)) return section
+        const items = section.items.filter(it => it.name.toLowerCase().includes(q))
+        return items.length ? { ...section, items } : null
+      })
+      .filter((s): s is typeof visibleSections[number] => s !== null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navQuery, visibleSections.length, profile?.role])
+
+  // Auto-expand every section that survives the search so matches are visible
+  // without an extra click.
+  useEffect(() => {
+    if (!navQuery.trim()) return
+    setExpandedMenus(prev => {
+      const next = { ...prev }
+      for (const s of searchedSections) next[s.key] = true
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navQuery])
+
   const isItemActive = (path: string) => {
     const current = location.pathname + location.search
     if (path.includes('?')) return current === path
@@ -92,9 +120,23 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
           </div>
         </div>
 
+        {/* Nav search */}
+        <div className="px-3.5 pt-3">
+          <input
+            type="text"
+            value={navQuery}
+            onChange={e => setNavQuery(e.target.value)}
+            placeholder="🔍 Search modules…"
+            className="w-full px-3 py-2 rounded-xl glowing-input text-[11px] font-medium"
+          />
+        </div>
+
         {/* Scrollable Navigation List */}
         <div className="flex-grow py-4 overflow-y-auto px-3.5 space-y-2">
-          {visibleSections.map(section => {
+          {searchedSections.length === 0 && (
+            <div className="text-center text-[11px] text-slate-400 py-6 font-semibold">No modules match "{navQuery}"</div>
+          )}
+          {searchedSections.map(section => {
             const isExpanded = !!expandedMenus[section.key]
             const hasActiveChild = section.items.some(it => isItemActive(it.path))
 

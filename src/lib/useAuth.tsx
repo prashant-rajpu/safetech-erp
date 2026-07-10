@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 
-type UserProfile = { id:string, email:string, role:string } | null
+type UserProfile = { id:string, email:string, role:string, department?:string } | null
 
 type AuthContextValue = {
   user: any
@@ -18,7 +18,9 @@ export const AuthProvider: React.FC<{children:React.ReactNode}> = ({children}) =
   const [loading,setLoading] = useState(true)
 
   async function loadProfile(userId: string){
-    const res = await supabase.from('users').select('id,email,role').eq('id', userId).single()
+    // department is part of the profile — the permission engine unions role
+    // grants with department grants, so it must be loaded here.
+    const res = await supabase.from('users').select('id,email,role,department').eq('id', userId).single()
     if(res.data) setProfile(res.data as UserProfile)
     else setProfile(null)
   }

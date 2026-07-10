@@ -8,7 +8,8 @@
 
 export type SectionKey =
   | 'dashboard' | 'master' | 'design' | 'planning' | 'production'
-  | 'qaqc' | 'stockyard' | 'dispatch' | 'logistics' | 'reports' | 'admin'
+  | 'qaqc' | 'hse' | 'workforce' | 'stockyard' | 'dispatch' | 'logistics' | 'reports' | 'admin'
+  | 'prestressing' | 'erection' | 'maintenance' | 'documents' | 'handover' | 'environmental'
 
 export type FieldType = 'text' | 'number' | 'date' | 'time' | 'select' | 'boolean' | 'textarea' | 'ref'
 
@@ -42,6 +43,10 @@ export type ModuleDef = {
   paper?: 'A4' | 'A3'
   landscape?: boolean
   readOnly?: boolean
+  /** rows matching field∈values cannot be edited or deleted (e.g. the built-in admin role) */
+  lockedRows?: { field: string; values: string[] }
+  /** all writes in this module additionally require the 'approve' permission */
+  requiresApprove?: boolean
 }
 
 const STATUS = (options: string[]): FieldDef => ({ key: 'status', label: 'Status', type: 'select', options })
@@ -275,6 +280,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'assigned_mould', label: 'Mould' },
       { key: 'priority', label: 'Priority', type: 'select', options: ['High', 'Medium', 'Low'] },
       { key: 'cast_revision', label: 'Cast Rev' },
+      { key: 'shape_type', label: 'Shape', type: 'select', options: ['Box', 'Solid Wall', 'Hollow-core', 'Beam', 'Column', 'Panel', 'Slab', 'Stairs', 'Custom'] },
       { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'QR Generated', 'Cast', 'Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'At Site', 'Erected', 'Completed', 'Rejected'] }
     ]
   },
@@ -662,11 +668,28 @@ export const MODULES: ModuleDef[] = [
 
   // ── ADMINISTRATION ────────────────────────────────────────────────────────
   {
-    id: 'roles', title: 'Roles', subtitle: 'System role catalogue', icon: '🎭', section: 'admin', table: 'roles', keyField: 'role_key',
+    id: 'roles', title: 'Roles', subtitle: 'Dynamic role catalogue — grants are set in Permissions', icon: '🎭', section: 'admin', table: 'roles', keyField: 'role_key',
+    lockedRows: { field: 'role_key', values: ['admin'] },
     fields: [
-      { key: 'role_key', label: 'Role Key', required: true },
+      { key: 'role_key', label: 'Role Key', required: true, placeholder: 'qa_engineer' },
       { key: 'label', label: 'Label', required: true },
       { key: 'description', label: 'Description', type: 'textarea' }
+    ]
+  },
+  {
+    id: 'departments', title: 'Departments', subtitle: 'Company departments — users inherit their department grants', icon: '🏢', section: 'admin', table: 'departments', keyField: 'department_key',
+    fields: [
+      { key: 'department_key', label: 'Department Key', required: true, placeholder: 'production' },
+      { key: 'label', label: 'Label', required: true },
+      { key: 'description', label: 'Description', type: 'textarea' }
+    ]
+  },
+  {
+    id: 'permission-actions', title: 'Permission Actions', subtitle: 'Action catalogue used by the permission matrices (read-only)', icon: '🔑', section: 'admin', table: 'permissions', keyField: 'action_key', readOnly: true,
+    fields: [
+      { key: 'action_key', label: 'Action' },
+      { key: 'label', label: 'Label' },
+      { key: 'description', label: 'Description' }
     ]
   },
   {
@@ -688,7 +711,7 @@ export const MODULES: ModuleDef[] = [
     ]
   },
   {
-    id: 'approvals', title: 'Pending Approvals', subtitle: 'Approval requests across departments', icon: '🖊️', section: 'admin', table: 'approvals', keyField: 'reference', statusField: 'status',
+    id: 'approvals', title: 'Pending Approvals', subtitle: 'Approval requests across departments', icon: '🖊️', section: 'admin', table: 'approvals', keyField: 'reference', statusField: 'status', requiresApprove: true,
     fields: [
       { key: 'req_date', label: 'Date', type: 'date' },
       { key: 'type', label: 'Type' },
@@ -697,6 +720,405 @@ export const MODULES: ModuleDef[] = [
       { key: 'requested_by', label: 'Requested By' },
       { key: 'approver', label: 'Approver' },
       { key: 'status', label: 'Status', type: 'select', options: ['Pending', 'Approved', 'Rejected'] }
+    ]
+  },
+  // ── HSE ────────────────────────────────────────────────────────────────────
+  {
+    id: 'hse-incidents', title: 'Incident Register', subtitle: 'Near-miss, injury & property damage log', icon: '🚨', section: 'hse', table: 'hse_incidents', keyField: 'incident_no', statusField: 'status', paper: 'A4',
+    fields: [
+      { key: 'incident_no', label: 'Incident No', required: true },
+      { key: 'incident_date', label: 'Date', type: 'date' },
+      { key: 'project_no', label: 'Project' },
+      { key: 'location', label: 'Location' },
+      { key: 'incident_type', label: 'Type', type: 'select', options: ['Near Miss', 'Injury', 'Property Damage', 'Environmental'] },
+      { key: 'severity', label: 'Severity', type: 'select', options: ['Minor', 'Moderate', 'Major', 'Critical'] },
+      { key: 'description', label: 'Description', type: 'textarea' },
+      { key: 'injured_person', label: 'Injured Person' },
+      { key: 'root_cause', label: 'Root Cause', type: 'textarea' },
+      { key: 'corrective_action', label: 'Corrective Action', type: 'textarea' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Investigating', 'Closed'] },
+      { key: 'reported_by', label: 'Reported By' },
+      { key: 'closed_date', label: 'Closed', type: 'date' }
+    ]
+  },
+  {
+    id: 'toolbox-talks', title: 'Toolbox Talks', subtitle: 'Site safety briefing log', icon: '🗣️', section: 'hse', table: 'toolbox_talks', keyField: 'topic',
+    fields: [
+      { key: 'talk_date', label: 'Date', type: 'date', required: true },
+      { key: 'topic', label: 'Topic', required: true },
+      { key: 'conducted_by', label: 'Conducted By' },
+      { key: 'department', label: 'Department' },
+      { key: 'attendees_count', label: 'Attendees', type: 'number' },
+      { key: 'location', label: 'Location' },
+      { key: 'notes', label: 'Notes', type: 'textarea' }
+    ]
+  },
+  {
+    id: 'risk-assessments', title: 'Risk Assessments', subtitle: 'Activity risk & control measures', icon: '⚠️', section: 'hse', table: 'risk_assessments', keyField: 'ra_no', statusField: 'status',
+    fields: [
+      { key: 'ra_no', label: 'RA No', required: true },
+      { key: 'activity', label: 'Activity', required: true },
+      { key: 'hazards', label: 'Hazards', type: 'textarea' },
+      { key: 'risk_level', label: 'Risk Level', type: 'select', options: ['Low', 'Medium', 'High'] },
+      { key: 'control_measures', label: 'Control Measures', type: 'textarea' },
+      { key: 'assessed_by', label: 'Assessed By' },
+      { key: 'review_date', label: 'Review Date', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Under Review', 'Expired'] }
+    ]
+  },
+  {
+    id: 'hse-permits', title: 'Permits to Work', subtitle: 'Hot work, confined space, height & lifting permits', icon: '📜', section: 'hse', table: 'hse_permits', keyField: 'permit_no', statusField: 'status',
+    fields: [
+      { key: 'permit_no', label: 'Permit No', required: true },
+      { key: 'permit_type', label: 'Type', type: 'select', options: ['Hot Work', 'Confined Space', 'Working at Height', 'Lifting'] },
+      { key: 'issued_to', label: 'Issued To' },
+      { key: 'valid_from', label: 'Valid From', type: 'date' },
+      { key: 'valid_to', label: 'Valid To', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Expired', 'Closed'] },
+      { key: 'issued_by', label: 'Issued By' }
+    ]
+  },
+  {
+    id: 'safety-audits', title: 'Safety Audits', subtitle: 'Site safety audit findings & scores', icon: '📋', section: 'hse', table: 'safety_audits', keyField: 'audit_no', statusField: 'status',
+    fields: [
+      { key: 'audit_no', label: 'Audit No', required: true },
+      { key: 'audit_date', label: 'Date', type: 'date' },
+      { key: 'area', label: 'Area' },
+      { key: 'auditor', label: 'Auditor' },
+      { key: 'findings_count', label: 'Findings', type: 'number' },
+      { key: 'score', label: 'Score', type: 'number' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Closed'] }
+    ]
+  },
+  // ── WORKFORCE ──────────────────────────────────────────────────────────────
+  {
+    id: 'crew-members', title: 'Crew Members', subtitle: 'Workforce master register', icon: '👷', section: 'workforce', table: 'crew_members', keyField: 'name', statusField: 'status',
+    fields: [
+      { key: 'name', label: 'Name', required: true },
+      { key: 'trade', label: 'Trade' },
+      { key: 'employee_no', label: 'Employee No' },
+      { key: 'department', label: 'Department' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Active', 'On Leave', 'Inactive'] }
+    ]
+  },
+  {
+    id: 'crew-assignments', title: 'Crew Assignments', subtitle: 'Daily crew-to-task assignment', icon: '📌', section: 'workforce', table: 'crew_assignments', keyField: 'crew_member', statusField: 'status',
+    fields: [
+      { key: 'assignment_date', label: 'Date', type: 'date', required: true },
+      { key: 'crew_member', label: 'Crew Member', type: 'ref', ref: { table: 'crew_members', valueField: 'name' } },
+      { key: 'project_no', label: 'Project' },
+      { key: 'task', label: 'Task' },
+      { key: 'shift', label: 'Shift', type: 'select', options: ['Day', 'Night'] },
+      { key: 'status', label: 'Status', type: 'select', options: ['Assigned', 'In Progress', 'Completed'] }
+    ]
+  },
+  {
+    id: 'shift-schedules', title: 'Shift Schedules', subtitle: 'Planned vs. actual shift headcount', icon: '🕐', section: 'workforce', table: 'shift_schedules', keyField: 'shift_date',
+    fields: [
+      { key: 'shift_date', label: 'Date', type: 'date', required: true },
+      { key: 'shift_type', label: 'Shift', type: 'select', options: ['Day', 'Night'] },
+      { key: 'department', label: 'Department' },
+      { key: 'supervisor', label: 'Supervisor' },
+      { key: 'headcount_planned', label: 'Planned Headcount', type: 'number' },
+      { key: 'headcount_actual', label: 'Actual Headcount', type: 'number' }
+    ]
+  },
+  {
+    id: 'certifications', title: 'Certifications', subtitle: 'Safety, trade & competency certification tracking', icon: '🎓', section: 'workforce', table: 'certifications', keyField: 'person_name', statusField: 'status',
+    fields: [
+      { key: 'person_name', label: 'Name', required: true },
+      { key: 'cert_type', label: 'Certification' },
+      { key: 'cert_category', label: 'Category', type: 'select', options: ['Safety', 'Trade', 'Competency'] },
+      { key: 'cert_no', label: 'Cert No' },
+      { key: 'issued_date', label: 'Issued', type: 'date' },
+      { key: 'expiry_date', label: 'Expires', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Valid', 'Expiring Soon', 'Expired'] }
+    ]
+  },
+  // ── PRESTRESSING ───────────────────────────────────────────────────────────
+  {
+    id: 'pt-strands', title: 'Strand Inventory', subtitle: 'PT strand stock & batches', icon: '➰', section: 'prestressing', table: 'pt_strands', keyField: 'strand_id', statusField: 'status',
+    fields: [
+      { key: 'strand_id', label: 'Strand ID', required: true },
+      { key: 'strand_type', label: 'Type' },
+      { key: 'diameter_mm', label: 'Ø (mm)', type: 'number' },
+      { key: 'supplier', label: 'Supplier' },
+      { key: 'batch_no', label: 'Batch No' },
+      { key: 'tensile_strength_mpa', label: 'Tensile (MPa)', type: 'number' },
+      { key: 'qty_meters', label: 'Qty (m)', type: 'number' },
+      { key: 'status', label: 'Status', type: 'select', options: ['In Stock', 'Issued', 'Consumed'] }
+    ]
+  },
+  {
+    id: 'pt-tensioning', title: 'Tensioning', subtitle: 'Strand tensioning log', icon: '🔧', section: 'prestressing', table: 'pt_tensioning', keyField: 'tensioning_no', statusField: 'status',
+    fields: [
+      { key: 'tensioning_no', label: 'Tensioning No', required: true },
+      { key: 'bed', label: 'Bed' },
+      { key: 'element_code', label: 'Element Code' },
+      { key: 'tensioning_date', label: 'Date', type: 'date' },
+      { key: 'strand_count', label: 'Strand Count', type: 'number' },
+      { key: 'initial_force_kn', label: 'Initial Force (kN)', type: 'number' },
+      { key: 'target_elongation_mm', label: 'Target Elong. (mm)', type: 'number' },
+      { key: 'actual_elongation_mm', label: 'Actual Elong. (mm)', type: 'number' },
+      { key: 'tensioned_by', label: 'Tensioned By' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'Tensioned', 'Released'] }
+    ]
+  },
+  {
+    id: 'pt-release', title: 'Strand Release', subtitle: 'PT release approvals', icon: '🔓', section: 'prestressing', table: 'pt_release', keyField: 'release_no', statusField: 'status',
+    fields: [
+      { key: 'release_no', label: 'Release No', required: true },
+      { key: 'tensioning_no', label: 'Tensioning No' },
+      { key: 'element_code', label: 'Element Code' },
+      { key: 'release_date', label: 'Date', type: 'date' },
+      { key: 'concrete_strength_mpa', label: 'Concrete Strength (MPa)', type: 'number' },
+      { key: 'released_by', label: 'Released By' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Pending', 'Released', 'Hold'] }
+    ]
+  },
+  {
+    id: 'pt-long-line-plans', title: 'Long Line Planning', subtitle: 'Long-line bed casting plans', icon: '📏', section: 'prestressing', table: 'pt_long_line_plans', keyField: 'plan_no', statusField: 'status',
+    fields: [
+      { key: 'plan_no', label: 'Plan No', required: true },
+      { key: 'bed', label: 'Bed' },
+      { key: 'plan_date', label: 'Date', type: 'date' },
+      { key: 'project_no', label: 'Project' },
+      { key: 'element_codes', label: 'Element Codes' },
+      { key: 'total_length_m', label: 'Total Length (m)', type: 'number' },
+      { key: 'strand_pattern', label: 'Strand Pattern' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'In Progress', 'Completed'] }
+    ]
+  },
+  // ── SITE ERECTION ──────────────────────────────────────────────────────────
+  {
+    id: 'erection-planning', title: 'Erection Planning', subtitle: 'Erection sequence & crane plan', icon: '🏗️', section: 'erection', table: 'erection_planning', keyField: 'plan_no', statusField: 'status',
+    fields: [
+      { key: 'plan_no', label: 'Plan No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'plan_date', label: 'Date', type: 'date' },
+      { key: 'element_codes', label: 'Element Codes' },
+      { key: 'crane', label: 'Crane' },
+      { key: 'sequence_no', label: 'Sequence No', type: 'number' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'Scheduled', 'In Progress', 'Completed'] }
+    ]
+  },
+  {
+    id: 'erection-log', title: 'Erection Log', subtitle: 'Site erection record per element', icon: '🧱', section: 'erection', table: 'erection_log', keyField: 'element_code', statusField: 'status',
+    fields: [
+      { key: 'element_code', label: 'Element Code', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'erection_date', label: 'Date', type: 'date' },
+      { key: 'location', label: 'Location' },
+      { key: 'crane', label: 'Crane' },
+      { key: 'operator', label: 'Operator' },
+      { key: 'erected_by', label: 'Erected By' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Erected', 'Pending', 'Rejected'] }
+    ]
+  },
+  {
+    id: 'grouting-records', title: 'Grouting Records', subtitle: 'Joint grouting log', icon: '🪣', section: 'erection', table: 'grouting_records', keyField: 'element_code', statusField: 'status',
+    fields: [
+      { key: 'element_code', label: 'Element Code', required: true },
+      { key: 'grout_date', label: 'Date', type: 'date' },
+      { key: 'joint_ref', label: 'Joint Ref' },
+      { key: 'grout_mix', label: 'Grout Mix' },
+      { key: 'applied_by', label: 'Applied By' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Pending', 'Completed', 'Rework'] }
+    ]
+  },
+  {
+    id: 'connection-inspections', title: 'Connection Inspection', subtitle: 'Weld & bolt connection checks', icon: '🔩', section: 'erection', table: 'connection_inspections', keyField: 'element_code', statusField: 'result',
+    fields: [
+      { key: 'element_code', label: 'Element Code', required: true },
+      { key: 'inspection_date', label: 'Date', type: 'date' },
+      { key: 'connection_type', label: 'Connection Type' },
+      { key: 'weld_check', label: 'Weld', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'bolt_torque_check', label: 'Bolt Torque', type: 'select', options: ['Pass', 'Fail', 'N/A'] },
+      { key: 'result', label: 'Result', type: 'select', options: ['Accepted', 'Rejected'] },
+      { key: 'inspector', label: 'Inspector' }
+    ]
+  },
+  // ── MAINTENANCE ────────────────────────────────────────────────────────────
+  {
+    id: 'equipment-register', title: 'Equipment Register', subtitle: 'Plant & equipment master list', icon: '🛠️', section: 'maintenance', table: 'equipment_register', keyField: 'equipment_id', statusField: 'status',
+    fields: [
+      { key: 'equipment_id', label: 'Equipment ID', required: true },
+      { key: 'equipment_type', label: 'Type' },
+      { key: 'make_model', label: 'Make / Model' },
+      { key: 'location', label: 'Location' },
+      { key: 'purchase_date', label: 'Purchased', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Under Maintenance', 'Retired'] }
+    ]
+  },
+  {
+    id: 'preventive-maintenance', title: 'Preventive Maintenance', subtitle: 'Scheduled maintenance tasks', icon: '🗓️', section: 'maintenance', table: 'preventive_maintenance', keyField: 'pm_no', statusField: 'status',
+    fields: [
+      { key: 'pm_no', label: 'PM No', required: true },
+      { key: 'equipment_id', label: 'Equipment ID' },
+      { key: 'scheduled_date', label: 'Scheduled', type: 'date' },
+      { key: 'task', label: 'Task' },
+      { key: 'frequency', label: 'Frequency' },
+      { key: 'completed_date', label: 'Completed', type: 'date' },
+      { key: 'technician', label: 'Technician' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Scheduled', 'Completed', 'Overdue'] }
+    ]
+  },
+  {
+    id: 'calibration-records', title: 'Calibration Records', subtitle: 'Instrument calibration tracking', icon: '📐', section: 'maintenance', table: 'calibration_records', keyField: 'equipment_id', statusField: 'status',
+    fields: [
+      { key: 'equipment_id', label: 'Equipment ID', required: true },
+      { key: 'calibration_date', label: 'Date', type: 'date' },
+      { key: 'calibrated_by', label: 'Calibrated By' },
+      { key: 'next_due_date', label: 'Next Due', type: 'date' },
+      { key: 'certificate_no', label: 'Certificate No' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Valid', 'Due Soon', 'Expired'] }
+    ]
+  },
+  {
+    id: 'maintenance-log', title: 'Breakdown / General Maintenance', subtitle: 'Equipment maintenance & repair log', icon: '🔧', section: 'maintenance', table: 'maintenance_logs', keyField: 'equipment_id', statusField: 'status',
+    fields: [
+      { key: 'equipment_type', label: 'Equipment Type' },
+      { key: 'equipment_id', label: 'Equipment ID', required: true },
+      { key: 'maintenance_date', label: 'Date', type: 'date' },
+      { key: 'description', label: 'Description', type: 'textarea' },
+      { key: 'technician', label: 'Technician' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In Progress', 'Completed'] }
+    ]
+  },
+  // ── DOCUMENT CONTROL ───────────────────────────────────────────────────────
+  {
+    id: 'rfi-register', title: 'RFI Register', subtitle: 'Request for Information log', icon: '❓', section: 'documents', table: 'rfi_register', keyField: 'rfi_no', statusField: 'status', paper: 'A4',
+    fields: [
+      { key: 'rfi_no', label: 'RFI No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'raised_date', label: 'Raised', type: 'date' },
+      { key: 'subject', label: 'Subject' },
+      { key: 'description', label: 'Description', type: 'textarea' },
+      { key: 'raised_by', label: 'Raised By' },
+      { key: 'response', label: 'Response', type: 'textarea' },
+      { key: 'response_date', label: 'Responded', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Open', 'Answered', 'Closed'] }
+    ]
+  },
+  {
+    id: 'method-statements', title: 'Method Statements', subtitle: 'Work method statement register', icon: '📄', section: 'documents', table: 'method_statements', keyField: 'ms_no', statusField: 'status',
+    fields: [
+      { key: 'ms_no', label: 'MS No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'title', label: 'Title' },
+      { key: 'activity', label: 'Activity' },
+      { key: 'revision', label: 'Revision' },
+      { key: 'prepared_by', label: 'Prepared By' },
+      { key: 'approved_by', label: 'Approved By' },
+      { key: 'approval_date', label: 'Approved', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Draft', 'Under Review', 'Approved', 'Superseded'] }
+    ]
+  },
+  {
+    id: 'submittals', title: 'Submittals', subtitle: 'Material & document submittal log', icon: '📤', section: 'documents', table: 'submittals', keyField: 'submittal_no', statusField: 'status',
+    fields: [
+      { key: 'submittal_no', label: 'Submittal No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'title', label: 'Title' },
+      { key: 'type', label: 'Type' },
+      { key: 'submitted_date', label: 'Submitted', type: 'date' },
+      { key: 'submitted_by', label: 'Submitted By' },
+      { key: 'reviewer', label: 'Reviewer' },
+      { key: 'review_status', label: 'Review Status', type: 'select', options: ['Pending', 'Approved', 'Approved as Noted', 'Rejected'] },
+      { key: 'status', label: 'Status', type: 'select', options: ['Submitted', 'Under Review', 'Closed'] }
+    ]
+  },
+  // ── CUSTOMER HANDOVER ──────────────────────────────────────────────────────
+  {
+    id: 'handover-packages', title: 'Handover Packages', subtitle: 'Project handover document packages', icon: '📦', section: 'handover', table: 'handover_packages', keyField: 'package_no', statusField: 'status',
+    fields: [
+      { key: 'package_no', label: 'Package No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'handover_date', label: 'Date', type: 'date' },
+      { key: 'prepared_by', label: 'Prepared By' },
+      { key: 'documents_included', label: 'Documents Included', type: 'textarea' },
+      { key: 'client_signoff_by', label: 'Client Sign-off' },
+      { key: 'status', label: 'Status', type: 'select', options: ['In Preparation', 'Submitted', 'Accepted'] }
+    ]
+  },
+  {
+    id: 'dlp-records', title: 'DLP Tracker', subtitle: 'Defects Liability Period tracking', icon: '⏳', section: 'handover', table: 'dlp_records', keyField: 'project_no', statusField: 'status',
+    fields: [
+      { key: 'project_no', label: 'Project', required: true },
+      { key: 'dlp_start_date', label: 'DLP Start', type: 'date' },
+      { key: 'dlp_end_date', label: 'DLP End', type: 'date' },
+      { key: 'defects_count', label: 'Defects', type: 'number' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Active', 'Closed'] }
+    ]
+  },
+  {
+    id: 'handover-defects', title: 'Handover Defects', subtitle: 'Post-handover defect register', icon: '🩹', section: 'handover', table: 'handover_defects', keyField: 'defect_no', statusField: 'status',
+    fields: [
+      { key: 'defect_no', label: 'Defect No', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'element_code', label: 'Element' },
+      { key: 'description', label: 'Description', type: 'textarea' },
+      { key: 'raised_date', label: 'Raised', type: 'date' },
+      { key: 'due_date', label: 'Due', type: 'date' },
+      { key: 'closed_date', label: 'Closed', type: 'date' },
+      { key: 'assigned_to', label: 'Assigned To' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Open', 'In Progress', 'Closed'] }
+    ]
+  },
+  {
+    id: 'customer-acceptance', title: 'Customer Acceptance', subtitle: 'Final client acceptance sign-off', icon: '✍️', section: 'handover', table: 'customer_acceptance', keyField: 'project_no', statusField: 'status',
+    fields: [
+      { key: 'project_no', label: 'Project', required: true },
+      { key: 'acceptance_date', label: 'Date', type: 'date' },
+      { key: 'accepted_by', label: 'Accepted By' },
+      { key: 'client_rep', label: 'Client Rep' },
+      { key: 'remarks', label: 'Remarks', type: 'textarea' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Pending', 'Accepted', 'Rejected'] }
+    ]
+  },
+  // ── ENVIRONMENTAL / SUSTAINABILITY ─────────────────────────────────────────
+  {
+    id: 'carbon-records', title: 'Carbon Tracking', subtitle: 'CO2 emissions log', icon: '🌍', section: 'environmental', table: 'carbon_records', keyField: 'record_date',
+    fields: [
+      { key: 'record_date', label: 'Date', type: 'date', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'activity', label: 'Activity' },
+      { key: 'co2_kg', label: 'CO2 (kg)', type: 'number' },
+      { key: 'source', label: 'Source' },
+      { key: 'notes', label: 'Notes', type: 'textarea' }
+    ]
+  },
+  {
+    id: 'waste-records', title: 'Waste Tracking', subtitle: 'Waste generation & disposal log', icon: '🗑️', section: 'environmental', table: 'waste_records', keyField: 'record_date',
+    fields: [
+      { key: 'record_date', label: 'Date', type: 'date', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'waste_type', label: 'Waste Type' },
+      { key: 'qty_kg', label: 'Qty (kg)', type: 'number' },
+      { key: 'disposal_method', label: 'Disposal Method' },
+      { key: 'disposed_by', label: 'Disposed By' }
+    ]
+  },
+  {
+    id: 'water-records', title: 'Water Tracking', subtitle: 'Water usage log', icon: '💧', section: 'environmental', table: 'water_records', keyField: 'record_date',
+    fields: [
+      { key: 'record_date', label: 'Date', type: 'date', required: true },
+      { key: 'source', label: 'Source' },
+      { key: 'usage_litres', label: 'Usage (L)', type: 'number' },
+      { key: 'purpose', label: 'Purpose' }
+    ]
+  },
+  {
+    id: 'environmental-reports', title: 'Environmental Reports', subtitle: 'Periodic environmental summary reports', icon: '📊', section: 'environmental', table: 'environmental_reports', keyField: 'report_no', statusField: 'status',
+    fields: [
+      { key: 'report_no', label: 'Report No', required: true },
+      { key: 'report_period', label: 'Period' },
+      { key: 'project_no', label: 'Project' },
+      { key: 'summary', label: 'Summary', type: 'textarea' },
+      { key: 'prepared_by', label: 'Prepared By' },
+      { key: 'submitted_date', label: 'Submitted', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Draft', 'Submitted', 'Approved'] }
     ]
   }
 ]
@@ -752,6 +1174,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Project Auto-Import', path: '/project-import' },
       { name: 'BOM', path: m('bom') },
       { name: 'Casting Schedule', path: '/casting-schedule' },
+      { name: 'Cast Bed Plan', path: '/cast-bed-plan' },
       { name: 'Element Register', path: m('elements') },
       { name: 'Daily Planning', path: m('daily-planning') },
       { name: 'Weekly Planning', path: '/reports-hub?report=weekly-planning' },
@@ -790,6 +1213,36 @@ export const NAV_SECTIONS: NavSection[] = [
     ]
   },
   {
+    key: 'hse', name: 'HSE', icon: '🦺',
+    items: [
+      { name: 'HSE Dashboard', path: '/hse' },
+      { name: 'Incident Register', path: m('hse-incidents') },
+      { name: 'Toolbox Talks', path: m('toolbox-talks') },
+      { name: 'Risk Assessments', path: m('risk-assessments') },
+      { name: 'Permits to Work', path: m('hse-permits') },
+      { name: 'Safety Audits', path: m('safety-audits') }
+    ]
+  },
+  {
+    key: 'workforce', name: 'Workforce', icon: '👷',
+    items: [
+      { name: 'Workforce Dashboard', path: '/workforce' },
+      { name: 'Crew Members', path: m('crew-members') },
+      { name: 'Crew Assignments', path: m('crew-assignments') },
+      { name: 'Shift Schedules', path: m('shift-schedules') },
+      { name: 'Certifications', path: m('certifications') }
+    ]
+  },
+  {
+    key: 'prestressing', name: 'Prestressing', icon: '➰',
+    items: [
+      { name: 'Strand Inventory', path: m('pt-strands') },
+      { name: 'Tensioning', path: m('pt-tensioning') },
+      { name: 'Strand Release', path: m('pt-release') },
+      { name: 'Long Line Planning', path: m('pt-long-line-plans') }
+    ]
+  },
+  {
     key: 'stockyard', name: 'Stockyard', icon: '🏗️',
     items: [
       { name: 'Element Location', path: '/stockyard?tab=inventory' },
@@ -822,9 +1275,53 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Trips', path: m('trips') },
       { name: 'Fuel', path: m('fuel') },
       { name: 'Fleet Status', path: '/fleet' },
-      { name: 'Maintenance', path: '/maintenance' },
       { name: 'Vehicle Inspection', path: m('vehicle-inspection') },
       { name: 'Tyre History', path: m('tyre-history') }
+    ]
+  },
+  {
+    key: 'erection', name: 'Site Erection', icon: '🏢',
+    items: [
+      { name: 'Erection Planning', path: m('erection-planning') },
+      { name: 'Erection Log', path: m('erection-log') },
+      { name: 'Grouting Records', path: m('grouting-records') },
+      { name: 'Connection Inspection', path: m('connection-inspections') }
+    ]
+  },
+  {
+    key: 'maintenance', name: 'Maintenance', icon: '🔧',
+    items: [
+      { name: 'Maintenance Dashboard', path: '/maintenance' },
+      { name: 'Equipment Register', path: m('equipment-register') },
+      { name: 'Preventive Maintenance', path: m('preventive-maintenance') },
+      { name: 'Calibration Records', path: m('calibration-records') },
+      { name: 'Breakdown / General Log', path: m('maintenance-log') }
+    ]
+  },
+  {
+    key: 'documents', name: 'Document Control', icon: '🗃️',
+    items: [
+      { name: 'RFI Register', path: m('rfi-register') },
+      { name: 'Method Statements', path: m('method-statements') },
+      { name: 'Submittals', path: m('submittals') }
+    ]
+  },
+  {
+    key: 'handover', name: 'Customer Handover', icon: '🤝',
+    items: [
+      { name: 'Handover Packages', path: m('handover-packages') },
+      { name: 'DLP Tracker', path: m('dlp-records') },
+      { name: 'Handover Defects', path: m('handover-defects') },
+      { name: 'Customer Acceptance', path: m('customer-acceptance') }
+    ]
+  },
+  {
+    key: 'environmental', name: 'Environmental', icon: '🌍',
+    items: [
+      { name: 'Carbon Tracking', path: m('carbon-records') },
+      { name: 'Waste Tracking', path: m('waste-records') },
+      { name: 'Water Tracking', path: m('water-records') },
+      { name: 'Environmental Reports', path: m('environmental-reports') }
     ]
   },
   {
@@ -847,10 +1344,11 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { name: 'Users', path: '/admin' },
       { name: 'Roles', path: m('roles') },
+      { name: 'Departments', path: m('departments') },
       { name: 'Permissions', path: '/permissions' },
+      { name: 'Permission Actions', path: m('permission-actions') },
       { name: 'Audit Logs', path: m('audit-logs') },
       { name: 'System Settings', path: m('system-settings') },
-      { name: 'Backup & Restore', path: '/backup' },
       { name: 'Pending Approvals', path: m('approvals') },
       { name: 'CSV Import (Legacy)', path: '/import' }
     ]

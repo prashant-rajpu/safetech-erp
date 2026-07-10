@@ -107,8 +107,9 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
     if (!analysis || busy) return
     setBusy(true)
     try {
-      snapshotTable(module.table)
-      await insertAudited(module.table, analysis.valid, profile?.email || user?.email || '', `CSV import — ${analysis.valid.length} rows into ${module.title}`)
+      const userEmail = profile?.email || user?.email || ''
+      await snapshotTable(module.table, userEmail)
+      await insertAudited(module.table, analysis.valid, userEmail, `CSV import — ${analysis.valid.length} rows into ${module.title}`)
       setImportedCount(analysis.valid.length)
       setStep('done')
       onImported()

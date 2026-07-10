@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Papa from 'papaparse'
 import { fetchRows, insertAudited, snapshotTable, restoreSnapshot, hasSnapshot, nowStamp } from '../lib/erp/db'
 import { exportCsv } from '../lib/erp/printDoc'
@@ -41,8 +41,16 @@ export default function ProjectAutoImportPage() {
   const [dragOver, setDragOver] = useState(false)
   const [running, setRunning] = useState(false)
   const [results, setResults] = useState<StageResult[] | null>(null)
-  const [canUndo, setCanUndo] = useState(hasSnapshot('elements') && hasSnapshot('projects'))
+  const [canUndo, setCanUndo] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    let mounted = true
+    Promise.all([hasSnapshot('elements'), hasSnapshot('projects')]).then(([a, b]) => {
+      if (mounted) setCanUndo(a && b)
+    })
+    return () => { mounted = false }
+  }, [])
 
   function handleFile(file: File) {
     Papa.parse(file, {
@@ -78,7 +86,7 @@ export default function ProjectAutoImportPage() {
     setRunning(true)
     try {
       // rollback point across the whole chain
-      for (const t of PIPE_TABLES) snapshotTable(t)
+      for (const t of PIPE_TABLES) await snapshotTable(t, userEmail)
 
       const [existingProjects, existingDrawings, existingElements] = await Promise.all([
         fetchRows('projects'), fetchRows('drawings'), fetchRows('elements')
@@ -209,9 +217,9 @@ export default function ProjectAutoImportPage() {
     }
   }
 
-  function undoAll() {
+  async function undoAll() {
     if (!confirm('Restore ALL pipeline tables to their state before the last auto-import?')) return
-    for (const t of PIPE_TABLES) restoreSnapshot(t)
+    for (const t of PIPE_TABLES) await restoreSnapshot(t)
     setCanUndo(false)
     setResults(null)
     alert('Auto-import rolled back across all pipeline tables.')

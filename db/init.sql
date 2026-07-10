@@ -1,4 +1,4 @@
-# Phase 1: Supabase schema for Safetech Control Center
+-- Phase 1: Supabase schema for Safetech Control Center
 
 -- Enums and tables
 DO $$ BEGIN
