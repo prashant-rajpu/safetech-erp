@@ -16,8 +16,10 @@ type DNItem = {
 type TrailerRow = {
   id: string
   plate_no: string
-  supplier: string
-  type: string
+  trailer_type: string
+  supplier_id: string
+  // Resolved client-side from suppliers.id — trailers only stores the FK.
+  supplierName: string
 }
 
 type DriverRow = { name: string; mobile: string; assigned_plate: string }
@@ -98,11 +100,13 @@ export default function DeliveryNotePage() {
   // Fetch trailers + drivers on mount (driver assignment lives on the Drivers master)
   useEffect(() => {
     async function loadTrailers() {
-      const [{ data }, { data: drv }] = await Promise.all([
+      const [{ data }, { data: drv }, { data: sup }] = await Promise.all([
         supabase.from('trailers').select('*').limit(200),
-        supabase.from('drivers').select('*').limit(200)
+        supabase.from('drivers').select('*').limit(200),
+        supabase.from('suppliers').select('id,name').limit(200)
       ])
-      if (data) setTrailers(data as TrailerRow[])
+      const supplierNameById = new Map((sup || []).map((s: any) => [s.id, s.name]))
+      if (data) setTrailers(data.map((t: any) => ({ ...t, supplierName: supplierNameById.get(t.supplier_id) || '' })) as TrailerRow[])
       if (drv) setDriversList(drv as DriverRow[])
     }
     loadTrailers()
@@ -114,7 +118,7 @@ export default function DeliveryNotePage() {
     const q = trailerSearch.toLowerCase()
     return trailers.filter(t => 
       t.plate_no.toLowerCase().includes(q) ||
-      t.supplier.toLowerCase().includes(q)
+      t.supplierName.toLowerCase().includes(q)
     )
   }, [trailers, trailerSearch])
 
@@ -251,7 +255,7 @@ export default function DeliveryNotePage() {
       }
 
       // Find trailer ID by head number if possible, or leave null
-      const t = await supabase.from('trailers').select('id, supplier').eq('plate_no', trailerHead).maybeSingle()
+      const t = await supabase.from('trailers').select('id').eq('plate_no', trailerHead).maybeSingle()
       const trailer_id = t.data?.id ?? null
 
       // Determine combined element type
@@ -470,9 +474,9 @@ export default function DeliveryNotePage() {
                         onClick={() => {
                           setTrailerHead(t.plate_no)
                           setTrailerTail(t.plate_no)
-                          setTrailerType(t.type)
-                          setTrailerSearch(`${t.plate_no} - ${t.supplier}`)
-                          setDnType(`Ex Factory - Transporter: ${t.supplier}`)
+                          setTrailerType(t.trailer_type)
+                          setTrailerSearch(`${t.plate_no} - ${t.supplierName}`)
+                          setDnType(`Ex Factory - Transporter: ${t.supplierName}`)
                           const drv = driversList.find(d => d.assigned_plate === t.plate_no)
                           setDriverName(drv?.name || 'WAQAR')
                           setDriverMobile(drv?.mobile || '')
@@ -481,7 +485,7 @@ export default function DeliveryNotePage() {
                         className="p-2.5 text-xs text-slate-300 hover:bg-red-500/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
                       >
                         <span className="font-extrabold text-red-400">{t.plate_no}</span>
-                        <span className="text-[10px] text-slate-400 font-semibold">{t.supplier} ({t.type})</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{t.supplierName} ({t.trailer_type})</span>
                       </div>
                     ))
                   )}

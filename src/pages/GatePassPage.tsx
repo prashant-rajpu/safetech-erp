@@ -34,14 +34,16 @@ export default function GatePassPage() {
 
   async function reload() {
     setLoading(true)
-    const [gp, tr, pr, dr] = await Promise.all([
+    const [gp, tr, pr, dr, sup] = await Promise.all([
       fetchRows('gate_passes'),
       fetchRows('trailers'),
       fetchRows('projects'),
-      fetchRows('drivers')
+      fetchRows('drivers'),
+      fetchRows('suppliers')
     ])
+    const supplierNameById = new Map(sup.map((s: any) => [s.id, s.name]))
     setPasses(gp.sort((a, b) => String(b.gp_no).localeCompare(String(a.gp_no))))
-    setTrailers(tr)
+    setTrailers(tr.map((t: any) => ({ ...t, supplierName: supplierNameById.get(t.supplier_id) || '' })))
     setProjects(pr)
     setDrivers(dr)
     setLoading(false)
@@ -205,7 +207,7 @@ export default function GatePassPage() {
               <span className="text-[9px] uppercase font-black text-slate-500">Trailer</span>
               <select className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs" value={fTrailer} onChange={e => setFTrailer(e.target.value)}>
                 <option value="">Select…</option>
-                {trailers.map(t => <option key={t.id} value={t.plate_no}>{t.plate_no} — {t.supplier} ({t.type})</option>)}
+                {trailers.map(t => <option key={t.id} value={t.plate_no}>{t.plate_no} — {t.supplierName} ({t.trailer_type})</option>)}
               </select>
             </label>
             <label className="block">

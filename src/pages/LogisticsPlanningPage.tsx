@@ -34,13 +34,15 @@ export default function LogisticsPlanningPage() {
 
   useEffect(() => {
     async function loadData() {
-      const [planRes, trailRes, driverRes] = await Promise.all([
+      const [planRes, trailRes, driverRes, supRes] = await Promise.all([
         supabase.from('allocations').select('*'),
         supabase.from('trailers').select('*'),
-        supabase.from('drivers').select('*')
+        supabase.from('drivers').select('*'),
+        supabase.from('suppliers').select('id,name')
       ])
+      const supplierNameById = new Map((supRes.data || []).map((s: any) => [s.id, s.name]))
       setPlans(planRes.data || [])
-      setTrailers(trailRes.data || [])
+      setTrailers((trailRes.data || []).map((t: any) => ({ ...t, supplierName: supplierNameById.get(t.supplier_id) || '' })))
       setDrivers(driverRes.data || [])
       if (trailRes.data && trailRes.data.length > 0) {
         const first = trailRes.data[0]
@@ -86,7 +88,7 @@ export default function LogisticsPlanningPage() {
       alloc_date: (loadingTime || '').slice(0, 10) || new Date().toISOString().slice(0, 10),
       dispatch_no: newDispNo,
       trailer_plate: trailerPlate,
-      trailer_type: trailers.find(t => t.plate_no === trailerPlate)?.type || '',
+      trailer_type: trailers.find(t => t.plate_no === trailerPlate)?.trailer_type || '',
       driver_name: driverName,
       shift: 'Day',
       loading_time: loadingTime,
@@ -165,7 +167,7 @@ export default function LogisticsPlanningPage() {
                 <span className="text-[9px] uppercase font-black text-slate-500">Trailer Plate</span>
                 <select className="w-full mt-1 px-2.5 py-1.5 rounded-lg glowing-input text-xs" value={trailerPlate} onChange={e=>handleTrailerChange(e.target.value)}>
                   {trailers.map(t => (
-                    <option key={t.id} value={t.plate_no}>{t.plate_no} - {t.supplier.slice(0, 10)}...</option>
+                    <option key={t.id} value={t.plate_no}>{t.plate_no} - {(t.supplierName || '').slice(0, 10)}...</option>
                   ))}
                 </select>
               </label>

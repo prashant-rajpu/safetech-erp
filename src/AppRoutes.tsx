@@ -35,6 +35,10 @@ const MaintenanceDashboardPage = lazy(() => import('./pages/MaintenanceDashboard
 const DocumentControlDashboardPage = lazy(() => import('./pages/DocumentControlDashboardPage'))
 const HandoverDashboardPage = lazy(() => import('./pages/HandoverDashboardPage'))
 const EnvironmentalDashboardPage = lazy(() => import('./pages/EnvironmentalDashboardPage'))
+const CastBed3DPage = lazy(() => import('./pages/CastBed3DPage'))
+const YardStack3DPage = lazy(() => import('./pages/YardStack3DPage'))
+const Erection3DPage = lazy(() => import('./pages/Erection3DPage'))
+const TrailerLoadSim3DPage = lazy(() => import('./pages/TrailerLoadSim3DPage'))
 
 const PageLoader = () => (
   <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
@@ -117,6 +121,10 @@ export default function AppRoutes(){
                 <Route path="/documents" element={<ProtectedRoute section="documents"><DocumentControlDashboardPage /></ProtectedRoute>} />
                 <Route path="/handover" element={<ProtectedRoute section="handover"><HandoverDashboardPage /></ProtectedRoute>} />
                 <Route path="/environmental" element={<ProtectedRoute section="environmental"><EnvironmentalDashboardPage /></ProtectedRoute>} />
+                <Route path="/visualization/cast-bed" element={<ProtectedRoute section="production"><CastBed3DPage /></ProtectedRoute>} />
+                <Route path="/visualization/yard" element={<ProtectedRoute section="stockyard"><YardStack3DPage /></ProtectedRoute>} />
+                <Route path="/visualization/erection" element={<ProtectedRoute section="erection"><Erection3DPage /></ProtectedRoute>} />
+                <Route path="/visualization/trailer-loading" element={<ProtectedRoute section="dispatch"><TrailerLoadSim3DPage /></ProtectedRoute>} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
               </Suspense>

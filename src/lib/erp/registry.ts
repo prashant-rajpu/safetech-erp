@@ -140,13 +140,27 @@ export const MODULES: ModuleDef[] = [
     ]
   },
   {
-    id: 'trailers', title: 'Trailers', subtitle: 'Master trailer fleet (72 units)', icon: '🚚', section: 'master', table: 'trailers', keyField: 'plate_no',
+    id: 'trailers', title: 'Trailers', subtitle: 'Master trailer fleet', icon: '🚚', section: 'master', table: 'trailers', keyField: 'plate_no', statusField: 'status',
     fields: [
       { key: 'plate_no', label: 'Plate No', required: true },
-      { key: 'supplier', label: 'Transport Supplier', type: 'ref', ref: { table: 'suppliers', valueField: 'name' } },
-      { key: 'type', label: 'Trailer Type' }
+      { key: 'trailer_type', label: 'Trailer Type', type: 'select', options: ['A-Frame', 'Flatbed', 'Truck Head'] },
+      { key: 'status', label: 'Status' }
+      // supplier_id is a real UUID FK (suppliers.id) on the live table — not
+      // exposed here. The shared ref-field picker (ModuleWorkspace.tsx) only
+      // supports value=label dropdowns, so wiring a UUID FK through it would
+      // show raw UUIDs instead of supplier names. Deferred until the picker
+      // supports a separate labelField, rather than shipping that regression.
       // Driver assignment lives on the Drivers master (assigned_plate) — no
       // duplicated driver fields here.
+    ]
+  },
+  {
+    id: 'trailer-types', title: 'Trailer Types', subtitle: 'Bed dimensions & max weight capacity', icon: '📐', section: 'master', table: 'trailer_types', keyField: 'type_name',
+    fields: [
+      { key: 'type_name', label: 'Type Name', required: true },
+      { key: 'bed_length_mm', label: 'Bed Length (mm)', type: 'number' },
+      { key: 'bed_width_mm', label: 'Bed Width (mm)', type: 'number' },
+      { key: 'max_weight_tons', label: 'Max Weight (T)', type: 'number' }
     ]
   },
   {
@@ -1179,6 +1193,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Reinforcement Types', path: m('reinforcement-types') },
       { name: 'Vehicles', path: m('vehicles') },
       { name: 'Trailers', path: m('trailers') },
+      { name: 'Trailer Types', path: m('trailer-types') },
       { name: 'Drivers', path: m('drivers') },
       { name: 'Suppliers', path: m('suppliers') }
     ]
@@ -1219,6 +1234,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Batching Dashboard', path: '/batching' },
       { name: 'Concrete', path: m('concrete') },
       { name: 'Mould Preparation', path: m('mould-preparation') },
+      { name: 'Cast Bed 3D View', path: '/visualization/cast-bed' },
       { name: 'Finishing', path: m('finishing') },
       { name: 'Repairs', path: m('repairs') },
       { name: 'Concrete Grades', path: m('concrete-grades') },
@@ -1281,6 +1297,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Ready for Dispatch', path: m('ready-for-dispatch') },
       { name: 'Yard Movement', path: m('yard-movement') },
       { name: 'Stack Planning', path: m('stack-plans') },
+      { name: 'Yard / Stack 3D View', path: '/visualization/yard' },
       { name: 'Crane Planning', path: m('crane-planning') },
       { name: 'Crane Operators', path: m('crane-operators') },
       { name: 'QR Scanner & Trace', path: '/qr-scanner' }
@@ -1292,6 +1309,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Delivery Planning', path: '/logistics/planning' },
       { name: 'Delivery Schedule', path: m('delivery-schedule') },
       { name: 'Truck / Trailer / Driver Allocation', path: m('allocations') },
+      { name: 'Trailer Loading 3D Sim', path: '/visualization/trailer-loading' },
       { name: 'Gate Pass', path: '/gate-pass' },
       { name: 'Dispatch Checklist', path: m('dispatch-checklist') },
       { name: 'Dispatch Gate Log', path: '/dispatch' },
@@ -1314,6 +1332,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'erection', name: 'Site Erection', icon: '🏢',
     items: [
       { name: 'Erection Planning', path: m('erection-planning') },
+      { name: 'Erection Simulation 3D', path: '/visualization/erection' },
       { name: 'Erection Log', path: m('erection-log') },
       { name: 'Grouting Records', path: m('grouting-records') },
       { name: 'Connection Inspection', path: m('connection-inspections') }

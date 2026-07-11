@@ -9,8 +9,10 @@ import { updateAudited } from '../lib/erp/db'
 type TrailerRow = {
   id: string
   plate_no: string
-  supplier: string
-  type: string
+  trailer_type: string
+  supplier_id: string
+  // Resolved client-side from suppliers.id — trailers only stores the FK.
+  supplierName: string
 }
 
 // Driver identity comes from the Drivers master (assigned_plate linkage);
@@ -83,8 +85,12 @@ export default function DispatchForm() {
     const { data: trData } = await supabase.from('trailers').select('*').limit(200)
     const { data: logData } = await supabase.from('dispatch_log').select('*').limit(200)
     const { data: drData } = await supabase.from('drivers').select('*').limit(200)
+    const { data: supData } = await supabase.from('suppliers').select('id,name').limit(200)
 
-    const trList = (trData || []) as TrailerRow[]
+    const supplierNameById = new Map((supData || []).map((s: any) => [s.id, s.name]))
+    const trList = (trData || []).map((t: any) => ({
+      ...t, supplierName: supplierNameById.get(t.supplier_id) || ''
+    })) as TrailerRow[]
     const drList = (drData || []) as DriverRow[]
     const driverFor = (plate: string) => drList.find(d => d.assigned_plate === plate)
     setDrivers(drList)
@@ -95,8 +101,8 @@ export default function DispatchForm() {
       const initialLogs: Partial<DispatchLogRow>[] = trList.map(t => ({
         trailer_id: t.id,
         plate_no: t.plate_no,
-        supplier_name: t.supplier,
-        trailer_type: t.type,
+        supplier_name: t.supplierName,
+        trailer_type: t.trailer_type,
         driver_name: driverFor(t.plate_no)?.name || '',
         driver_mobile: driverFor(t.plate_no)?.mobile || '',
         project_no: '',
@@ -160,7 +166,7 @@ export default function DispatchForm() {
     const q = trailerSearch.toLowerCase()
     return trailers.filter(t => 
       t.plate_no.toLowerCase().includes(q) ||
-      t.supplier.toLowerCase().includes(q) ||
+      t.supplierName.toLowerCase().includes(q) ||
       (drivers.find(d => d.assigned_plate === t.plate_no)?.name || '').toLowerCase().includes(q)
     )
   }, [trailers, drivers, trailerSearch, selectedTrailerId])
@@ -382,7 +388,7 @@ export default function DispatchForm() {
     csv += 'Sl No,Supplier Name,Trailer Type,Plate No,Driver Name,Driver Mobile No.,Project No,DO No.,Shift,Diesel Status,Driver Status,DN Status,Leaving Status,Remarks\n';
     trailers.forEach((t, idx) => {
       const drv = drivers.find(d => d.assigned_plate === t.plate_no)
-      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
+      csv += `${idx + 1},"${t.supplierName}","${t.trailer_type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -399,7 +405,7 @@ export default function DispatchForm() {
     csv += 'Sl No,Supplier Name,Trailer Type,Plate No,Driver Name,Driver Mobile No.,Project No,DO No.,Shift,Diesel Status,Driver Status,DN Status,Leaving Status,Remarks\n';
     trailers.forEach((t, idx) => {
       const drv = drivers.find(d => d.assigned_plate === t.plate_no)
-      csv += `${idx + 1},"${t.supplier}","${t.type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
+      csv += `${idx + 1},"${t.supplierName}","${t.trailer_type}","${t.plate_no}","${drv?.name || ''}","${drv?.mobile || ''}",,,,,,,,\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -462,8 +468,8 @@ export default function DispatchForm() {
       html += `
         <tr>
           <td>${idx + 1}</td>
-          <td>${t.supplier}</td>
-          <td>${t.type}</td>
+          <td>${t.supplierName}</td>
+          <td>${t.trailer_type}</td>
           <td><strong>${t.plate_no}</strong></td>
           <td>${drivers.find(d => d.assigned_plate === t.plate_no)?.name || ''}</td>
           <td>${drivers.find(d => d.assigned_plate === t.plate_no)?.mobile || ''}</td>
@@ -619,7 +625,7 @@ export default function DispatchForm() {
                         key={t.id}
                         onClick={async () => {
                           setSelectedTrailerId(t.id)
-                          setTrailerSearch(`${t.plate_no} - ${t.supplier}`)
+                          setTrailerSearch(`${t.plate_no} - ${t.supplierName}`)
                           const drv = drivers.find(d => d.assigned_plate === t.plate_no)
                           setDriverName(drv?.name || '')
                           setDriverMobile(drv?.mobile || '')
@@ -643,7 +649,7 @@ export default function DispatchForm() {
                         className="p-2.5 text-xs text-slate-300 hover:bg-red-500/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
                       >
                         <span className="font-extrabold text-red-400">{t.plate_no}</span>
-                        <span className="text-[10px] text-slate-400 font-semibold">{t.supplier} ({t.type})</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{t.supplierName} ({t.trailer_type})</span>
                         {drivers.find(d => d.assigned_plate === t.plate_no)?.name && <span className="text-[9px] text-slate-500">Driver: {drivers.find(d => d.assigned_plate === t.plate_no)?.name}</span>}
                       </div>
                     ))
@@ -693,11 +699,11 @@ export default function DispatchForm() {
             <div className="p-3 bg-red-500/5 rounded-xl border border-red-500/10 grid grid-cols-2 text-xs">
               <div>
                 <span className="text-slate-400 font-bold uppercase">Logistics Supplier:</span>
-                <span className="text-neutral-800 dark:text-white font-extrabold ml-2">{selectedTrailer.supplier}</span>
+                <span className="text-neutral-800 dark:text-white font-extrabold ml-2">{selectedTrailer.supplierName}</span>
               </div>
               <div>
                 <span className="text-slate-400 font-bold uppercase">Trailer Frame Type:</span>
-                <span className="text-neutral-800 dark:text-white font-extrabold ml-2">{selectedTrailer.type}</span>
+                <span className="text-neutral-800 dark:text-white font-extrabold ml-2">{selectedTrailer.trailer_type}</span>
               </div>
             </div>
           )}

@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 Phases 1-5 complete: schema, Cast Bed Plan, QR traceability, Logistics/Stack Planning, 6 new KPI dashboards + Formwork; all master data populated)
+Last updated: 2026-07-11 (v2 Phase 6 complete + Trailer Loading 3D extension + trailers/dispatch schema-drift bug fix (item 17, 3 discoveries, verified live). Still needs a real-browser spot-check of WebGL render + drag interaction — items 15/16.)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -779,6 +779,233 @@ DONE — VERIFIED COMPLETE
     Batching/Maintenance/Documents/Handover/Environmental with real or
     placeholder records was not requested this phase.
 
+15. V2 ROADMAP — PHASE 6: 3D Visualization Layer (2026-07-11). Exploration
+    found the single most important fact for scoping: NO table anywhere
+    stores real X/Y/Z coordinates for an element's position — not on
+    cast beds, not in the yard, not in erection sequencing. Two
+    corrections to that finding, verified via live SQL: production_beds
+    DOES have real length_m/width_m (Bed 1/2=30x4m, Bed 3/4=24x3m —
+    real seeded data), so bed geometry is real, only element placement
+    ORDER within a bed is synthetic; elements.shape_type (added Phase 1)
+    is 100% null on all 26 rows (confirmed live), so every element
+    renders as a plain box regardless — matches the roadmap's own
+    "no detailed shape" non-goal. User approved building all 3 views as
+    explicitly ILLUSTRATIVE, schema-honest visualizations (real
+    dimensions/weights/status drive appearance; positions are
+    procedurally generated where no real spatial data exists — NOT
+    presented as a positional record of reality).
+      a) New dependency: three@^0.160, @react-three/fiber@^8.18 (NOT
+         v9 — v9 requires React 19, this app is React 18, had to pin
+         the v8 line after a peer-dependency conflict), @react-three/
+         drei@^9.122.
+      b) Shared building blocks: src/lib/erp/three/Scene3DShell.tsx
+         (Canvas + lighting + OrbitControls + ground grid, frameloop=
+         "demand" for efficiency), ElementBox.tsx (box mesh scaled to
+         real length_mm/width_mm/thickness_mm, statusColor3D() — a hex
+         counterpart to uiHelpers.ts's statusChipClass(), same status
+         vocabulary/categorization, Html floating label).
+      c) CastBed3DPage.tsx (/visualization/cast-bed) — real bed
+         dimensions from production_beds, elements placed along it in
+         schedule order (synthetic order, real size), colored by
+         casting_schedule status. Bed/date selector.
+      d) YardStack3DPage.tsx (/visualization/yard) — bays in an
+         invented grid (no bay geometry exists), stacked by
+         stack_plans.planned_position where a plan exists else
+         insertion order, colored by stockyard_inventory status
+         (erection-readiness).
+      e) Erection3DPage.tsx (/visualization/erection) — step-through
+         UI (Prev/Next, not physics) over erection_planning.sequence_no,
+         synthetic pickup/placement points + connecting line, "Crane
+         Capacity Check" panel comparing elements.weight_tons against a
+         new small CRANE_CAPACITY_TONS constant map (no capacity field
+         exists anywhere in the schema — explicitly documented as a
+         hardcoded reference, not real engineering data).
+      f) Every view carries a consistently-styled amber disclaimer
+         banner stating exactly what's real vs. illustrative — same
+         "never present synthetic data as real" principle applied
+         throughout this project (element_traceability honesty fix,
+         master-data placeholder naming, etc.).
+      g) Nav: did NOT create a standalone "3D Visualization" nav group
+         as first drafted — registry.ts's Sidebar.tsx gates each nav
+         GROUP by a single canView(s.key) check against a real RBAC
+         section, and 'visualization' isn't one (nor should it be, per
+         the plan's own "reuse existing sections" call). Caught via a
+         real tsc error (SectionKey type mismatch) before it shipped.
+         Fixed by folding each view into its matching existing nav
+         group instead: Cast Bed 3D under Production, Yard/Stack 3D
+         under Stockyard, Erection Simulation under Site Erection.
+      VERIFICATION LIMITATION (documented honestly, not glossed over):
+      tsc --noEmit and vite build both clean; 18/18 functional
+      Playwright checks passed (canvas element present, zero runtime
+      JS/React errors, correct data-driven behavior — e.g. Erection 3D
+      correctly shows its empty state since erection_planning has 0
+      rows today, real Bed 1 dimensions confirmed in the selector).
+      HOWEVER: could not visually confirm final WebGL pixel rendering
+      in this sandboxed test environment — the headless Chromium here
+      hits repeated "CONTEXT_LOST_WEBGL" driver errors (confirmed via
+      console capture, tried both default and --use-gl=swiftshader
+      launch flags, tried frameloop="demand" — none fully stabilized
+      it). This is a known category of headless/sandboxed-environment
+      GPU limitation, NOT a code defect: no JS exceptions were ever
+      thrown, and the scene's projection math is demonstrably correct
+      (the Html-based floating element-code labels, which are computed
+      from the same Three.js camera/scene state, position correctly
+      on screen even when the WebGL raster itself fails). Recommend
+      the user do a quick visual check in a real browser on real
+      hardware before considering this phase fully closed — the code
+      is standard, idiomatic react-three-fiber/drei usage with no
+      known correctness issues, but this is the one thing sandboxed
+      testing genuinely could not confirm.
+    NOT DONE (explicitly out of scope): no schema changes this phase
+    (by design — every view reads existing tables); erection_planning
+    has 0 rows today so the Erection 3D view has never been exercised
+    against real multi-step data, only its correct empty state.
+
+16. PHASE 6 EXTENSION: Trailer Loading 3D Simulation (2026-07-11), at the
+    user's explicit request — a drag-and-drop check of whether an element
+    physically fits on a trailer bed and stays within weight capacity,
+    before real dispatch. Exploration confirmed a genuine gap (unlike
+    Phases 4/5): trailers had no bed dimensions/capacity anywhere, no
+    element-level table ever recorded "loaded on trailer X", and zero
+    3D drag-and-drop precedent existed (CastBedPlanPage.tsx's drag-drop
+    is @dnd-kit, DOM-based, incompatible with a WebGL canvas).
+      a) New table `trailer_types` (type_name, bed_length_mm,
+         bed_width_mm, max_weight_tons + audit cols), db/phase6_
+         trailer_types.sql, RLS reusing 'master' section. SHIPS EMPTY
+         ON PURPOSE — no real trailer specs are known, none invented,
+         per this project's standing "never present fabricated data as
+         real" principle. Registered as generic CRUD module
+         `trailer-types` so real specs can be entered via Master Data.
+      b) New src/lib/erp/three/DraggableElementBox.tsx — separate from
+         the read-only ElementBox.tsx (kept pure/unmodified for the 3
+         existing views). Drag is implemented via R3F's built-in pointer
+         events (mesh onPointerDown + a large invisible ground-plane's
+         onPointerMove/onPointerUp reading event.point) — NOT manual
+         THREE.Raycaster code, which the exploration had flagged as the
+         hard part; R3F already raycasts internally per pointer event.
+      c) Scene3DShell.tsx gained an `orbitEnabled` prop (default true)
+         so OrbitControls can be disabled while dragging — without this,
+         the camera would fight every drag gesture. Also added
+         frameloop="demand" during this same work for efficiency.
+      d) New TrailerLoadSim3DPage.tsx (/visualization/trailer-loading,
+         section 'dispatch' — Loading is a Dispatch-lifecycle step per
+         CLAUDE.md). Trailer selector -> looks up trailer_types by
+         matching type; shows an honest "No capacity data configured...
+         add it via Master Data" state if no match (expected today,
+         since the table ships empty). Elements sourced from
+         stockyard_inventory (Stockyard/Curing status). Live summary:
+         weight-vs-capacity badge + out-of-bounds badge. Explicit scope
+         limit stated on-screen: checks bed-boundary fit and total
+         weight, does NOT detect elements overlapping each other
+         (no bin-packing/collision this pass).
+      e) REAL BUG FOUND while testing (not caused by this work, but
+         blocks this new feature's real-world usability, so worth
+         flagging prominently): db/init.sql and db/erp_schema.sql
+         define `trailers` DIFFERENTLY (schema drift, pre-existing).
+         The LIVE table matches init.sql: plate_no/trailer_type/
+         supplier_id(FK)/status. registry.ts's existing `trailers`
+         ModuleDef (section 'master', already live before this session)
+         has fields plate_no/supplier(ref)/type — matching the OTHER,
+         non-live schema file. Confirmed via a direct insert attempt:
+         `column "supplier" of relation "trailers" does not exist`.
+         This means the Trailers master-data CRUD page has likely been
+         broken for saves since before this session — NOT fixed here
+         (out of scope, not something this task caused), but it directly
+         blocks users from adding real trailers, which is required to
+         use the new Trailer Loading Simulation at all. Recommend
+         fixing registry.ts's trailers ModuleDef fields (supplier->
+         supplier_id, type->trailer_type) as a small, separate, explicitly-
+         approved fix. My OWN new page was affected by the same drift
+         (originally read trailer.type, silently always undefined) —
+         caught and fixed to read trailer.trailer_type before this was
+         verified end-to-end.
+      Verified: tsc --noEmit + vite build clean both times (before and
+      after the trailer_type field fix); Playwright confirmed the honest
+      empty state when trailers/trailer_types are empty (5/6 then all
+      checks passing after correcting test expectations — trailers WAS
+      actually empty too, not just trailer_types); inserted temporary
+      trailers + trailer_types test rows (correct real column names:
+      plate_no/trailer_type/status) to verify the populated scene —
+      bed dimensions (12.0m x 2.5m) and capacity (25T) rendered
+      correctly, canvas mounted, no JS errors, 7/7 functional checks
+      passed; test rows deleted immediately after, confirmed both
+      tables back to 0 rows.
+      SAME VERIFICATION LIMITATION AS ITEM 15: a simulated Playwright
+      pointer-drag sequence was attempted but was inconclusive — the
+      sandboxed environment's WebGL context was lost by that point
+      (same CONTEXT_LOST_WEBGL issue as the other 3 views), and the
+      synthetic drag likely landed on an HTML label's native text
+      selection rather than the 3D mesh underneath. The drag interaction
+      itself (not just pixel rendering) has NOT been visually confirmed
+      working end-to-end — recommend the user test dragging an element
+      onto the bed in a real browser alongside the item-15 spot-check.
+
+17. TRAILERS FIELD-NAME BUG FIX (2026-07-11), at the user's explicit
+    request after item 16e flagged it. What started as "fix registry.ts's
+    trailers ModuleDef" turned into fixing a live-breaking bug across the
+    whole trailers/dispatch surface — 3 separate schema-drift discoveries
+    in one pass, all following the same root cause: db/init.sql and
+    db/erp_schema.sql define several tables DIFFERENTLY, and the LIVE
+    database doesn't consistently match either file. Every fix here was
+    verified against the LIVE schema via direct SQL, not the SQL files.
+      a) registry.ts's `trailers` ModuleDef: fields renamed supplier(ref)
+         -> dropped (see below), type -> trailer_type (now a proper
+         select matching the live CHECK constraint: A-Frame/Flatbed/
+         Truck Head). Added statusField. Supplier intentionally NOT
+         re-added as a ref field: supplier_id is a real UUID FK, but
+         ModuleWorkspace.tsx's shared ref-picker (used by every ref-type
+         field app-wide) only supports value=label dropdowns — wiring a
+         UUID FK through it would show raw UUIDs to users instead of
+         supplier names, a regression versus every other ref field in
+         the app. Deferred until the picker supports a separate
+         labelField; documented inline as a comment, not silently
+         dropped without explanation.
+      b) Fixed 4 operational pages that all read `t.supplier`/`t.type`
+         directly off trailers rows — none of which exist on the live
+         table (confirmed: DispatchForm.tsx:163 `t.supplier.toLowerCase()`
+         would have THROWN the instant a real trailer row existed, not
+         just displayed blank — this was a live crash waiting to happen,
+         invisible only because trailers has always had 0 rows):
+         DispatchForm.tsx, DeliveryNotePage.tsx, LogisticsPlanningPage.tsx,
+         GatePassPage.tsx. Each now fetches `suppliers` (id, name only —
+         confirmed live suppliers schema matches this exactly) and joins
+         supplier_id -> supplierName client-side, since the shared
+         ref-picker limitation in (a) applies here too — no page should
+         show raw UUIDs. Also removed a dead `select('id, supplier')` in
+         DeliveryNotePage.tsx (line ~258) that would have thrown its own
+         query-level error — supplier was fetched but never used.
+      c) THIRD discovery, different in kind (not a rename): DispatchForm
+         .tsx's "auto-seed dispatch_log from trailers" logic has always
+         tried to insert plate_no/supplier_name/trailer_type/driver_name/
+         driver_mobile into dispatch_log — none of which existed on the
+         live table (only trailer_id/project_no/do_no/shift/status
+         flags/remarks/log_date). This silently failed every time
+         (network 400, no crash, no seeding) — confirmed via Playwright
+         console capture during verification, not assumed. User chose to
+         ADD the missing columns (db/phase6_dispatch_log_columns.sql,
+         plain `alter table add column if not exists`, pure-additive
+         since dispatch_log had 0 rows — no backfill needed) rather than
+         strip the fields from the insert, restoring the auto-seed
+         feature to work as originally designed.
+      Verified end-to-end with real temporary data (not just empty-state
+      checks): inserted a real supplier + trailer + triggered the
+      auto-seed dispatch_log insert live, confirmed via SQL that
+      plate_no/supplier_name/trailer_type all landed correctly
+      ("Test Transport Co"/"Flatbed"), confirmed via Playwright that
+      DispatchForm now displays the resolved supplier name with zero
+      page errors (where before the fix it would have crashed), and that
+      all 3 other pages load clean. 7/7 checks passed. All test rows
+      (dispatch_log, trailers, suppliers) deleted immediately after —
+      confirmed via SQL that dispatch_log/trailers are back to 0 rows
+      and suppliers only shows its 1 pre-existing real row ("KANNAN",
+      not created by this session).
+    NOT DONE (flagged, not fixed): the ModuleWorkspace.tsx ref-picker's
+    inability to show a label different from its stored value (item a)
+    is a real, small, shared-component limitation surfaced by this work
+    but not fixed — it doesn't block anything today (no ref field in the
+    app currently needs it), just noting it exists for whenever a UUID-
+    FK-backed ref field is next needed.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -849,26 +1076,49 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1-5 are ALL DONE. All master-data blockers resolved (items 11+12).
-   Phase 4 (item 13) added Stack Planning + fixed 2 confirmed status-vocab
-   bugs. Phase 5 (item 14) added Formwork (mould_preparation_log, generic
-   CRUD) + 6 new KPI dashboards (Prestressing/Batching/Maintenance/
-   Document Control/Handover/Environmental), all following the HSE/
-   Workforce template, all verified against the live dev server. NONE of
-   the 6 new dashboards' underlying tables have real data populated yet —
-   they're built, wired, and tested against empty tables only.
-2. Per CLAUDE.md's "wait for approval before starting the next phase"
+1. Phases 1-6 are ALL DONE, including the Trailer Loading 3D extension
+   (item 16) AND the trailers/dispatch schema-drift bug fix (item 17 —
+   3 separate discoveries, all verified live with real temporary data,
+   not just empty-state checks). All 4 3D views (Cast Bed, Yard/Stack,
+   Erection Sim, Trailer Loading) are explicitly illustrative, built on
+   real dimension/weight/status data. DispatchForm/DeliveryNotePage/
+   LogisticsPlanningPage/GatePassPage no longer read nonexistent
+   trailers.supplier/type columns (one was a live crash waiting to
+   happen); dispatch_log's auto-seed logic works end-to-end again.
+2. FIRST STEP before anything else — TWO real-browser checks (unrelated
+   to item 17, still open from items 15/16):
+   a) Visual: open /visualization/cast-bed, /visualization/yard,
+      /visualization/erection, /visualization/trailer-loading — confirm
+      the 3D scenes render (boxes + grid + labels), not a blank canvas.
+      Sandboxed testing hit WebGL context-loss throughout and could only
+      verify code correctness, not final pixels.
+   b) Interaction: on /visualization/trailer-loading, add one real
+      trailer (Master Data -> Trailers, now fixed) + one matching
+      trailer_types row (Master Data -> Trailer Types, ships empty on
+      purpose), then confirm dragging an element onto the bed actually
+      works. A simulated Playwright drag was inconclusive — needs a
+      real mouse test.
+3. To make Trailer Loading actually useful long-term: populate real
+   trailer specs via /m/trailer-types (still empty by design).
+4. Per CLAUDE.md's "wait for approval before starting the next phase"
    rule, get explicit sign-off on what's next: populating real/placeholder
-   data into the 6 new Phase-5 sections (same category of gap as the
-   Phase 4 master-data work) and/or Phase 6 (3D viz) and/or the
+   data into the 6 new Phase-5 sections and Erection Planning (0 rows
+   today, so Erection 3D/erection sequencing has never been exercised
+   against real multi-step data) and/or Phase 7 (UI pass) and/or the
    photo-logging follow-up deferred from Phase 3.
-3. Resolve the design-system conflict flagged above (red/black glass
+5. Resolve the design-system conflict flagged above (red/black glass
    vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
-   ask the user directly rather than guessing. Not urgent yet (Phase 7
-   is last in the dependency chain), but don't let it go unresolved.
-4. Remaining phases in order: Phase 6 (3D viz, depends on 2+3+4 —
-   elements.shape_type is ready for it), Phase 7 (UI pass — pending the
-   conflict resolution above), Phase 8 (reporting/gap-check).
+   ask the user directly rather than guessing. Not urgent yet but don't
+   let it go unresolved.
+6. Remaining phases in order: Phase 7 (UI pass — pending the conflict
+   resolution above), Phase 8 (reporting/gap-check).
+7. Worth a dedicated pass sometime: db/init.sql and db/erp_schema.sql
+   have diverged on at least 4 tables now (trailers, suppliers,
+   dispatch_log, and earlier-session findings on others) — the live DB
+   doesn't consistently match either file. Item 17 fixed the trailers/
+   dispatch_log symptoms it hit, but the underlying two-source-of-truth
+   problem in db/*.sql itself is still there for whatever table gets
+   touched next.
 
 =====================================================================
 KNOWN TROUBLESHOOTING NOTES (carry forward)
