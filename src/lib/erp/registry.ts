@@ -504,7 +504,7 @@ export const MODULES: ModuleDef[] = [
     ]
   },
   {
-    id: 'ready-for-dispatch', title: 'Ready for Dispatch', subtitle: 'QC-released elements awaiting load-out', icon: '✅', section: 'stockyard', table: 'stockyard_inventory', keyField: 'element_code', statusField: 'status', filter: { field: 'status', value: 'Ready' }, qrField: 'element_code',
+    id: 'ready-for-dispatch', title: 'Ready for Dispatch', subtitle: 'QC-released elements awaiting load-out', icon: '✅', section: 'stockyard', table: 'stockyard_inventory', keyField: 'element_code', statusField: 'status', filter: { field: 'status', value: 'Stockyard' }, qrField: 'element_code',
     fields: [
       { key: 'element_code', label: 'Element Code' },
       { key: 'project_no', label: 'Project' },
@@ -521,7 +521,7 @@ export const MODULES: ModuleDef[] = [
       { key: 'cast_date', label: 'Cast', type: 'date' },
       { key: 'bay_location', label: 'Bay' },
       { key: 'curing_days', label: 'Curing Days', type: 'number' },
-      { key: 'status', label: 'Status', type: 'select', options: ['Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'Rejected'] },
+      { key: 'status', label: 'Status', type: 'select', options: ['Curing', 'Stockyard', 'Loading', 'Dispatch', 'Delivered', 'Rejected'] },
       { key: 'remarks', label: 'Remarks' }
     ]
   },
@@ -534,6 +534,18 @@ export const MODULES: ModuleDef[] = [
       { key: 'crane', label: 'Crane' },
       { key: 'operator', label: 'Operator' },
       { key: 'movement_time', label: 'Time' },
+      { key: 'remarks', label: 'Remarks' }
+    ]
+  },
+  {
+    id: 'stack-plans', title: 'Stack Planning', subtitle: 'Planned bay & stack position per element', icon: '📦', section: 'stockyard', table: 'stack_plans', keyField: 'element_code', statusField: 'status',
+    fields: [
+      { key: 'element_code', label: 'Element Code', required: true },
+      { key: 'project_no', label: 'Project' },
+      { key: 'planned_bay', label: 'Planned Bay' },
+      { key: 'planned_position', label: 'Stack Position', type: 'number' },
+      { key: 'planned_date', label: 'Planned Date', type: 'date' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Planned', 'Executed', 'Cancelled'] },
       { key: 'remarks', label: 'Remarks' }
     ]
   },
@@ -1250,6 +1262,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { name: 'Storage Zones', path: m('storage-zones') },
       { name: 'Ready for Dispatch', path: m('ready-for-dispatch') },
       { name: 'Yard Movement', path: m('yard-movement') },
+      { name: 'Stack Planning', path: m('stack-plans') },
       { name: 'Crane Planning', path: m('crane-planning') },
       { name: 'Crane Operators', path: m('crane-operators') },
       { name: 'QR Scanner & Trace', path: '/qr-scanner' }

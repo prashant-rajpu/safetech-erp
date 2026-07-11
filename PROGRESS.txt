@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-10 (v2 Phases 1-3 complete + beds/moulds/projects master data populated)
+Last updated: 2026-07-11 (v2 Phases 1-4 complete: schema, Cast Bed Plan, QR traceability, Logistics/Stack Planning + status-vocab bug fixes; all master data populated)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -606,6 +606,107 @@ DONE — VERIFIED COMPLETE
     is still empty, so QrScannerPage.tsx still can't resolve a real scan
     yet — same category of gap, not yet addressed.
 
+12. STOCKYARD_INVENTORY SEEDING, at the user's explicit request (2026-07-11).
+    Found all 3 casting_schedule rows were future-dated (Jul 12-14) and
+    unassigned to a bed — zero elements had actually finished casting, so
+    stockyard_inventory only had 1 pre-existing real row (00-IW01-2502M,
+    project P26002, untouched). Rather than hand-writing fabricated
+    stockyard rows, asked the user how to proceed; they chose to backdate
+    + complete one real schedule row rather than leave it empty or insert
+    disconnected placeholders.
+      - casting_schedule row f012c411 (DWG-MGT-WL-101, project P26010,
+        6x WL/PC elements 00-IW01-2607M-001..006): bed set to 'Bed 1',
+        schedule_date moved from 2026-07-12 to 2026-07-10 (backdated to
+        yesterday), status set to 'Completed'.
+      - Ran the EXACT SAME cascade CastBedPlanPage.tsx's setRowStatus()
+        performs on Completion (mirrored field-for-field from the source,
+        not reinvented): elements.status -> 'Cast' + cast_date set;
+        stockyard_inventory gets one row per element (status 'Curing',
+        bay_location 'Curing Area', remarks 'Cast on Bed 1 (Day shift)');
+        element_traceability upserted (onConflict element_code) with
+        planning/casting/curing/stockyard timestamps.
+      - Verified via Supabase SQL (7 stockyard_inventory rows total: 1
+        pre-existing + 6 new) AND via a live Playwright run against the
+        LAN dev server: scanned 00-IW01-2607M-001 on /qr-scanner, real
+        profile resolved with status chip 'Curing' and no fabricated/
+        honest-empty-state fallback shown.
+    Remaining 2 casting_schedule rows (DWG-AQV-BW-301, DWG-MGT-HCS-201)
+    intentionally left untouched — still future-dated/unbedded, will flow
+    into stockyard_inventory naturally as real production proceeds.
+
+13. V2 ROADMAP — PHASE 4: Logistics (2026-07-11). Exploration corrected the
+    starting premise substantially: Transport Planning and Crane/Erection
+    sequencing were ALREADY BUILT as generic ModuleWorkspace CRUD screens
+    (allocations, delivery_schedule, crane_planning, crane_operators,
+    erection_planning w/ sequence_no, erection_log) — building new pages
+    for these would have duplicated existing functionality. User scoped
+    Phase 4 down to the one genuine gap plus a real bug found along the way.
+      a) STACK PLANNING — new table `stack_plans` (element_code, project_no,
+         planned_bay, planned_position, planned_date, status Planned/
+         Executed/Cancelled + audit cols), db/phase4_stack_planning.sql,
+         RLS via has_permission() reusing the 'stockyard' section (no
+         dedicated 'stack'/'crane' section exists). Registered as module
+         `stack-plans` in registry.ts (generic CRUD, same pattern as
+         yard-movement/crane-planning), nav entry added under Stockyard.
+         Deliberately NOT a custom drag-drop board — matches the roadmap's
+         own "list+table UI first" phrasing and the pattern already used
+         by every other Logistics module.
+      b) STATUS-VOCABULARY RECONCILIATION — found 2 confirmed bugs while
+         planning, both fixed:
+         - QrScannerPage.tsx's "Update Status" form had `stStatus` as a
+           FREE-TEXT input (placeholder "e.g. Erected"), unconstrained,
+           even though the adjacent Stage dropdown was already limited to
+           the canonical TraceStage list. This was the actual source of
+           vocabulary drift — every scan-side status update could write
+           an arbitrary new string into both elements.status AND
+           stockyard_inventory.status. Fixed: now a <select> using the
+           same TraceStage list as Stage.
+         - Dashboard.tsx's elementFunnel (donut chart) and projectProgress
+           (per-project % bars) were filtering elements.status against
+           post-Cast stage names (Curing/Ready/Loaded/Dispatched/
+           Delivered/Rejected) that are NEVER written to elements.status
+           — only to stockyard_inventory.status. Confirmed via direct SQL
+           (00-IW01-2607M-001..006: elements.status='Cast',
+           stockyard_inventory.status='Curing' — the funnel was checking
+           the wrong column entirely). This silently showed 0% progress
+           for every element past "Cast" on every project, always.
+           FIXED: both now compute each element's "effective stage" —
+           stockyard_inventory.status if a row exists for that
+           element_code, else elements.status — via a new
+           stockyardStatusByCode lookup map. Verified visually via
+           Playwright screenshot: donut now shows a real green "Curing"
+           slice, P26010 progress bar now correctly shows 6/18 (33%)
+           instead of 0/18 (0%).
+         Renamed StockyardPage.tsx's own vocabulary to match TraceStage
+         where they represent the same state: 'Ready'->'Stockyard',
+         'Loaded'->'Loading' (filter dropdown, edit-modal select, status
+         chip colors, AND the Curing Tracker tab filter which would have
+         silently dropped curing-complete elements if missed). Also found
+         and fixed a THIRD site the original exploration missed:
+         registry.ts's 'ready-for-dispatch' module had a hardcoded
+         `filter: { field: 'status', value: 'Ready' }` plus its own local
+         status options list — both updated to match. Zero data migration
+         needed (confirmed via SQL: no existing row held 'Ready'/'Loaded'
+         before the rename — all 7 real rows were 'Curing'/'Casting').
+         'Rejected' intentionally left as-is — a QC-hold exception state
+         outside the forward TraceStage lifecycle, not force-fit into it.
+         elements.status's own vocabulary (Planned/QR Generated/Cast) and
+         LogisticsPlanningPage.tsx/fleet_status (vehicle location text,
+         a different concept) were explicitly left untouched — out of
+         scope, no behavioral benefit, would have rippled into
+         CastingSchedulePage.tsx/CastBedPlanPage.tsx for nothing.
+      Verified: tsc --noEmit + vite build clean; migration applied with
+      4 RLS policies confirmed; 8/8 Playwright checks passed against the
+      live LAN dev server (module page loads, status form renders as
+      select not text input, Stockyard dropdown offers the new option
+      and not the old one); Dashboard funnel fix confirmed via screenshot.
+      NOTE while verifying: spotted stale TEST-SCAN-001 entries still in
+      the Dashboard's Recent Activities feed from Phase 3's earlier
+      Playwright run — checked via SQL, the underlying rows (elements/
+      stockyard_inventory/traceability_events/element_traceability) were
+      already correctly cleaned up; audit_logs is an append-only trail by
+      design, so those entries are expected permanent history, not a bug.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -676,34 +777,33 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1, 2 AND 3 are DONE and their master-data blockers are now
-   PARTIALLY resolved (item 11 above): Cast Bed Plan now has real beds/
-   moulds to show, and new castings can reference P26010/P26011.
-   stockyard_inventory is STILL empty though, which still blocks
-   QrScannerPage.tsx from resolving any real scan — confirmed during
-   Phase 3 verification, same root-cause pattern as the beds/moulds gap
-   was before item 11. Worth populating this too, or seeding it
-   naturally by actually running a casting through Cast Bed Plan /
-   ProductionPage.tsx now that beds/moulds/projects exist.
+1. Phases 1-4 are ALL DONE. All master-data blockers resolved (items 11+12):
+   Cast Bed Plan has real beds/moulds, new castings can reference
+   P26010/P26011, stockyard_inventory has real linked rows so
+   QrScannerPage.tsx resolves a real scan end-to-end. Phase 4 (item 13)
+   added Stack Planning as generic CRUD and fixed 2 confirmed bugs: the
+   QR Scanner's free-text status field (now a constrained select) and
+   Dashboard.tsx's element funnel/project progress silently showing 0%
+   past "Cast" (now correctly reads stockyard_inventory.status). The
+   remaining 2 casting_schedule rows are still future-dated/unbedded on
+   purpose — they'll flow into stockyard_inventory naturally as real
+   production proceeds through Cast Bed Plan.
 2. Per CLAUDE.md's "wait for approval before starting the next phase"
-   rule, get explicit sign-off on what's next: Phase 4 (logistics —
-   Stack Planning, Transport Planning, Crane/Erection sequencing;
-   depends on Phases 2+3, both done) and/or Phase 5's remaining
+   rule, get explicit sign-off on what's next: Phase 5's remaining
    new-module UI work (the 22 Phase-1 tables are generic CRUD only right
    now — richer dashboards for Prestressing/Erection/Maintenance/etc.
    are still undone, same pattern as HSEDashboardPage.tsx/
-   WorkforceDashboardPage.tsx) and/or the photo-logging follow-up
-   deferred from Phase 3.
+   WorkforceDashboardPage.tsx) and/or Phase 6 (3D viz) and/or the
+   photo-logging follow-up deferred from Phase 3.
 3. Resolve the design-system conflict flagged above (red/black glass
    vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
    ask the user directly rather than guessing. Not urgent yet (Phase 7
    is last in the dependency chain), but don't let it go unresolved.
-4. Remaining phases in order: Phase 4 (logistics, depends on 2+3, both
-   done), Phase 5 (finish the 6 new sections' custom UI + the 9
-   HSE/Workforce/Prestressing/etc. modules, depends on 1), Phase 6
-   (3D viz, depends on 2+3+4 — elements.shape_type is ready for it),
-   Phase 7 (UI pass — pending the conflict resolution above), Phase 8
-   (reporting/gap-check).
+4. Remaining phases in order: Phase 5 (finish the 6 new sections' custom
+   UI + the 9 HSE/Workforce/Prestressing/etc. modules, depends on 1),
+   Phase 6 (3D viz, depends on 2+3+4 — elements.shape_type is ready for
+   it), Phase 7 (UI pass — pending the conflict resolution above),
+   Phase 8 (reporting/gap-check).
 
 =====================================================================
 KNOWN TROUBLESHOOTING NOTES (carry forward)

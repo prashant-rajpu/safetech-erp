@@ -21,7 +21,7 @@ type StockyardItem = {
   weight_tons: number
   cast_date: string
   bay_location: string
-  status: 'Planned' | 'Casting' | 'Curing' | 'Ready' | 'Loaded' | 'Delivered' | 'Rejected'
+  status: 'Planned' | 'Casting' | 'Curing' | 'Stockyard' | 'Loading' | 'Delivered' | 'Rejected'
   remarks: string
   curing_days?: number
 }
@@ -258,7 +258,7 @@ export default function StockyardPage() {
               <span className="text-[9px] uppercase font-black text-slate-500 block mb-1">Status</span>
               <select className="w-full px-3 py-1.5 rounded-lg glowing-input text-xs" value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}>
                 <option value="ALL">ALL STATUSES</option>
-                {['Planned', 'Casting', 'Curing', 'Ready', 'Loaded', 'Delivered', 'Rejected'].map(st => (
+                {['Planned', 'Casting', 'Curing', 'Stockyard', 'Loading', 'Delivered', 'Rejected'].map(st => (
                   <option key={st} value={st}>{st}</option>
                 ))}
               </select>
@@ -304,7 +304,7 @@ export default function StockyardPage() {
                       <td className="py-2 text-center font-bold text-red-500">{item.bay_location || '—'}</td>
                       <td className="py-2 text-center">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                          item.status === 'Ready' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                          item.status === 'Stockyard' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
                           item.status === 'Curing' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
                           item.status === 'Delivered' ? 'bg-slate-100 dark:bg-white/5 text-slate-400' :
                           item.status === 'Rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20 animate-pulse' :
@@ -444,7 +444,7 @@ export default function StockyardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-300">
-                {items.filter(i => i.status === 'Curing' || i.status === 'Ready').map(item => {
+                {items.filter(i => i.status === 'Curing' || i.status === 'Stockyard').map(item => {
                   const days = item.curing_days || 0
                   // Estimate strength curve: 0d=15%, 1d=40%, 2d=65%, 3d=75%, 7d=90%, 28d=100%
                   const targetStr = item.element_code.includes('HC') ? 60 : 45
@@ -508,7 +508,7 @@ export default function StockyardPage() {
                 <label className="block">
                   <span className="text-[9px] uppercase font-black text-slate-500">Status</span>
                   <select className="w-full mt-1 px-2 py-1.5 rounded-lg glowing-input text-xs" value={editStatus} onChange={e=>setEditStatus(e.target.value as any)}>
-                    {['Planned', 'Casting', 'Curing', 'Ready', 'Loaded', 'Delivered', 'Rejected'].map(st => (
+                    {['Planned', 'Casting', 'Curing', 'Stockyard', 'Loading', 'Delivered', 'Rejected'].map(st => (
                       <option key={st} value={st}>{st}</option>
                     ))}
                   </select>

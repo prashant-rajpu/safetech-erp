@@ -81,7 +81,7 @@ export default function QrScannerPage() {
   const [showDefectForm, setShowDefectForm] = useState(false)
   const [busy, setBusy] = useState(false)
   const [stStage, setStStage] = useState<TraceStage>('Stockyard')
-  const [stStatus, setStStatus] = useState('')
+  const [stStatus, setStStatus] = useState<TraceStage>('Stockyard')
   const [dfStage, setDfStage] = useState<TraceStage>('Stockyard')
   const [dfSeverity, setDfSeverity] = useState<'Cosmetic' | 'Minor' | 'Major'>('Minor')
   const [dfDescription, setDfDescription] = useState('')
@@ -220,7 +220,6 @@ export default function QrScannerPage() {
   async function submitStatusUpdate(e: React.FormEvent) {
     e.preventDefault()
     if (!profile || busy) return
-    if (!stStatus.trim()) { alert('Enter a status.'); return }
     setBusy(true)
     try {
       await logTraceEvent({
@@ -236,7 +235,7 @@ export default function QrScannerPage() {
       if (profile.stockId) {
         await updateAudited('stockyard_inventory', profile.stockId, { status: stStatus }, userEmail, `Status update via scan — ${profile.element_code} → ${stStatus}`)
       }
-      setStStatus('')
+      setStStatus('Stockyard')
       setShowStatusForm(false)
       await handleScan(profile.element_code)
     } finally {
@@ -404,7 +403,9 @@ export default function QrScannerPage() {
                     </label>
                     <label className="block">
                       <span className="text-[9px] uppercase font-black text-slate-500">Status</span>
-                      <input type="text" className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={stStatus} onChange={e => setStStatus(e.target.value)} placeholder="e.g. Erected" />
+                      <select className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs min-h-[40px]" value={stStatus} onChange={e => setStStatus(e.target.value as TraceStage)}>
+                        {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
                     </label>
                   </div>
                   <button type="submit" disabled={busy} className="min-h-[44px] w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg btn-interactive">

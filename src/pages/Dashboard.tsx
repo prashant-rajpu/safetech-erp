@@ -134,10 +134,21 @@ export default function Dashboard(){
   const delayedElements = elements.filter(e => e.planned_cast_date && e.planned_cast_date < today && ['Planned', 'QR Generated'].includes(e.status))
   const openNcrs = ncrs.filter(n => n.status !== 'Closed')
 
+  // stockyard_inventory.status carries the real post-Cast lifecycle (Curing/Stockyard/
+  // Loading/Dispatch/Delivered/Rejected) — elements.status only ever holds Planned/QR
+  // Generated/Cast, so a post-Cast element's "effective stage" must come from its
+  // matching stockyard_inventory row, not from elements.status.
+  const stockyardStatusByCode = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const row of (db.stockyard_inventory || [])) map.set(row.element_code, row.status)
+    return map
+  }, [db.stockyard_inventory])
+  const effectiveStage = (e: any) => stockyardStatusByCode.get(e.element_code) || e.status
+
   const elementFunnel = useMemo(() => {
-    const stages = ['Planned', 'QR Generated', 'Cast', 'Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered', 'Rejected']
-    return stages.map(s => ({ name: s, value: elements.filter(e => e.status === s).length })).filter(d => d.value > 0)
-  }, [elements])
+    const stages = ['Planned', 'QR Generated', 'Cast', 'Curing', 'Stockyard', 'Loading', 'Dispatch', 'Delivered', 'Rejected']
+    return stages.map(s => ({ name: s, value: elements.filter(e => effectiveStage(e) === s).length })).filter(d => d.value > 0)
+  }, [elements, stockyardStatusByCode])
 
   const bedUtilization = useMemo(() => {
     const beds = (db.production_beds || []).map(b => b.bed_name)
@@ -153,9 +164,9 @@ export default function Dashboard(){
 
   const projectProgress = useMemo(() => (db.projects || []).filter(p => p.active !== false && p.status !== 'Completed').map(p => {
     const pe = elements.filter(e => e.project_no === p.project_no)
-    const done = pe.filter(e => ['Cast', 'Curing', 'Ready', 'Loaded', 'Dispatched', 'Delivered'].includes(e.status)).length
+    const done = pe.filter(e => ['Cast', 'Curing', 'Stockyard', 'Loading', 'Dispatch', 'Delivered'].includes(effectiveStage(e))).length
     return { project: p.project_no, name: p.project_name, planned: pe.length, done, pct: pe.length ? Math.round(done / pe.length * 100) : 0 }
-  }).filter(p => p.planned > 0), [db.projects, elements])
+  }).filter(p => p.planned > 0), [db.projects, elements, stockyardStatusByCode])
 
   const recentActivities = (db.audit_logs || []).slice(-8).reverse()
   const yardInv = db.stockyard_inventory || []
@@ -487,7 +498,7 @@ export default function Dashboard(){
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <CountUpCard label="Elements in Yard" value={yardInv.length} />
-            <CountUpCard label="Ready for Dispatch" value={yardInv.filter(i => i.status === 'Ready').length} />
+            <CountUpCard label="Ready for Dispatch" value={yardInv.filter(i => i.status === 'Stockyard').length} />
             <CountUpCard label="Curing" value={yardInv.filter(i => i.status === 'Curing').length} />
             <CountUpCard label="Rejected / QC Hold" value={yardInv.filter(i => i.status === 'Rejected').length} accent="red" />
           </div>
