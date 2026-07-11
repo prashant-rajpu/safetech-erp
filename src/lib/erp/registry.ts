@@ -1202,6 +1202,7 @@ export const NAV_SECTIONS: NavSection[] = [
     key: 'design', name: 'Design', icon: '📐',
     items: [
       { name: 'Drawings', path: m('drawings') },
+      { name: 'Drawing Viewer', path: '/drawings/viewer' },
       { name: 'Revisions', path: m('drawing-revisions') },
       { name: 'Shop Drawings', path: m('shop-drawings') },
       { name: 'IFC Drawings', path: m('ifc-drawings') },
@@ -1381,6 +1382,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'reports', name: 'Reports', icon: '📊',
     items: [
+      { name: 'Report Builder', path: '/reports-builder' },
       { name: 'Daily Report', path: '/reports-hub?report=daily' },
       { name: 'Weekly Report', path: '/reports-hub?report=weekly' },
       { name: 'Monthly Report', path: '/reports-hub?report=monthly' },

@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 Phase 7 COMPLETE and user-confirmed visually — full design-system switch to concrete-grey/blueprint-blue, dark mode dropped, emoji icons replaced with Lucide, ~50 files touched in one pass. Verified via tsc/build/22 Playwright checks AND the user's own real-browser check. Committed.)
+Last updated: 2026-07-11 (v2 ROADMAP COMPLETE — Phase 8 (final phase) done: custom report builder + shop drawing viewer (private Storage bucket + signed URLs) built; costing explicitly skipped per CLAUDE.md; mobile companion confirmed already-satisfied via real mobile-viewport testing. All 8 phases of the v2 roadmap are now done. NOT YET committed — see NEXT STEPS.)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -1159,6 +1159,108 @@ DONE — VERIFIED COMPLETE
     confirmed as in-scope for this pass. Flagged for a future request
     if still wanted.
 
+20. V2 ROADMAP — PHASE 8: Reporting/Analytics Gap-Check (2026-07-11) —
+    THE FINAL PHASE of the 8-phase v2 roadmap. Bundled 4 sub-features in
+    the original roadmap text; each got real scoping against actual code
+    before building, same discipline as every phase this session:
+      a) COSTING/INVENTORY VALUATION — SKIPPED ENTIRELY, on purpose. The
+         roadmap literally said "cost estimation tied to Batching/Raw
+         Material," but CLAUDE.md's OUT OF SCOPE section explicitly
+         names "Costing" and "Inventory valuation" as PERMANENTLY
+         EXCLUDED modules. Confirmed via schema grep: zero price/rate/
+         cost columns exist anywhere (bom_items/mix_designs/
+         concrete_batches are quantity-only). Unlike Phase 7 (which
+         deliberately overrode a stale CLAUDE.md rule with explicit user
+         sign-off), this rule was left standing exactly as written —
+         no schema, no UI, no CLAUDE.md change. This is the correct
+         precedent going forward: not every roadmap-vs-CLAUDE.md
+         conflict resolves the same way; each needs its own explicit
+         decision.
+      b) MOBILE COMPANION (Element Control) — CONFIRMED ALREADY
+         SATISFIED, not built. The app is already a fully responsive
+         web app (Sidebar.tsx's mobile drawer, QrScannerPage.tsx's
+         touch-target-sized responsive grid from Phase 3). No PWA/
+         installability scaffolding exists (no manifest, no
+         vite-plugin-pwa) and none was added — user explicitly decided
+         the existing responsive experience already counts. Verified
+         via REAL Playwright testing at a 390×844 viewport (not
+         assumed): Dashboard/QR Scanner/a generic module page all show
+         zero horizontal overflow, the mobile hamburger menu and
+         sidebar drawer both work correctly.
+      c) CUSTOM REPORT BUILDER — built. ReportsHubPage.tsx had 15
+         hardcoded reports via one buildReport() switch, zero
+         user-driven query composition. New: db table `custom_reports`
+         (name/source_table/columns jsonb/filters jsonb + audit cols,
+         RLS reusing the existing 'reports' section — no new section
+         needed). New src/lib/erp/reportTables.ts extracts
+         ReportsHubPage.tsx's curated 26-table TABLES array into a
+         SHARED module both pages import — one list, not two to drift
+         out of sync (ReportsHubPage.tsx edited to import it instead of
+         defining its own copy). New ReportBuilderPage.tsx
+         (/reports-builder): source-table dropdown, column picker
+         (real labels from the matching registry.ts ModuleDef when one
+         exists, else sample-row keys), a repeatable filter builder
+         (equals/contains/gte/lte, AND-combined), and a preview that
+         renders through the EXACT SAME ReportSection/exportCsv/
+         exportExcel/printSectionsDoc pipeline ReportsHubPage.tsx
+         already uses — zero new export code written. Save/reload
+         re-queries LIVE data on rerun, never shows stale cached rows.
+      d) SHOP DRAWING VIEWER — built, with a real security fix along
+         the way. drawings table was metadata-only (confirmed live via
+         direct schema query, matches db/erp_schema.sql exactly this
+         time — no drift found). Added drawings.file_url (additive).
+         FIRST REAL USE of Supabase Storage in this app (confirmed
+         zero prior usage anywhere, despite being named in CLAUDE.md's
+         intended tech stack) — a new 'drawings' bucket + RLS on
+         storage.objects gated by the existing 'design' section.
+         SECURITY CATCH: my first draft set the bucket public:true for
+         simplicity — the environment's own safety classifier correctly
+         blocked this, flagging that a public bucket lets anyone with a
+         file URL view confidential project drawings with NO login,
+         completely bypassing the app's own RLS/permission system. User
+         confirmed: private bucket + signed URLs instead. file_url now
+         stores the STORAGE OBJECT PATH, not a public link;
+         DrawingViewerPage.tsx (/drawings/viewer) requests a fresh
+         300-second signed URL client-side every time a drawing is
+         viewed, so access always goes through Supabase auth + RLS,
+         never a bare unauthenticated URL. Renders images via <img>,
+         PDFs via <iframe> (browser-native, no new PDF library needed).
+         Deliberately built as its own page, NOT a rewrite of the
+         generic ModuleWorkspace CRUD component — file upload isn't a
+         supported FieldDef type there and adding one for this single
+         need was out of scope.
+      MID-SESSION SUPABASE MCP RE-AUTH INCIDENT: the connection expired
+      again mid-planning (same "Unrecognized client_id" OAuth issue as
+      earlier this session). This time my own attempt to run
+      `claude mcp remove supabase -s project` was auto-blocked by the
+      environment's safety classifier as an "unrequested self-
+      modification" — a correct call, since I hadn't yet confirmed with
+      the user that THIS was the right fix for THIS specific error. Only
+      proceeded after the user explicitly confirmed the exact same
+      "Unrecognized client_id" text and explicitly approved the remove/
+      re-add fix. Worth remembering: the classifier will block
+      previously-approved actions again if context doesn't clearly show
+      the user re-requested it in the current situation — that's
+      correct behavior, not a bug to work around.
+      Verified: tsc --noEmit + vite build clean. 16/16 Playwright checks
+      (report builder full round-trip: compose → preview → save →
+      appears in My Reports, zero page errors; drawing viewer loads
+      clean; 3 mobile-viewport pages all overflow-free; hamburger +
+      drawer work) PLUS a separate 4/4 real-file-upload test (uploaded
+      an actual test PDF through the live UI, confirmed it round-tripped
+      through Storage and rendered inline via signed URL in an iframe —
+      not just checked that the button exists). ALL TEST DATA CLEANED
+      UP: confirmed via SQL that custom_reports is back to 0 rows,
+      drawings.file_url is back to all-null (the one pre-existing real
+      drawing row touched — DWG-AQV-BW-301 — was explicitly reverted to
+      its original null value, isolated from the bulk test-data
+      cleanup, same discipline as earlier sessions' pre-existing-row
+      handling), and the Storage bucket is empty (removed via the
+      Storage API through the app's own authenticated client, since
+      direct SQL deletion from storage.objects is blocked by Supabase's
+      own protect_delete() trigger — a real safety feature, not a bug).
+    THIS CLOSES THE FULL 8-PHASE V2 ROADMAP. Phases 1-8 are all done.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -1229,34 +1331,40 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1-7 are ALL DONE. Phase 7 (item 19) is the biggest single pass
-   in the project — full design-system switch (concrete-grey/blueprint-
-   blue, Space Grotesk/IBM Plex Mono, Lucide icons, dark mode dropped),
-   ~50 files touched, verified via tsc/build/22 Playwright checks and
-   screenshots, but NOT YET confirmed by the user in a real browser.
-2. DONE: user confirmed the new look visually ("it's good") and the
-   Phase 7 commit landed. No further action needed on this item.
-3. To make Trailer Loading actually useful long-term: populate real
-   trailer specs via /m/trailer-types (real data has already started
-   appearing there — an "A-FRAME" row was seen during Phase 7
-   verification, added independently of this session's work).
-4. Per CLAUDE.md's "wait for approval before starting the next phase"
-   rule, get explicit sign-off on what's next: populating real/placeholder
-   data into the 6 new Phase-5 sections and Erection Planning (0 rows
-   today, so Erection 3D/erection sequencing has never been exercised
-   against real multi-step data) and/or Phase 8 (reporting/gap-check)
-   and/or the photo-logging follow-up deferred from Phase 3 and/or the
-   density-toggle feature explicitly deferred from Phase 7 (item 19,
-   "NOT DONE").
-5. Remaining phase: Phase 8 (reporting/gap-check) — the last one in the
-   original 8-phase roadmap.
+1. ALL 8 PHASES OF THE V2 ROADMAP ARE NOW DONE (item 20 closes Phase 8,
+   the final one). Phase 8 added a custom report builder
+   (/reports-builder) and a shop drawing viewer (/drawings/viewer,
+   private Storage bucket + signed URLs — not public links), skipped
+   costing per CLAUDE.md's explicit exclusion, and confirmed the mobile
+   companion requirement is already satisfied by the existing
+   responsive app (verified via real mobile-viewport Playwright testing,
+   not assumed).
+2. FIRST STEP: commit Phase 8 (currently uncommitted — new migration +
+   2 new pages + shared reportTables.ts extraction + nav/route wiring).
+   Get the user's explicit go-ahead per this session's standing
+   commit discipline, same as every prior phase.
+3. Real trailer specs still need to be entered via /m/trailer-types for
+   Trailer Loading Simulation to be fully useful (real data has already
+   started appearing there independently of any session's own work).
+4. Populate real/placeholder data into the 6 Phase-5 KPI dashboard
+   sections and Erection Planning (0 rows today, so Erection 3D has
+   never been exercised against real multi-step data) — the one
+   remaining "empty tables block a shipped feature" gap pattern from
+   this whole project, never explicitly requested yet.
+5. Other explicitly-deferred items, none requested yet: the
+   photo-logging follow-up from Phase 3, the density-toggle ("compact
+   by default, comfortable toggle") feature deferred from Phase 7.
 6. Worth a dedicated pass sometime: db/init.sql and db/erp_schema.sql
-   have diverged on at least 4 tables now (trailers, suppliers,
+   have diverged on at least 4 tables (trailers, suppliers,
    dispatch_log, and earlier-session findings on others) — the live DB
-   doesn't consistently match either file. Item 17 fixed the trailers/
-   dispatch_log symptoms it hit, but the underlying two-source-of-truth
-   problem in db/*.sql itself is still there for whatever table gets
-   touched next.
+   doesn't consistently match either file. Each phase that's touched a
+   drifted table has fixed the specific symptom it hit (item 17's
+   trailers/dispatch_log fix, this phase's confirmed-clean drawings
+   check), but the underlying two-source-of-truth problem in db/*.sql
+   itself is still there for whatever table gets touched next.
+7. With the roadmap complete, worth asking the user directly: is there
+   a Phase 9 / new initiative, or is the ERP considered feature-complete
+   for now pending real-world usage and data entry?
 
 =====================================================================
 KNOWN TROUBLESHOOTING NOTES (carry forward)

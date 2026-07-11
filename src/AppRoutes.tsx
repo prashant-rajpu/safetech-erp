@@ -40,6 +40,8 @@ const CastBed3DPage = lazy(() => import('./pages/CastBed3DPage'))
 const YardStack3DPage = lazy(() => import('./pages/YardStack3DPage'))
 const Erection3DPage = lazy(() => import('./pages/Erection3DPage'))
 const TrailerLoadSim3DPage = lazy(() => import('./pages/TrailerLoadSim3DPage'))
+const ReportBuilderPage = lazy(() => import('./pages/ReportBuilderPage'))
+const DrawingViewerPage = lazy(() => import('./pages/DrawingViewerPage'))
 
 const PageLoader = () => (
   <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
@@ -126,6 +128,8 @@ export default function AppRoutes(){
                 <Route path="/visualization/yard" element={<ProtectedRoute section="stockyard"><YardStack3DPage /></ProtectedRoute>} />
                 <Route path="/visualization/erection" element={<ProtectedRoute section="erection"><Erection3DPage /></ProtectedRoute>} />
                 <Route path="/visualization/trailer-loading" element={<ProtectedRoute section="dispatch"><TrailerLoadSim3DPage /></ProtectedRoute>} />
+                <Route path="/reports-builder" element={<ProtectedRoute section="reports"><ReportBuilderPage /></ProtectedRoute>} />
+                <Route path="/drawings/viewer" element={<ProtectedRoute section="design"><DrawingViewerPage /></ProtectedRoute>} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
               </Suspense>

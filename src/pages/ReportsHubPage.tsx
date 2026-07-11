@@ -5,6 +5,7 @@ import { printSectionsDoc, exportCsv, exportExcel, type ReportSection } from '..
 import { statusChipClass } from '../lib/erp/uiHelpers'
 import { getIcon } from '../lib/erp/icons'
 import { Upload, BarChart3, Eye, Printer } from 'lucide-react'
+import { REPORT_TABLES } from '../lib/erp/reportTables'
 
 // All operational reports derive live from the module tables and respect the
 // 06:00 GMT+4 reporting-day boundary for timestamped records.
@@ -33,13 +34,7 @@ const REPORTS: { key: ReportKey; title: string; icon: string; desc: string }[] =
 ]
 
 type Db = Record<string, any[]>
-const TABLES = [
-  'deliveries', 'casting_schedule', 'elements', 'production_casting', 'stockyard_inventory',
-  'yard_movement', 'qc_inspections', 'post_casting_inspections', 'dimensional_inspections',
-  'finishing_inspections', 'incoming_inspections', 'ncr_register', 'punch_list', 'gate_passes',
-  'delivery_schedule', 'allocations', 'drawings', 'drawing_revisions', 'projects', 'boq_items',
-  'fleet_status', 'trailers', 'concrete_batches', 'trips', 'storage_zones', 'approvals'
-]
+const TABLES = REPORT_TABLES
 
 // ── date helpers (reporting day = 06:00 GMT+4 → next 06:00) ────────────────
 function addDays(d: string, n: number): string {
