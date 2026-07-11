@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 Phase 6 complete + Trailer Loading 3D extension + trailers/dispatch schema-drift bug fix (item 17, 3 discoveries, verified live). Still needs a real-browser spot-check of WebGL render + drag interaction — items 15/16.)
+Last updated: 2026-07-11 (v2 Phase 6 COMPLETE incl. Trailer Loading 3D extension + trailers/dispatch schema-drift bug fix. User confirmed real-browser check passed: WebGL render + drag interaction both work — items 15/16's open caveat is now closed.)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -1006,6 +1006,17 @@ DONE — VERIFIED COMPLETE
     app currently needs it), just noting it exists for whenever a UUID-
     FK-backed ref field is next needed.
 
+18. REAL-BROWSER VERIFICATION CLOSED OUT (2026-07-11). User confirmed
+    directly ("it's good") that the real-browser spot-check on all 4
+    /visualization/* routes passed: the 3D scenes render correctly
+    (WebGL, not blank canvas) and the Trailer Loading drag-and-drop
+    interaction works. This closes the one verification gap sandboxed
+    Playwright testing in this session could not confirm (items 15 and
+    16's stated limitation — CONTEXT_LOST_WEBGL in the sandbox prevented
+    pixel-level confirmation, code correctness was verified but not
+    final visuals/interaction). Phase 6 including the Trailer Loading
+    extension is now fully verified end-to-end, not just code-complete.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -1076,43 +1087,33 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1-6 are ALL DONE, including the Trailer Loading 3D extension
-   (item 16) AND the trailers/dispatch schema-drift bug fix (item 17 —
-   3 separate discoveries, all verified live with real temporary data,
-   not just empty-state checks). All 4 3D views (Cast Bed, Yard/Stack,
-   Erection Sim, Trailer Loading) are explicitly illustrative, built on
-   real dimension/weight/status data. DispatchForm/DeliveryNotePage/
-   LogisticsPlanningPage/GatePassPage no longer read nonexistent
-   trailers.supplier/type columns (one was a live crash waiting to
-   happen); dispatch_log's auto-seed logic works end-to-end again.
-2. FIRST STEP before anything else — TWO real-browser checks (unrelated
-   to item 17, still open from items 15/16):
-   a) Visual: open /visualization/cast-bed, /visualization/yard,
-      /visualization/erection, /visualization/trailer-loading — confirm
-      the 3D scenes render (boxes + grid + labels), not a blank canvas.
-      Sandboxed testing hit WebGL context-loss throughout and could only
-      verify code correctness, not final pixels.
-   b) Interaction: on /visualization/trailer-loading, add one real
-      trailer (Master Data -> Trailers, now fixed) + one matching
-      trailer_types row (Master Data -> Trailer Types, ships empty on
-      purpose), then confirm dragging an element onto the bed actually
-      works. A simulated Playwright drag was inconclusive — needs a
-      real mouse test.
-3. To make Trailer Loading actually useful long-term: populate real
-   trailer specs via /m/trailer-types (still empty by design).
-4. Per CLAUDE.md's "wait for approval before starting the next phase"
+1. Phases 1-6 are ALL DONE AND FULLY VERIFIED (item 18 — user confirmed
+   the real-browser check passed, closing the last open gap). This
+   includes the Trailer Loading 3D extension (item 16) and the
+   trailers/dispatch schema-drift bug fix (item 17 — 3 separate
+   discoveries, all verified live with real temporary data). All 4 3D
+   views (Cast Bed, Yard/Stack, Erection Sim, Trailer Loading) render
+   correctly and the drag-and-drop interaction works, confirmed
+   end-to-end by the user, not just code-complete. DispatchForm/
+   DeliveryNotePage/LogisticsPlanningPage/GatePassPage no longer read
+   nonexistent trailers.supplier/type columns; dispatch_log's auto-seed
+   logic works.
+2. To make Trailer Loading actually useful long-term: populate real
+   trailer specs via /m/trailer-types (still empty by design — no
+   fabricated capacity data was ever inserted).
+3. Per CLAUDE.md's "wait for approval before starting the next phase"
    rule, get explicit sign-off on what's next: populating real/placeholder
    data into the 6 new Phase-5 sections and Erection Planning (0 rows
    today, so Erection 3D/erection sequencing has never been exercised
    against real multi-step data) and/or Phase 7 (UI pass) and/or the
    photo-logging follow-up deferred from Phase 3.
-5. Resolve the design-system conflict flagged above (red/black glass
+4. Resolve the design-system conflict flagged above (red/black glass
    vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
    ask the user directly rather than guessing. Not urgent yet but don't
    let it go unresolved.
-6. Remaining phases in order: Phase 7 (UI pass — pending the conflict
+5. Remaining phases in order: Phase 7 (UI pass — pending the conflict
    resolution above), Phase 8 (reporting/gap-check).
-7. Worth a dedicated pass sometime: db/init.sql and db/erp_schema.sql
+6. Worth a dedicated pass sometime: db/init.sql and db/erp_schema.sql
    have diverged on at least 4 tables now (trailers, suppliers,
    dispatch_log, and earlier-session findings on others) — the live DB
    doesn't consistently match either file. Item 17 fixed the trailers/
