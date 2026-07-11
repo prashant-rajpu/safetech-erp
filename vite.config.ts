@@ -2,6 +2,7 @@ import { defineConfig, configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  base: process.env.GITHUB_PAGES ? '/safetech-erp/' : '/',
   plugins: [react()],
   // Expose dev server + preview on the local network (LAN) so other
   // devices on the same Wi-Fi can open the ERP by this machine's IP.

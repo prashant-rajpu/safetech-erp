@@ -615,7 +615,7 @@ export default function DeliveryNotePage() {
                   <div className="flex justify-between items-center border-b border-black pb-2">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 border border-black p-1 bg-black shrink-0 flex items-center justify-center">
-                        <img src="/safetech_logo.png" alt="Logo" className="w-full h-full object-contain" />
+                        <img src={`${import.meta.env.BASE_URL}safetech_logo.png`} alt="Logo" className="w-full h-full object-contain" />
                       </div>
                       <div className="flex flex-col leading-tight">
                         <span className="font-extrabold text-[12.5px] tracking-tight">SAFETECH PRECAST BUILDING MANUFACTURING LLC</span>

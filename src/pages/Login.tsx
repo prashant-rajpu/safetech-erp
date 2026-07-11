@@ -31,7 +31,7 @@ export default function Login(){
         
         {/* Brand Icon */}
         <div className="w-16 h-16 rounded-2xl bg-black border border-neutral-800 flex items-center justify-center p-1.5 shadow-xl shadow-primary/10 mb-4">
-          <img src="/safetech_logo.png" alt="Logo" className="w-full h-full object-contain rounded-xl" />
+          <img src={`${import.meta.env.BASE_URL}safetech_logo.png`} alt="Logo" className="w-full h-full object-contain rounded-xl" />
         </div>
         
         <h2 className="text-2xl font-black text-neutral-900 dark:text-white tracking-wider uppercase mb-1">SAFETECH</h2>

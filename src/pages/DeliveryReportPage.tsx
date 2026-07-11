@@ -438,7 +438,7 @@ export default function DeliveryReportPage() {
                 <div className="flex justify-between items-center border-b-4 border-black pb-2.5">
                   <div className="flex items-center gap-3.5">
                     <div className="w-12 h-12 border-2 border-black p-1 bg-black shrink-0 flex items-center justify-center">
-                      <img src="/safetech_logo.png" alt="Logo" className="w-full h-full object-contain" />
+                      <img src={`${import.meta.env.BASE_URL}safetech_logo.png`} alt="Logo" className="w-full h-full object-contain" />
                     </div>
                     <div className="flex flex-col leading-tight">
                       <span className="font-black text-[15px] tracking-tight">SAFETECH PRECAST BUILDING MANUFACTURING LLC</span>
@@ -758,7 +758,7 @@ export default function DeliveryReportPage() {
                       {/* Logo header */}
                       <div className="flex justify-between items-center border-b-2 border-black pb-3">
                         <div className="flex items-center gap-3">
-                          <img src="/safetech_logo.png" alt="Logo" className="w-9 h-9 object-contain" />
+                          <img src={`${import.meta.env.BASE_URL}safetech_logo.png`} alt="Logo" className="w-9 h-9 object-contain" />
                           <div className="flex flex-col leading-none">
                             <span className="font-black text-sm tracking-tight">SAFETECH PRECAST</span>
                             <span className="text-[8px] text-neutral-500 uppercase font-black">Quality Assurance Audit</span>

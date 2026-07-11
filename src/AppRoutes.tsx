@@ -75,7 +75,7 @@ export default function AppRoutes(){
                 <Menu size={22} />
               </button>
               <div className="flex items-center gap-2">
-                <img src="/safetech_logo.png" alt="Safetech" className="w-6 h-6 object-contain" />
+                <img src={`${import.meta.env.BASE_URL}safetech_logo.png`} alt="Safetech" className="w-6 h-6 object-contain" />
                 <span className="font-black text-xs tracking-tight text-neutral-900 dark:text-white uppercase leading-none">SAFETECH</span>
               </div>
               <div className="w-6" /> {/* Spacer */}
