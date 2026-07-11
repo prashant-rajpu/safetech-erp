@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 ROADMAP COMPLETE — Phase 8 (final phase) done: custom report builder + shop drawing viewer (private Storage bucket + signed URLs) built; costing explicitly skipped per CLAUDE.md; mobile companion confirmed already-satisfied via real mobile-viewport testing. All 8 phases of the v2 roadmap are now done. NOT YET committed — see NEXT STEPS.)
+Last updated: 2026-07-11 (v2 ROADMAP COMPLETE — all 8 phases done and committed (677d011). Trailer test-01/A-Frame casing fixed so Trailer Loading Sim's lookup matches cleanly. User explicitly asked to SKIP populating the other 20 empty tables (Prestressing/Maintenance/Document Control/Handover/Environmental/Erection Planning/Formwork) for now — no placeholder data was invented, per this project's standing rule. Revisit only when real operational data is provided.)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -1331,26 +1331,116 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. ALL 8 PHASES OF THE V2 ROADMAP ARE NOW DONE (item 20 closes Phase 8,
-   the final one). Phase 8 added a custom report builder
-   (/reports-builder) and a shop drawing viewer (/drawings/viewer,
-   private Storage bucket + signed URLs — not public links), skipped
-   costing per CLAUDE.md's explicit exclusion, and confirmed the mobile
-   companion requirement is already satisfied by the existing
-   responsive app (verified via real mobile-viewport Playwright testing,
-   not assumed).
-2. FIRST STEP: commit Phase 8 (currently uncommitted — new migration +
-   2 new pages + shared reportTables.ts extraction + nav/route wiring).
-   Get the user's explicit go-ahead per this session's standing
-   commit discipline, same as every prior phase.
-3. Real trailer specs still need to be entered via /m/trailer-types for
-   Trailer Loading Simulation to be fully useful (real data has already
-   started appearing there independently of any session's own work).
-4. Populate real/placeholder data into the 6 Phase-5 KPI dashboard
-   sections and Erection Planning (0 rows today, so Erection 3D has
-   never been exercised against real multi-step data) — the one
-   remaining "empty tables block a shipped feature" gap pattern from
-   this whole project, never explicitly requested yet.
+1. ALL 8 PHASES OF THE V2 ROADMAP ARE DONE AND COMMITTED (677d011 =
+   Phase 8, the final one: custom report builder, shop drawing viewer
+   with private Storage bucket + signed URLs, costing explicitly
+   skipped per CLAUDE.md, mobile companion confirmed already-satisfied).
+2. DONE (2026-07-11): fixed a real data-consistency issue in the one
+   piece of trailer data that existed — trailers.trailer_type said
+   "A-Frame" but trailer_types.type_name said "A-FRAME" (mismatched
+   casing from independent data entry). Updated trailer_types to match
+   trailers' casing. Note: TrailerLoadSim3DPage.tsx's lookup was
+   already case-insensitive (.toLowerCase() both sides) so this wasn't
+   actually blocking the simulation — but casing consistency matters
+   for any other place that reads trailer_type as a display label or
+   does an exact match later, so the fix was still worth making.
+3. USER EXPLICITLY DECLINED (2026-07-11) to populate the other 20 empty
+   tables (Prestressing: pt_strands/pt_tensioning/pt_release/
+   pt_long_line_plans; Maintenance: equipment_register/
+   preventive_maintenance/calibration_records; Document Control:
+   rfi_register/method_statements/submittals; Handover:
+   handover_packages/dlp_records/handover_defects/customer_acceptance;
+   Environmental: carbon_records/waste_records/water_records/
+   environmental_reports; erection_planning; mould_preparation_log) —
+   said "skip the rest for now." NO PLACEHOLDER DATA WAS INVENTED for
+   any of them, per this project's standing "never fabricate realistic
+   business data" rule. All 6 Phase-5 KPI dashboards and the Erection
+   3D view remain honestly showing their empty states until the user
+   provides real specs. Do not revisit this unprompted — wait for the
+   user to bring real data for a specific area.
+4. DONE (2026-07-11): imported real project data from 3 Excel files the
+   user placed in the repo folder (25045 - Acres Boundary Wall Progress
+   Report.xlsx, P25034-Ammara BW Progress.xlsx, P25020 -Progress report
+   (based on physical inventory).xlsx). Every row traces to a real
+   source cell — no fabricated/placeholder data.
+   - Created 3 `projects` rows: P25045 (Acres Boundary Wall), P25034
+     (Ammara BW), P25020 (SAN Campus, later renamed — see below) — all
+     new, per explicit user decision to keep them separate from the
+     existing similarly-named P25044 (Acres Phase 1).
+   - P25034: 1111 elements, 248 delivery-note groups, 604 erection
+     events, all with real dates/volumes from the Cast/Del/Ere sheets.
+   - P25045: 2575 elements (2291 with real dimensions/weight from the
+     file's `Data` sheet — WIDTH/HEIGHT mapped to length_mm/width_mm,
+     THICKNESS to thickness_mm; this mapping is a disclosed assumption,
+     not verified against the original drawings), 58 delivery groups,
+     188 erection events (some undated — the source file's `Ere` sheet
+     itself lacks a date for ~1/3 of rows; left null rather than
+     invented). Literal '#ERROR!' cells in the source Cast sheet's
+     VOL/BAY columns were treated as null.
+   - P25020: fundamentally different file shape — a physical-inventory
+     snapshot, not a dated event log (confirmed via read_only=False,
+     zero merged cells: the Cast/Del/Ere. sheets genuinely have no
+     dates in any row). Its "Element ID" is a mark/type code with a
+     quantity (up to 16), not a per-piece code like the other two
+     files. Per explicit user decision, each mark+qty row was EXPANDED
+     into N serialized `elements` rows (e.g. ...SW-7M-08-01 through
+     -16) — these serial suffixes are synthesized, the one place this
+     import invents identifiers rather than copying them. Status per
+     expanded piece was assigned via an explicit per-mark distribution
+     rule (erected pieces first, paired with real `Ere.(Site)` dates;
+     then delivered; remainder cast-only) so piece-level dashboard
+     counts stay correct rather than just duplicating one status across
+     all N pieces. Result: 4274 elements, 2917 real dated erection
+     events (from `Ere.(Site)`, the only dated sheet in this file), 0
+     deliveries rows (the `Del` sheet has no dates to log — folds into
+     element status only).
+   - Load mechanism: NOT the in-app ImportWizard (single-table CSV
+     tool, no cross-table fan-out) and NOT raw service-role SQL text
+     round-tripped through the assistant's own context (hit an ~30KB
+     per-call display ceiling well before the row counts needed).
+     Instead, a Playwright script drove the ALREADY-AUTHENTICATED
+     admin browser session's real `supabase` client in-page (same
+     pattern as the Phase 8 Storage cleanup script) to insert in
+     chunks of 500 — goes through real RLS as a real logged-in user,
+     not a bypass. Every row stamped `created_by/updated_by =
+     'xlsx-import-P25045' / '-P25034' / '-P25020'`. Fully reversible
+     per project: `delete from <table> where created_by =
+     'xlsx-import-P25034'` (etc.) across elements/deliveries/
+     erection_log/element_traceability, tested for real on disposable
+     rows before the full load (insert 1 row per table, delete by tag,
+     confirm zero remain) — not just asserted safe.
+   - IMPORTANT FINDING, resolved by explicit user decision: P25020 and
+     P25034/P25045 all already had PRE-EXISTING `deliveries` rows
+     (created_by=null) before this import — the `projects` master
+     table had no row for them, but child tables did (a real, pre-
+     existing data-integrity gap in this ERP, not something this
+     import caused). For P25034/P25045 those pre-existing rows are the
+     SAME real projects (project_name "AMARA BW" / "ACERS BW") — no
+     conflict, this import's rows are simply additional real history.
+     For P25020 the pre-existing 78 rows were named "KU CLADING" with
+     element_type='CLADDING' — a different-looking scope of work. User
+     was asked directly and confirmed: KU Cladding and SAN Campus ARE
+     the same real project — left as one project_no. User then chose
+     "KU CLADING" as the canonical project_name (2026-07-11); the
+     `projects` row was updated from the initial "SAN CAMPUS" to match
+     the pre-existing delivery rows' naming.
+   - `element_traceability` (casting/delivery/erection_timestamp) was
+     stamped per element from the same dates already computed above —
+     one row per element, matching that table's one-row-per-element
+     schema (it is not a repeatable event log; erection_log and
+     deliveries are the real repeatable tables in this schema).
+   - Verified: `get_advisors` clean (no new findings — all pre-existing
+     architecture items unrelated to the tables touched); live-app
+     spot check confirmed a real P25034 element (AMR-V17-T1C10-001) is
+     searchable in Element Register with the correct "Erected" status.
+     Separately verified P25020's per-mark expansion directly against
+     one real qty=11 mark (25020-1F-B7-SW-7M-08): 10 pieces Erected
+     with real distinct Ere.(Site) dates, 1 Delivered with no invented
+     date, correct Erected-then-Delivered ordering — confirms the
+     distribution rule executed correctly, not just that the aggregate
+     counts happened to add up. Also verified P25045 elements carry
+     real per-piece dimensions/weight/cast dates from the file's `Data`
+     sheet (e.g. 5315x1750x120mm, 2.9925T).
 5. Other explicitly-deferred items, none requested yet: the
    photo-logging follow-up from Phase 3, the density-toggle ("compact
    by default, comfortable toggle") feature deferred from Phase 7.
@@ -1359,12 +1449,14 @@ NEXT STEPS (in order)
    dispatch_log, and earlier-session findings on others) — the live DB
    doesn't consistently match either file. Each phase that's touched a
    drifted table has fixed the specific symptom it hit (item 17's
-   trailers/dispatch_log fix, this phase's confirmed-clean drawings
-   check), but the underlying two-source-of-truth problem in db/*.sql
-   itself is still there for whatever table gets touched next.
-7. With the roadmap complete, worth asking the user directly: is there
-   a Phase 9 / new initiative, or is the ERP considered feature-complete
-   for now pending real-world usage and data entry?
+   trailers/dispatch_log fix, Phase 8's confirmed-clean drawings check),
+   but the underlying two-source-of-truth problem in db/*.sql itself is
+   still there for whatever table gets touched next.
+7. With the roadmap complete and 3 real projects now populated (item
+   4), worth asking the user directly: is there a Phase 9 / new
+   initiative, or is the ERP considered feature-complete for now
+   pending further real-world data entry (the 20 tables from item 3,
+   or more Excel files for other projects)?
 
 =====================================================================
 KNOWN TROUBLESHOOTING NOTES (carry forward)
