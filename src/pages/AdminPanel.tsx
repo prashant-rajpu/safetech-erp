@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 
 type UserRow = { id: string, email: string, role: string, department?: string }
@@ -25,7 +26,7 @@ export default function AdminPanel(){
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white uppercase">
-            Control Panel <span className="text-red-500 font-light">Administration</span>
+            Control Panel <span className="text-primary font-light">Administration</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Configure project directories, user authorization roles, and suppliers list</p>
         </div>
@@ -39,7 +40,7 @@ export default function AdminPanel(){
             onClick={() => setTab(t.key)}
             className={`flex-1 py-3 rounded-xl text-xs uppercase tracking-wider font-extrabold transition-all duration-300 btn-interactive ${
               tab === t.key 
-                ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/30' 
+                ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/30' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -49,8 +50,8 @@ export default function AdminPanel(){
       </div>
 
       {error && (
-        <div className="max-w-3xl mx-auto p-4 rounded-xl border border-red-500/20 bg-red-950/20 text-red-300 text-xs font-bold tracking-wide uppercase">
-          ⚠️ {error}
+        <div className="max-w-3xl mx-auto p-4 rounded-xl border border-primary/20 bg-primary-dark/20 text-primary text-xs font-bold tracking-wide uppercase flex items-center gap-1.5">
+          <AlertTriangle size={14} className="shrink-0" /> {error}
         </div>
       )}
 
@@ -117,7 +118,7 @@ function UsersTab({ onError }: { onError: (e?: string) => void }){
 
       <div className="overflow-hidden border border-white/5 rounded-2xl bg-slate-950/40">
         {loading ? (
-          <div className="p-6 text-center text-red-500 font-semibold animate-pulse">Loading system users…</div>
+          <div className="p-6 text-center text-primary font-semibold animate-pulse">Loading system users…</div>
         ) : users.length === 0 ? (
           <div className="p-6 text-center text-slate-500 text-sm">No authorized users found.</div>
         ) : (
@@ -146,7 +147,7 @@ function UsersTab({ onError }: { onError: (e?: string) => void }){
                         {u.role && !roles.some(r => r.role_key === u.role) && <option value={u.role} className="bg-neutral-900 text-white">{u.role}</option>}
                       </select>
                       {savingId === u.id && (
-                        <span className="text-[10px] font-bold text-red-500 tracking-wider uppercase animate-pulse">Saving…</span>
+                        <span className="text-[10px] font-bold text-primary tracking-wider uppercase animate-pulse">Saving…</span>
                       )}
                     </div>
                   </td>
@@ -216,14 +217,14 @@ function ProjectsTab({ onError }: { onError: (e?: string) => void }){
         <input className="px-4 py-2.5 rounded-xl glowing-input text-xs font-semibold placeholder-slate-500" placeholder="Project No (E.g. P25044)" value={projectNo} onChange={e=>setProjectNo(e.target.value)} />
         <input className="px-4 py-2.5 rounded-xl glowing-input text-xs font-semibold placeholder-slate-500" placeholder="Project Name" value={projectName} onChange={e=>setProjectName(e.target.value)} />
         <input className="px-4 py-2.5 rounded-xl glowing-input text-xs font-semibold placeholder-slate-500" placeholder="Location Details" value={location} onChange={e=>setLocation(e.target.value)} />
-        <button disabled={saving} className="bg-gradient-to-br from-red-500 to-red-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider btn-interactive">
+        <button disabled={saving} className="bg-gradient-to-br from-primary to-primary-dark text-white px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider btn-interactive">
           {saving ? 'Adding…' : 'Add Project'}
         </button>
       </form>
 
       <div className="overflow-hidden border border-white/5 rounded-2xl bg-slate-950/40">
         {loading ? (
-          <div className="p-6 text-center text-red-500 font-semibold animate-pulse">Loading project directory…</div>
+          <div className="p-6 text-center text-primary font-semibold animate-pulse">Loading project directory…</div>
         ) : (
           <table className="w-full text-sm border-collapse">
             <thead>
@@ -237,7 +238,7 @@ function ProjectsTab({ onError }: { onError: (e?: string) => void }){
             <tbody>
               {projects.map(p => (
                 <tr key={p.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors duration-150">
-                  <td className="p-4 font-extrabold text-red-500">{p.project_no}</td>
+                  <td className="p-4 font-extrabold text-primary">{p.project_no}</td>
                   <td className="p-4 font-medium text-slate-200">{p.project_name || 'N/A'}</td>
                   <td className="p-4 text-slate-400">{p.location || 'N/A'}</td>
                   <td className="p-4">
@@ -296,21 +297,21 @@ function SuppliersTab({ onError }: { onError: (e?: string) => void }){
 
       <form onSubmit={handleAdd} className="flex gap-3 bg-slate-900/60 p-4 rounded-2xl border border-white/5">
         <input className="px-4 py-2.5 rounded-xl glowing-input text-xs font-semibold placeholder-slate-500 flex-grow" placeholder="Enter Supplier / Subcontractor Agency Name" value={name} onChange={e=>setName(e.target.value)} />
-        <button disabled={saving} className="bg-gradient-to-br from-red-500 to-red-700 text-white px-6 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider btn-interactive">
+        <button disabled={saving} className="bg-gradient-to-br from-primary to-primary-dark text-white px-6 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider btn-interactive">
           {saving ? 'Adding…' : 'Add Supplier'}
         </button>
       </form>
 
       <div className="overflow-hidden border border-white/5 rounded-2xl bg-slate-950/40">
         {loading ? (
-          <div className="p-6 text-center text-red-500 font-semibold animate-pulse">Loading suppliers list…</div>
+          <div className="p-6 text-center text-primary font-semibold animate-pulse">Loading suppliers list…</div>
         ) : suppliers.length === 0 ? (
           <div className="p-6 text-center text-slate-500 text-sm">No suppliers registered.</div>
         ) : (
           <ul className="divide-y divide-white/5">
             {suppliers.map(s => (
               <li key={s.id} className="p-4 text-xs font-bold text-slate-200 tracking-wide uppercase hover:bg-white/5 transition-colors duration-150 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
                 {s.name}
               </li>
             ))}

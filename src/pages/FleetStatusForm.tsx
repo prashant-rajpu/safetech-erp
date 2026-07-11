@@ -37,7 +37,7 @@ export default function FleetStatusForm(){
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-extrabold text-neutral-900 dark:text-white tracking-wide uppercase">
-          Fleet Status <span className="text-red-500 font-light">Update</span>
+          Fleet Status <span className="text-primary font-light">Update</span>
         </h3>
         <p className="text-xs text-slate-400">Update current coordinates and load status of active fleet trailers</p>
       </div>
@@ -80,11 +80,11 @@ export default function FleetStatusForm(){
 
         {/* Action Panel */}
         <div className="flex items-center justify-between pt-4 border-t border-white/5">
-          <button className="bg-gradient-to-br from-red-500 to-red-700 text-white px-6 py-3 rounded-xl font-extrabold tracking-wider uppercase btn-interactive shadow-lg shadow-red-500/30">
+          <button className="bg-gradient-to-br from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-extrabold tracking-wider uppercase btn-interactive shadow-lg shadow-primary/30">
             Submit Fleet Update
           </button>
           <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${saving ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
+            <span className={`w-2 h-2 rounded-full ${saving ? 'bg-primary animate-ping' : 'bg-green-400'}`} />
             <span className="text-xs font-bold text-slate-400 tracking-wide uppercase">
               {saving ? 'Saving Telemetry…' : 'System Ready'}
             </span>

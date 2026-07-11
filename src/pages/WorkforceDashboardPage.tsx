@@ -65,18 +65,18 @@ export default function WorkforceDashboardPage() {
     })),
   ]
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading workforce telemetry…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading workforce telemetry…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Workforce <span className="text-red-500 font-light">Dashboard</span>
+            Workforce <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Crew, shifts & certification tracking</p>
         </div>
-        <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 shadow-md shadow-red-500/5 mt-3 md:mt-0 max-w-fit">
+        <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary shadow-md shadow-primary/5 mt-3 md:mt-0 max-w-fit">
           ● {today}
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function WorkforceDashboardPage() {
           rows={todaysShifts}
           empty="No shift schedule logged for today"
         />
-        <Link to="/m/crew-assignments" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Crew Assignments</Link>
+        <Link to="/m/crew-assignments" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Crew Assignments</Link>
       </div>
     </div>
   )

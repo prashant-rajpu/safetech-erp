@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Upload, Ticket, Truck, Printer, Check } from 'lucide-react'
 import { fetchRows, insertAudited, updateAudited, nowStamp, todayGulf, getSettings } from '../lib/erp/db'
 import { openPrintWindow, exportCsv } from '../lib/erp/printDoc'
 import { qrSvg } from '../lib/qr'
@@ -121,11 +122,11 @@ export default function GatePassPage() {
   body { font-family: 'Segoe UI', Arial, sans-serif; color: #111; background: #f1f5f9; }
   .pass { background: white; width: 210mm; max-width: 100%; margin: 12px auto; border: 2.5px solid #111; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
   .head { display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; color: white; padding: 10px 16px; }
-  .brand b { color: #ef4444; font-size: 15px; letter-spacing: 1px; }
+  .brand b { color: #1B4B8C; font-size: 15px; letter-spacing: 1px; }
   .brand div { font-size: 7.5px; color: #cbd5e1; margin-top: 2px; }
   .gp-title { text-align: right; }
   .gp-title .t { font-size: 15px; font-weight: 900; letter-spacing: 2px; }
-  .gp-title .n { font-family: monospace; font-size: 12px; color: #ef4444; font-weight: 800; }
+  .gp-title .n { font-family: monospace; font-size: 12px; color: #1B4B8C; font-weight: 800; }
   .body { display: flex; gap: 16px; padding: 14px 16px; }
   .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
   .cell span { display: block; font-size: 7.5px; text-transform: uppercase; color: #777; font-weight: 800; letter-spacing: .5px; }
@@ -181,23 +182,23 @@ export default function GatePassPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Gate <span className="text-red-500 font-light">Pass</span>
+            Gate <span className="text-primary font-light">Pass</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Issue, print and track yard exit passes — gate security flags stay under gate-controller authority</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 no-print">
-          <span className="px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase">Today: {kpis.today}</span>
+          <span className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase">Today: {kpis.today}</span>
           <span className="px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[10px] font-black uppercase">Issued: {kpis.issued}</span>
           <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase">Exited: {kpis.exited}</span>
-          <button onClick={() => exportCsv('gate-passes.csv', csvCols, passes)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📤 CSV</button>
+          <button onClick={() => exportCsv('gate-passes.csv', csvCols, passes)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Upload size={12} /> CSV</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {editable && (
           <form onSubmit={issuePass} className="lg:col-span-1 glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/5 space-y-3 h-fit">
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2">
-              🎫 Issue New Gate Pass
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2 flex items-center gap-1.5">
+              <Ticket size={13} /> Issue New Gate Pass
             </h3>
             <label className="block">
               <span className="text-[9px] uppercase font-black text-slate-500">Date</span>
@@ -229,8 +230,8 @@ export default function GatePassPage() {
               <span className="text-[9px] uppercase font-black text-slate-500">Load Description</span>
               <textarea rows={2} className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs" value={fItems} onChange={e => setFItems(e.target.value)} placeholder="HCS x18 — 10.6 m³" />
             </label>
-            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
-              {saving ? 'Issuing…' : '🎫 Issue Gate Pass'}
+            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
+              {saving ? 'Issuing…' : <span className="inline-flex items-center gap-1.5"><Ticket size={14} /> Issue Gate Pass</span>}
             </button>
           </form>
         )}
@@ -245,20 +246,20 @@ export default function GatePassPage() {
               <div key={row.id} className="glass-panel rounded-2xl border border-slate-200 dark:border-white/5 p-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono font-black text-sm text-red-500">{row.gp_no}</span>
+                    <span className="font-mono font-black text-sm text-primary">{row.gp_no}</span>
                     <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${statusChipClass(row.status)}`}>{row.status}</span>
                     <span className="text-[10px] font-bold text-slate-500">{row.gp_date}{row.time_out ? ` • Out ${row.time_out}` : ''}</span>
                   </div>
-                  <div className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1">
-                    🚚 {row.trailer_plate} — {row.driver_name || 'No driver'} • {row.project_no} {row.dn_no ? `• DN ${row.dn_no}` : ''}
+                  <div className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-1">
+                    <Truck size={12} className="shrink-0" /> {row.trailer_plate} — {row.driver_name || 'No driver'} • {row.project_no} {row.dn_no ? `• DN ${row.dn_no}` : ''}
                   </div>
                   {row.items_desc && <div className="text-[10px] text-slate-500 mt-0.5">{row.items_desc}</div>}
                 </div>
                 <div className="flex gap-1.5 shrink-0 no-print">
-                  <button onClick={() => printPass(row)} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-red-500 text-[9px] font-extrabold uppercase rounded-lg transition-all">🖨 Print Pass</button>
+                  <button onClick={() => printPass(row)} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1"><Printer size={11} /> Print Pass</button>
                   {editable && row.status === 'Issued' && (
-                    <button disabled={busyRow === row.id} onClick={() => markExited(row)} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                      ✓ Mark Exited
+                    <button disabled={busyRow === row.id} onClick={() => markExited(row)} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                      <Check size={11} /> Mark Exited
                     </button>
                   )}
                 </div>

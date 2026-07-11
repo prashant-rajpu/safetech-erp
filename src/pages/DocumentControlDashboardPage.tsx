@@ -58,14 +58,14 @@ export default function DocumentControlDashboardPage() {
       message: `RFI ${r.rfi_no || r.id} (${r.subject || 'no subject'}) raised ${r.raised_date} — open ${daysBetween(r.raised_date, today)} days.`,
     }))
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading document control data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading document control data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Document Control <span className="text-red-500 font-light">Dashboard</span>
+            Document Control <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">RFIs, method statements & submittals</p>
         </div>
@@ -115,7 +115,7 @@ export default function DocumentControlDashboardPage() {
           rows={[...submittals].sort((a, b) => (b.submitted_date || '').localeCompare(a.submitted_date || '')).slice(0, 10)}
           empty="No submittals recorded"
         />
-        <Link to="/m/rfi-register" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open RFI Register</Link>
+        <Link to="/m/rfi-register" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open RFI Register</Link>
       </div>
     </div>
   )

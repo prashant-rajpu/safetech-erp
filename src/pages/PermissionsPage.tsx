@@ -3,6 +3,7 @@ import { fetchRows, updateAudited, insertAudited } from '../lib/erp/db'
 import { NAV_SECTIONS, type SectionKey } from '../lib/erp/registry'
 import { PERM_ACTIONS, normalizeFlags, ADMIN_ROLE, type PermAction, type PermFlags } from '../lib/erp/permissionEngine'
 import { useAuth } from '../lib/useAuth'
+import { getIcon } from '../lib/erp/icons'
 
 // Permission engine control panel: role × section and department × section
 // matrices with the full action set (View / Create / Edit / Delete / Approve).
@@ -14,7 +15,7 @@ const ACTION_META: Record<PermAction, { icon: string; label: string; on: string 
   view:    { icon: '👁', label: 'View',    on: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
   create:  { icon: '＋', label: 'Create',  on: 'bg-sky-500/10 text-sky-500 border-sky-500/20' },
   edit:    { icon: '✏️', label: 'Edit',    on: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-  delete:  { icon: '🗑', label: 'Delete',  on: 'bg-red-500/10 text-red-500 border-red-500/20' },
+  delete:  { icon: '🗑', label: 'Delete',  on: 'bg-primary/10 text-primary border-primary/20' },
   approve: { icon: '✔️', label: 'Approve', on: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
 }
 
@@ -103,7 +104,7 @@ export default function PermissionsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Permission <span className="text-red-500 font-light">Engine</span>
+            Permission <span className="text-primary font-light">Engine</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             View / Create / Edit / Delete / Approve per section — changes apply instantly across the app
@@ -119,8 +120,8 @@ export default function PermissionsPage() {
         {(['roles', 'departments'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`px-4 py-2 rounded-xl text-[10px] font-extrabold uppercase border transition-all ${tab === t
-              ? 'bg-red-500/10 text-red-500 border-red-500/30'
-              : 'text-slate-500 border-slate-200 dark:border-white/10 hover:text-red-500'}`}>
+              ? 'bg-primary/10 text-primary border-primary/30'
+              : 'text-slate-500 border-slate-200 dark:border-white/10 hover:text-primary'}`}>
             {t === 'roles' ? '🎭 Role Permissions' : '🏢 Department Permissions'}
           </button>
         ))}
@@ -135,8 +136,8 @@ export default function PermissionsPage() {
             {subjects.map(s => (
               <button key={s.key} onClick={() => setSelected(s.key)}
                 className={`px-3.5 py-2 rounded-xl text-[10px] font-extrabold uppercase border transition-all ${selected === s.key
-                  ? 'bg-red-600 text-white border-red-600'
-                  : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-red-500/40'}`}>
+                  ? 'bg-primary-dark text-white border-primary-dark'
+                  : 'text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-primary/40'}`}>
                 {s.label}{s.locked ? ' 🔒' : ''}
               </button>
             ))}
@@ -156,18 +157,22 @@ export default function PermissionsPage() {
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-white/10 text-slate-400 font-bold text-[9px] uppercase bg-slate-50/60 dark:bg-black/20">
                       <th className="py-3 px-4">Section</th>
-                      {PERM_ACTIONS.map(a => (
-                        <th key={a} className="py-3 px-3 text-center">{ACTION_META[a].icon} {ACTION_META[a].label}</th>
-                      ))}
+                      {PERM_ACTIONS.map(a => {
+                        const ActionIcon = getIcon(ACTION_META[a].icon)
+                        return (
+                          <th key={a} className="py-3 px-3 text-center"><span className="inline-flex items-center gap-1"><ActionIcon size={12} /> {ACTION_META[a].label}</span></th>
+                        )
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {sections.map(s => {
                       const row = cell(s.key)
+                      const SectionIcon = getIcon(s.icon)
                       return (
                         <tr key={s.key} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                           <td className="py-2.5 px-4 font-extrabold text-neutral-800 dark:text-white uppercase text-[11px]">
-                            {s.icon} {s.name}
+                            <span className="inline-flex items-center gap-1.5"><SectionIcon size={13} className="opacity-80" /> {s.name}</span>
                           </td>
                           {PERM_ACTIONS.map(a => {
                             const on = a === 'create' && row?.can_create === undefined
@@ -178,7 +183,7 @@ export default function PermissionsPage() {
                                 <button onClick={() => toggle(s.key, a)}
                                   className={`text-[9px] font-black uppercase px-2 py-1 rounded-md border transition-all ${on
                                     ? ACTION_META[a].on
-                                    : 'bg-slate-100 dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/10 hover:text-red-500'}`}>
+                                    : 'bg-slate-100 dark:bg-white/5 text-slate-400 border-slate-200 dark:border-white/10 hover:text-primary'}`}>
                                   {on ? '● ON' : '○ off'}
                                 </button>
                               </td>

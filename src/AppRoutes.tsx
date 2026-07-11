@@ -1,4 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react'
+import { Menu } from 'lucide-react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './lib/useAuth'
 import Sidebar from './components/Sidebar'
@@ -63,13 +64,13 @@ export default function AppRoutes(){
           <div className="flex-grow flex flex-col md:pl-64 print:pl-0 min-w-0 min-h-screen">
 
             {/* Top mobile header bar (Visible only on mobile screen sizes) */}
-            <header className="flex md:hidden items-center justify-between px-4 py-3 bg-white dark:bg-[#0c0c0f] border-b border-slate-200 dark:border-red-500/10 z-30 no-print">
+            <header className="flex md:hidden items-center justify-between px-4 py-3 bg-white dark:bg-[#0c0c0f] border-b border-slate-200 dark:border-primary/10 z-30 no-print">
               <button
                 onClick={() => setMobileOpen(true)}
                 className="text-slate-600 dark:text-slate-300 focus:outline-none text-xl p-1 font-bold"
                 aria-label="Open Navigation Sidebar"
               >
-                ☰
+                <Menu size={22} />
               </button>
               <div className="flex items-center gap-2">
                 <img src="/safetech_logo.png" alt="Safetech" className="w-6 h-6 object-contain" />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Download, AlertTriangle, XCircle } from 'lucide-react'
 import Papa from 'papaparse'
 import { supabase } from '../lib/supabaseClient'
 
@@ -67,23 +68,23 @@ export default function CsvImport(){
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white uppercase">
-            Data Import <span className="text-red-500 font-light">Terminal</span>
+            Data Import <span className="text-primary font-light">Terminal</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Upload CSV files to backfill historical delivery and dispatch notes</p>
         </div>
       </div>
 
       <div className="glass-panel rounded-2xl p-6 max-w-2xl mx-auto border border-white/5 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-red-800 to-black" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-dark to-black" />
         
         <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-          Upload a structured CSV exported from old spreadsheet formats to backfill the <code className="px-2 py-0.5 bg-slate-950 text-red-400 rounded-md font-bold font-mono">deliveries</code> table.
+          Upload a structured CSV exported from old spreadsheet formats to backfill the <code className="px-2 py-0.5 bg-slate-950 text-primary rounded-md font-bold font-mono">deliveries</code> table.
           <br/>
           <span className="block mt-2">Expected column list: <code className="text-slate-200 bg-white/5 px-1.5 py-0.5 rounded font-mono font-semibold">{EXPECTED_COLUMNS.join(', ')}</code></span>
         </p>
 
         {/* File Picker */}
-        <div className="border-2 border-dashed border-white/10 hover:border-red-500/30 rounded-2xl p-8 text-center bg-slate-950/40 transition-all duration-300 relative group">
+        <div className="border-2 border-dashed border-white/10 hover:border-primary/30 rounded-2xl p-8 text-center bg-slate-950/40 transition-all duration-300 relative group">
           <input
             type="file"
             accept=".csv"
@@ -91,8 +92,8 @@ export default function CsvImport(){
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           />
           <div className="space-y-2 pointer-events-none">
-            <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto text-red-400 group-hover:scale-110 transition-transform duration-300">
-              📥
+            <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform duration-300">
+              <Download size={20} />
             </div>
             <div className="text-sm font-bold text-slate-300">
               {fileName ? fileName : 'Choose CSV log file or drag here'}
@@ -104,7 +105,7 @@ export default function CsvImport(){
         </div>
 
         {status === 'parsing' && (
-          <div className="mt-6 text-center text-xs font-bold text-red-500 tracking-wider uppercase animate-pulse">
+          <div className="mt-6 text-center text-xs font-bold text-primary tracking-wider uppercase animate-pulse">
             Parsing document {fileName}…
           </div>
         )}
@@ -129,7 +130,7 @@ export default function CsvImport(){
 
             <button 
               onClick={handleImport} 
-              className="bg-gradient-to-br from-red-500 to-red-700 text-white px-6 py-3 rounded-xl font-extrabold text-xs tracking-wider uppercase btn-interactive shadow-lg shadow-red-500/30"
+              className="bg-gradient-to-br from-primary to-primary-dark text-white px-6 py-3 rounded-xl font-extrabold text-xs tracking-wider uppercase btn-interactive shadow-lg shadow-primary/30"
             >
               Commit {rows.length} Rows to Database
             </button>
@@ -137,7 +138,7 @@ export default function CsvImport(){
         )}
 
         {status === 'importing' && (
-          <div className="mt-6 text-center text-xs font-bold text-red-500 tracking-wider uppercase animate-pulse">
+          <div className="mt-6 text-center text-xs font-bold text-primary tracking-wider uppercase animate-pulse">
             Importing records to database…
           </div>
         )}
@@ -149,12 +150,12 @@ export default function CsvImport(){
               <span className="text-slate-200">Import Complete: {result.inserted} rows inserted successfully.</span>
             </div>
             {result.skipped > 0 && (
-              <div className="text-xs font-bold text-amber-400 uppercase tracking-wide">
-                ⚠️ Skipped {result.skipped} rows missing project or DN reference.
+              <div className="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center gap-1.5">
+                <AlertTriangle size={13} className="shrink-0" /> Skipped {result.skipped} rows missing project or DN reference.
               </div>
             )}
             {result.errors.length > 0 && (
-              <div className="p-4 rounded-xl border border-red-500/20 bg-red-950/10 text-red-300">
+              <div className="p-4 rounded-xl border border-primary/20 bg-primary-dark/10 text-primary">
                 <div className="text-xs font-extrabold tracking-wider uppercase mb-2">Import Errors ({result.errors.length}):</div>
                 <ul className="list-disc list-inside text-[11px] font-mono space-y-1">
                   {result.errors.slice(0, 10).map((e, i) => <li key={i}>{e}</li>)}
@@ -165,8 +166,8 @@ export default function CsvImport(){
         )}
 
         {status === 'error' && (
-          <div className="mt-6 text-center text-xs font-bold text-red-400 tracking-wider uppercase">
-            ❌ Parsing failed. Verify file is formatted as valid CSV.
+          <div className="mt-6 text-center text-xs font-bold text-primary tracking-wider uppercase flex items-center justify-center gap-1.5">
+            <XCircle size={14} /> Parsing failed. Verify file is formatted as valid CSV.
           </div>
         )}
       </div>

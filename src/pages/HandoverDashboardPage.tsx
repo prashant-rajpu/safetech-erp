@@ -67,14 +67,14 @@ export default function HandoverDashboardPage() {
     })),
   ]
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading customer handover data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading customer handover data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Customer Handover <span className="text-red-500 font-light">Dashboard</span>
+            Customer Handover <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Handover packages, DLP tracking & defect resolution</p>
         </div>
@@ -124,7 +124,7 @@ export default function HandoverDashboardPage() {
           rows={[...openDefects].sort((a, b) => (a.due_date || '').localeCompare(b.due_date || '')).slice(0, 10)}
           empty="No open defects"
         />
-        <Link to="/m/handover-defects" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Defects Register</Link>
+        <Link to="/m/handover-defects" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Defects Register</Link>
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../lib/useAuth'
 import { updateAudited } from '../lib/erp/db'
 import safetechLogo from '../assets/safetech_logo.png'
+import { Construction, Shuffle, Timer, Pencil, Printer, Save, X } from 'lucide-react'
 
 type StockyardItem = {
   id: string
@@ -204,7 +205,7 @@ export default function StockyardPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading stockyard inventory...</div>
+    return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading stockyard inventory...</div>
   }
 
   return (
@@ -213,7 +214,7 @@ export default function StockyardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Stockyard & Inventory <span className="text-red-500 font-light">Control</span>
+            Stockyard & Inventory <span className="text-primary font-light">Control</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track structural element bay placement, concrete curing cycles, and crane movements</p>
         </div>
@@ -227,11 +228,11 @@ export default function StockyardPage() {
             onClick={() => setSearchParams({ tab: t })}
             className={`flex-1 py-2.5 rounded-xl text-xs uppercase tracking-wider font-extrabold transition-all btn-interactive ${
               activeTab === t 
-                ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/25' 
+                ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/25' 
                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
-            }`}
+            } inline-flex items-center justify-center gap-1.5`}
           >
-            {t === 'inventory' ? '🏗️ Element Inventory' : t === 'movement' ? '🔀 Yard Movement' : '⏱️ Curing Tracker'}
+            {t === 'inventory' ? <><Construction size={13} /> Element Inventory</> : t === 'movement' ? <><Shuffle size={13} /> Yard Movement</> : <><Timer size={13} /> Curing Tracker</>}
           </button>
         ))}
       </div>
@@ -292,7 +293,7 @@ export default function StockyardPage() {
                         {item.building} / {item.floor} / {item.zone}
                       </td>
                       <td className="py-2">
-                        {item.element_type} <span className="text-[10px] text-red-500 font-bold">[{item.revision || 'R0'}]</span>
+                        {item.element_type} <span className="text-[10px] text-primary font-bold">[{item.revision || 'R0'}]</span>
                       </td>
                       <td className="py-2 text-right font-mono text-slate-500">
                         {item.length_mm || 0}×{item.width_mm || 0}×{item.thickness_mm || 0}
@@ -301,22 +302,22 @@ export default function StockyardPage() {
                         {(item.volume_cum || 0).toFixed(2)}m³ / {(item.weight_tons || 0).toFixed(2)}T
                       </td>
                       <td className="py-2 text-center text-slate-400">{item.cast_date || '—'}</td>
-                      <td className="py-2 text-center font-bold text-red-500">{item.bay_location || '—'}</td>
+                      <td className="py-2 text-center font-bold text-primary">{item.bay_location || '—'}</td>
                       <td className="py-2 text-center">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
                           item.status === 'Stockyard' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
                           item.status === 'Curing' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
                           item.status === 'Delivered' ? 'bg-slate-100 dark:bg-white/5 text-slate-400' :
-                          item.status === 'Rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20 animate-pulse' :
-                          'bg-red-500/15 text-red-400'
+                          item.status === 'Rejected' ? 'bg-primary/10 text-primary border border-primary/20 animate-pulse' :
+                          'bg-primary/15 text-primary'
                         }`}>{item.status}</span>
                       </td>
                       <td className="py-2 text-center space-x-1.5">
-                        <button onClick={() => startEdit(item)} className="px-2 py-0.5 bg-slate-100 dark:bg-white/5 hover:bg-red-500/10 text-slate-600 dark:text-slate-300 hover:text-red-500 text-[10px] font-bold rounded-md transition-all">
-                          ✏️ Edit
+                        <button onClick={() => startEdit(item)} className="px-2 py-0.5 bg-slate-100 dark:bg-white/5 hover:bg-primary/10 text-slate-600 dark:text-slate-300 hover:text-primary text-[10px] font-bold rounded-md transition-all inline-flex items-center gap-1">
+                          <Pencil size={10} /> Edit
                         </button>
-                        <button onClick={() => setLabelItem(item)} className="px-2 py-0.5 bg-red-500/15 hover:bg-red-500/20 text-red-500 text-[10px] font-bold rounded-md transition-all">
-                          🖨️ Label
+                        <button onClick={() => setLabelItem(item)} className="px-2 py-0.5 bg-primary/15 hover:bg-primary/20 text-primary text-[10px] font-bold rounded-md transition-all inline-flex items-center gap-1">
+                          <Printer size={10} /> Label
                         </button>
                       </td>
                     </tr>
@@ -381,8 +382,8 @@ export default function StockyardPage() {
                 <input type="text" placeholder="Relocated for curing curing access..." className="w-full mt-1 px-3 py-1.5 rounded-lg glowing-input text-xs" value={moveRemarks} onChange={e=>setMoveRemarks(e.target.value)} />
               </label>
 
-              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-                🔀 Log Yard Movement
+              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+                <Shuffle size={14} /> Log Yard Movement
               </button>
             </form>
           </div>
@@ -410,7 +411,7 @@ export default function StockyardPage() {
                     <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                       <td className="py-2.5 font-mono font-bold text-neutral-800 dark:text-white">{m.element_code}</td>
                       <td className="py-2.5 text-center font-semibold text-slate-500">{m.from_bay}</td>
-                      <td className="py-2.5 text-center font-bold text-red-500">{m.to_bay}</td>
+                      <td className="py-2.5 text-center font-bold text-primary">{m.to_bay}</td>
                       <td className="py-2.5">{m.crane}</td>
                       <td className="py-2.5 text-slate-500 font-semibold">{m.operator}</td>
                       <td className="py-2.5 text-center text-slate-400">{m.movement_time}</td>
@@ -462,7 +463,7 @@ export default function StockyardPage() {
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                       <td className="py-3 font-mono font-bold text-neutral-800 dark:text-white">{item.element_code}</td>
                       <td className="py-3 text-center">{item.cast_date}</td>
-                      <td className="py-3 text-center font-bold text-red-500">{days} Days</td>
+                      <td className="py-3 text-center font-bold text-primary">{days} Days</td>
                       <td className="py-3 text-center font-semibold text-slate-400">{targetStr} MPa</td>
                       <td className="py-3 text-center font-bold text-neutral-800 dark:text-white">
                         {currentStrength} MPa ({pct}%)
@@ -472,8 +473,8 @@ export default function StockyardPage() {
                           days >= 3
                             ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
                             : 'bg-amber-500/10 text-amber-500 border border-amber-500/20 animate-pulse'
-                        }`}>
-                          {days >= 3 ? '🟢 Ready for Dispatch' : '🟡 Active Curing'}
+                        } inline-flex items-center gap-1`}>
+                          {days >= 3 ? <><span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Ready for Dispatch</> : <><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Active Curing</>}
                         </span>
                       </td>
                       <td className="py-3 text-slate-500 font-medium">{item.remarks}</td>
@@ -524,8 +525,8 @@ export default function StockyardPage() {
                 <button type="button" onClick={() => setEditingItem(null)} className="flex-1 py-2 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase rounded-xl transition-all">
                   Cancel
                 </button>
-                <button type="submit" disabled={saving} className="flex-1 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase rounded-xl transition-all btn-interactive">
-                  💾 Save Details
+                <button type="submit" disabled={saving} className="flex-1 py-2 bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase rounded-xl transition-all btn-interactive inline-flex items-center justify-center gap-1.5">
+                  <Save size={13} /> Save Details
                 </button>
               </div>
             </form>
@@ -550,18 +551,18 @@ export default function StockyardPage() {
                     onClick={() => setLabelSize(size as any)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all ${
                       labelSize === size 
-                        ? 'bg-red-500/25 text-red-500 border border-red-500/30' 
+                        ? 'bg-primary/25 text-primary border border-primary/30' 
                         : 'bg-slate-100 dark:bg-white/5 text-slate-500'
                     }`}
                   >
                     {size}
                   </button>
                 ))}
-                <button onClick={() => window.print()} className="px-2.5 py-1 bg-red-600 text-white text-[10px] font-bold uppercase rounded-lg">
+                <button onClick={() => window.print()} className="px-2.5 py-1 bg-primary-dark text-white text-[10px] font-bold uppercase rounded-lg">
                   Print
                 </button>
                 <button onClick={() => setLabelItem(null)} className="text-slate-400 hover:text-white font-extrabold text-xs">
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -604,7 +605,7 @@ export default function StockyardPage() {
                     <div>Mould/Bed: <strong className="block">{labelItem.bay_location}</strong></div>
                   </div>
                   <div className="space-y-1 text-right">
-                    <div>Element ID: <strong className="text-[10.5px] block font-mono text-red-600">{labelItem.element_code}</strong></div>
+                    <div>Element ID: <strong className="text-[10.5px] block font-mono text-primary-dark">{labelItem.element_code}</strong></div>
                     <div>Type: <strong className="block">{labelItem.element_type} [Rev {labelItem.revision}]</strong></div>
                     <div>Dimensions: <strong className="block">{labelItem.length_mm}×{labelItem.width_mm}×{labelItem.thickness_mm} mm</strong></div>
                     <div>Volume: <strong className="block">{labelItem.volume_cum.toFixed(2)} m³</strong></div>

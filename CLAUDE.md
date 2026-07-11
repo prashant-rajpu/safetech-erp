@@ -19,15 +19,17 @@ This project is NOT intended to be a generic ERP.
 
 Always preserve:
 
-• Existing UI/UX
 • Existing routing
 • Existing architecture
-• Existing branding
 • Existing responsive behaviour
-• Existing light/dark themes
 • Existing sidebar layout
 
-Never redesign completed pages unless absolutely necessary.
+As of the Phase 7 design-system switch, the canonical visual identity is the
+concrete-grey / blueprint-blue system (see UI GUIDELINES below) — single
+theme, no dark mode. This superseded the earlier red/black glassmorphism
+system and its "existing light/dark themes" preservation rule.
+
+Never redesign completed pages' structure/layout unless absolutely necessary.
 
 Always improve rather than replace.
 
@@ -202,7 +204,37 @@ Avoid large components.
 
 # UI GUIDELINES
 
-Maintain existing design language.
+## Design System (canonical, as of Phase 7)
+
+Single theme — no dark mode.
+
+Colors (Tailwind tokens, defined in tailwind.config.cjs):
+
+• surface (#F4F4F2) — concrete-grey background
+• ink (#1C1C1E) — primary text
+• primary (#1B4B8C) / primary-dark (#163C6E) — blueprint-blue, brand/interactive accent
+• alert (#E8622C) — safety-orange, warnings/destructive actions
+• success (#2C7A6B) — muted teal, confirmations/positive status
+
+Status-chip colors (statusChipClass() in uiHelpers.ts, statusColor3D() in
+ElementBox.tsx) are semantic — pass/fail/warning — and intentionally separate
+from brand chrome. Don't recolor them to match the brand palette.
+
+Typography:
+
+• Body/UI text: Outfit
+• Headings: Space Grotesk (font-heading utility)
+• Data, codes, tables: IBM Plex Mono (font-mono utility)
+
+Icons: Lucide (lucide-react), via the icon map in src/lib/erp/icons.ts. No
+emoji icons in new work.
+
+Shared chrome classes (src/styles/tailwind.css) — reuse these rather than
+hand-rolling new panel/input/button styles: glass-panel, glass-card-3d,
+glowing-input, btn-interactive, concrete-accent-primary/neutral,
+glow-text-primary/neutral.
+
+Maintain existing design language within the above system.
 
 Consistent spacing.
 

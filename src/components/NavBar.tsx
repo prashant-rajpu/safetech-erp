@@ -17,15 +17,15 @@ export default function NavBar(){
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <nav className="glass-panel rounded-2xl px-6 py-4 mb-8 flex items-center justify-between z-50 relative border border-red-500/10 shadow-lg shadow-red-950/20 no-print">
+    <nav className="glass-panel rounded-2xl px-6 py-4 mb-8 flex items-center justify-between z-50 relative border border-primary/10 shadow-lg shadow-primary-dark/20 no-print">
       {/* Brand Logo / Title */}
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-red-500/40">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-primary/40">
             S
           </div>
           <span className="font-extrabold tracking-wider text-white text-lg">
-            SAFETECH <span className="text-red-500 font-light">CENTER</span>
+            SAFETECH <span className="text-primary font-light">CENTER</span>
           </span>
         </div>
         
@@ -38,7 +38,7 @@ export default function NavBar(){
             to="/dashboard" 
             className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
               isActive('/dashboard') 
-                ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                ? 'bg-primary/20 text-primary border border-primary/30' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
             }`}
           >
@@ -50,7 +50,7 @@ export default function NavBar(){
                 to="/entry" 
                 className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
                   isActive('/entry') 
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                    ? 'bg-primary/20 text-primary border border-primary/30' 
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -60,7 +60,7 @@ export default function NavBar(){
                 to="/delivery-note" 
                 className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
                   isActive('/delivery-note') 
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                    ? 'bg-primary/20 text-primary border border-primary/30' 
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -72,7 +72,7 @@ export default function NavBar(){
             to="/reports" 
             className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
               isActive('/reports') 
-                ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                ? 'bg-primary/20 text-primary border border-primary/30' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
             }`}
           >
@@ -84,7 +84,7 @@ export default function NavBar(){
                 to="/admin" 
                 className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
                   isActive('/admin') 
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                    ? 'bg-primary/20 text-primary border border-primary/30' 
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -94,7 +94,7 @@ export default function NavBar(){
                 to="/import" 
                 className={`text-sm px-4 py-2 rounded-xl transition-all duration-300 font-medium ${
                   isActive('/import') 
-                    ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
+                    ? 'bg-primary/20 text-primary border border-primary/30' 
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
@@ -109,11 +109,11 @@ export default function NavBar(){
       <div className="flex items-center gap-4">
         <div className="hidden md:flex flex-col text-right">
           <span className="text-xs font-semibold text-slate-300">{profile.email}</span>
-          <span className="text-[10px] uppercase tracking-widest text-red-400 font-bold">{profile.role}</span>
+          <span className="text-[10px] uppercase tracking-widest text-primary font-bold">{profile.role}</span>
         </div>
         <button 
           onClick={handleSignOut} 
-          className="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 px-4 py-2 rounded-xl btn-interactive transition-all duration-200"
+          className="text-xs bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 hover:border-primary/40 px-4 py-2 rounded-xl btn-interactive transition-all duration-200"
         >
           Sign out
         </button>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import { Download, Printer, BarChart3, Folder, CheckCircle2, XCircle } from 'lucide-react'
 import Papa from 'papaparse'
 import { supabase } from '../lib/supabaseClient'
 import Typeahead from '../components/Typeahead'
@@ -516,7 +517,7 @@ export default function DispatchForm() {
     document.body.removeChild(link);
   };
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[250px] animate-pulse">Loading logistics update panels...</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[250px] animate-pulse">Loading logistics update panels...</div>
 
   return (
     <div className="space-y-6">
@@ -525,27 +526,27 @@ export default function DispatchForm() {
       <div className="flex flex-wrap gap-2 pb-3 border-b border-white/5 no-print">
         <button
           onClick={downloadBlankCSV}
-          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
+          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
         >
-          📥 CSV Template
+          <span className="inline-flex items-center gap-1.5"><Download size={12} /> CSV Template</span>
         </button>
         <button
           onClick={downloadBlankExcel}
-          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
+          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
         >
-          📥 Excel Template
+          <span className="inline-flex items-center gap-1.5"><Download size={12} /> Excel Template</span>
         </button>
         <button
           onClick={printBlankPDF}
-          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
+          className="text-[10px] uppercase font-bold tracking-wider bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 px-3 py-2 rounded-lg transition-all"
         >
-          🖨️ PDF Template
+          <span className="inline-flex items-center gap-1.5"><Printer size={12} /> PDF Template</span>
         </button>
         <button
           onClick={exportActiveLogsCSV}
-          className="text-[10px] uppercase font-bold tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg transition-all sm:ml-auto"
+          className="text-[10px] uppercase font-bold tracking-wider bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary px-3 py-2 rounded-lg transition-all sm:ml-auto"
         >
-          📊 Export Current Logs
+          <span className="inline-flex items-center gap-1.5"><BarChart3 size={12} /> Export Current Logs</span>
         </button>
       </div>
 
@@ -553,7 +554,7 @@ export default function DispatchForm() {
       <div className="flex justify-between items-center pb-2 border-b border-white/5">
         <div>
           <h3 className="text-xl font-extrabold text-neutral-900 dark:text-white tracking-wide uppercase">
-            Logistics & Dispatch <span className="text-red-500 font-light">Controls</span>
+            Logistics & Dispatch <span className="text-primary font-light">Controls</span>
           </h3>
           <p className="text-xs text-slate-400">Update yard exit status, fuel logs, and load clearances</p>
         </div>
@@ -562,7 +563,7 @@ export default function DispatchForm() {
             onClick={() => setMode('dropdown')}
             className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-200 ${
               mode === 'dropdown'
-                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                ? 'bg-primary/20 text-primary border border-primary/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -572,7 +573,7 @@ export default function DispatchForm() {
             onClick={() => setMode('csv')}
             className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all duration-200 ${
               mode === 'csv'
-                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                ? 'bg-primary/20 text-primary border border-primary/30'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -608,7 +609,7 @@ export default function DispatchForm() {
                       setSelectedTrailerId('')
                       setTrailerSearch('')
                     }}
-                    className="absolute right-3 top-2.5 text-xs text-red-500 hover:text-red-400 font-extrabold"
+                    className="absolute right-3 top-2.5 text-xs text-primary hover:text-primary font-extrabold"
                   >
                     Clear
                   </button>
@@ -646,9 +647,9 @@ export default function DispatchForm() {
                             if (existing.driver_mobile) setDriverMobile(existing.driver_mobile)
                           }
                         }}
-                        className="p-2.5 text-xs text-slate-300 hover:bg-red-500/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
+                        className="p-2.5 text-xs text-slate-300 hover:bg-primary/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
                       >
-                        <span className="font-extrabold text-red-400">{t.plate_no}</span>
+                        <span className="font-extrabold text-primary">{t.plate_no}</span>
                         <span className="text-[10px] text-slate-400 font-semibold">{t.supplierName} ({t.trailer_type})</span>
                         {drivers.find(d => d.assigned_plate === t.plate_no)?.name && <span className="text-[9px] text-slate-500">Driver: {drivers.find(d => d.assigned_plate === t.plate_no)?.name}</span>}
                       </div>
@@ -696,7 +697,7 @@ export default function DispatchForm() {
           </div>
 
           {selectedTrailer && (
-            <div className="p-3 bg-red-500/5 rounded-xl border border-red-500/10 grid grid-cols-2 text-xs">
+            <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 grid grid-cols-2 text-xs">
               <div>
                 <span className="text-slate-400 font-bold uppercase">Logistics Supplier:</span>
                 <span className="text-neutral-800 dark:text-white font-extrabold ml-2">{selectedTrailer.supplierName}</span>
@@ -727,7 +728,7 @@ export default function DispatchForm() {
                 type="button" 
                 onClick={()=>setDiesel(s=>!s)}
                 className={`mt-1.5 w-full py-1.5 rounded-lg text-[10px] font-extrabold tracking-wide uppercase btn-interactive transition-all ${
-                  diesel ? 'bg-gradient-to-br from-red-500 to-red-700 text-white' : 'bg-white/5 text-slate-400 border border-white/5'
+                  diesel ? 'bg-gradient-to-br from-primary to-primary-dark text-white' : 'bg-white/5 text-slate-400 border border-white/5'
                 }`}
               >
                 {diesel ? 'Filled' : 'Pending'}
@@ -740,7 +741,7 @@ export default function DispatchForm() {
                 type="button" 
                 onClick={()=>setDriverStatus(s=>!s)}
                 className={`mt-1.5 w-full py-1.5 rounded-lg text-[10px] font-extrabold tracking-wide uppercase btn-interactive transition-all ${
-                  driverStatus ? 'bg-gradient-to-br from-red-500 to-red-700 text-white' : 'bg-white/5 text-slate-400 border border-white/5'
+                  driverStatus ? 'bg-gradient-to-br from-primary to-primary-dark text-white' : 'bg-white/5 text-slate-400 border border-white/5'
                 }`}
               >
                 {driverStatus ? 'Passed' : 'Pending'}
@@ -753,7 +754,7 @@ export default function DispatchForm() {
                 type="button" 
                 onClick={()=>setDnStatus(s=>!s)}
                 className={`mt-1.5 w-full py-1.5 rounded-lg text-[10px] font-extrabold tracking-wide uppercase btn-interactive transition-all ${
-                  dnStatus ? 'bg-gradient-to-br from-red-500 to-red-700 text-white' : 'bg-white/5 text-slate-400 border border-white/5'
+                  dnStatus ? 'bg-gradient-to-br from-primary to-primary-dark text-white' : 'bg-white/5 text-slate-400 border border-white/5'
                 }`}
               >
                 {dnStatus ? 'Done' : 'Pending'}
@@ -766,7 +767,7 @@ export default function DispatchForm() {
                 type="button" 
                 onClick={()=>setLeavingStatus(s=>!s)}
                 className={`mt-1.5 w-full py-1.5 rounded-lg text-[10px] font-extrabold tracking-wide uppercase btn-interactive transition-all ${
-                  leavingStatus ? 'bg-gradient-to-br from-red-500 to-red-700 text-white' : 'bg-white/5 text-slate-400 border border-white/5'
+                  leavingStatus ? 'bg-gradient-to-br from-primary to-primary-dark text-white' : 'bg-white/5 text-slate-400 border border-white/5'
                 }`}
               >
                 {leavingStatus ? 'Exited' : 'At Yard'}
@@ -787,7 +788,7 @@ export default function DispatchForm() {
           <button 
             type="submit" 
             disabled={updating || !selectedTrailerId} 
-            className="w-full bg-gradient-to-br from-red-500 to-red-700 disabled:from-slate-800 disabled:to-slate-900 text-white font-extrabold text-xs tracking-wider uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-red-500/20"
+            className="w-full bg-gradient-to-br from-primary to-primary-dark disabled:from-slate-800 disabled:to-slate-900 text-white font-extrabold text-xs tracking-wider uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-primary/20"
           >
             {updating ? 'Updating Log...' : 'Update Trailer Dispatch Log'}
           </button>
@@ -797,7 +798,7 @@ export default function DispatchForm() {
       {/* Mode 2: Bulk CSV Upload */}
       {mode === 'csv' && (
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-white/10 hover:border-red-500/30 rounded-2xl p-8 text-center bg-slate-950/40 relative group transition-all duration-300">
+          <div className="border-2 border-dashed border-white/10 hover:border-primary/30 rounded-2xl p-8 text-center bg-slate-950/40 relative group transition-all duration-300">
             <input
               type="file"
               accept=".csv"
@@ -805,8 +806,8 @@ export default function DispatchForm() {
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             />
             <div className="space-y-2">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto text-red-400 group-hover:scale-110 transition-transform duration-300">
-                📁
+              <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform duration-300">
+                <Folder size={20} />
               </div>
               <div className="text-sm font-bold text-slate-300">
                 {csvFileName ? csvFileName : 'Upload FLEET LOGS Master CSV'}
@@ -817,16 +818,16 @@ export default function DispatchForm() {
             </div>
           </div>
 
-          {csvStatus === 'parsing' && <div className="text-center text-xs font-bold text-red-500 uppercase animate-pulse">Reading master file log...</div>}
-          {csvStatus === 'saving' && <div className="text-center text-xs font-bold text-red-500 uppercase animate-pulse">Updating trailer records in database...</div>}
+          {csvStatus === 'parsing' && <div className="text-center text-xs font-bold text-primary uppercase animate-pulse">Reading master file log...</div>}
+          {csvStatus === 'saving' && <div className="text-center text-xs font-bold text-primary uppercase animate-pulse">Updating trailer records in database...</div>}
           {csvStatus === 'done' && (
-            <div className="p-3.5 bg-green-500/10 border border-green-500/20 rounded-xl text-center text-xs font-extrabold text-green-400 uppercase">
-              ✔️ Success: Bulk Dispatch Log updated. {csvCount} Trailer entries merged!
+            <div className="p-3.5 bg-green-500/10 border border-green-500/20 rounded-xl text-center text-xs font-extrabold text-green-400 uppercase flex items-center justify-center gap-1.5">
+              <CheckCircle2 size={14} /> Success: Bulk Dispatch Log updated. {csvCount} Trailer entries merged!
             </div>
           )}
           {csvStatus === 'error' && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl text-center text-xs font-extrabold text-red-400 uppercase">
-              ❌ File parsing failed. Verify the CSV format matches the master layout template.
+            <div className="p-3.5 bg-primary/10 border border-primary/20 rounded-xl text-center text-xs font-extrabold text-primary uppercase flex items-center justify-center gap-1.5">
+              <XCircle size={14} /> File parsing failed. Verify the CSV format matches the master layout template.
             </div>
           )}
         </div>
@@ -849,7 +850,7 @@ export default function DispatchForm() {
           </div>
           <div className="p-3 bg-slate-950/60 rounded-xl border border-white/5 flex flex-col justify-between shadow-md">
             <span className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">Dispatched (Exited)</span>
-            <span className="text-lg font-extrabold text-red-500 mt-1">{summary.exited}</span>
+            <span className="text-lg font-extrabold text-primary mt-1">{summary.exited}</span>
           </div>
           <div className="p-3 bg-slate-950/60 rounded-xl border border-white/5 flex flex-col justify-between shadow-md">
             <span className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">Diesel Provided</span>
@@ -897,7 +898,7 @@ export default function DispatchForm() {
             <tbody>
               {filteredLogs.map(l => (
                 <tr key={l.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors duration-150">
-                  <td className="p-3 font-extrabold text-red-500">{l.plate_no}</td>
+                  <td className="p-3 font-extrabold text-primary">{l.plate_no}</td>
                   <td className="p-3 text-slate-300">
                     <div className="font-bold">{l.driver_name || '--'}</div>
                     <div className="text-[10px] text-slate-500">{l.driver_mobile}</div>
@@ -905,7 +906,7 @@ export default function DispatchForm() {
                   <td className="p-3 font-semibold text-slate-300 truncate max-w-[130px]">{l.supplier_name}</td>
                   <td className="p-3">
                     <input 
-                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-red-500/50 px-1 py-0.5 rounded text-neutral-800 dark:text-white font-bold w-16 text-center text-xs"
+                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-primary/50 px-1 py-0.5 rounded text-neutral-800 dark:text-white font-bold w-16 text-center text-xs"
                       value={l.project_no} 
                       placeholder="--"
                       onChange={e => saveLogRow({ id: l.id, project_no: e.target.value })}
@@ -913,7 +914,7 @@ export default function DispatchForm() {
                   </td>
                   <td className="p-3">
                     <input 
-                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-red-500/50 px-1 py-0.5 rounded text-neutral-800 dark:text-white font-bold w-16 text-center text-xs"
+                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-primary/50 px-1 py-0.5 rounded text-neutral-800 dark:text-white font-bold w-16 text-center text-xs"
                       value={l.do_no} 
                       placeholder="--"
                       onChange={e => saveLogRow({ id: l.id, do_no: e.target.value })}
@@ -924,7 +925,7 @@ export default function DispatchForm() {
                       onClick={() => saveLogRow({ id: l.id, diesel_status: !l.diesel_status })}
                       disabled={!gateAuthority}
                       title={gateAuthority ? '' : 'Requires gate authority (Approve on Dispatch)'}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.diesel_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.diesel_status ? 'bg-primary/20 text-primary' : 'bg-slate-900 text-slate-500'}`}
                     >
                       {l.diesel_status ? 'FILLED' : 'PENDING'}
                     </button>
@@ -934,7 +935,7 @@ export default function DispatchForm() {
                       onClick={() => saveLogRow({ id: l.id, driver_status: !l.driver_status })}
                       disabled={!gateAuthority}
                       title={gateAuthority ? '' : 'Requires gate authority (Approve on Dispatch)'}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.driver_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${!gateAuthority ? 'opacity-40 cursor-not-allowed ' : ''}${l.driver_status ? 'bg-primary/20 text-primary' : 'bg-slate-900 text-slate-500'}`}
                     >
                       {l.driver_status ? 'OK' : 'PENDING'}
                     </button>
@@ -942,7 +943,7 @@ export default function DispatchForm() {
                   <td className="p-3 text-center">
                     <button 
                       onClick={() => saveLogRow({ id: l.id, dn_status: !l.dn_status })}
-                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${l.dn_status ? 'bg-red-500/20 text-red-400' : 'bg-slate-900 text-slate-500'}`}
+                      className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${l.dn_status ? 'bg-primary/20 text-primary' : 'bg-slate-900 text-slate-500'}`}
                     >
                       {l.dn_status ? 'DONE' : 'PENDING'}
                     </button>
@@ -959,7 +960,7 @@ export default function DispatchForm() {
                   </td>
                   <td className="p-3">
                     <input 
-                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-red-500/50 px-2 py-0.5 rounded text-slate-300 w-full text-xs font-semibold"
+                      className="bg-transparent border border-transparent hover:border-white/10 focus:border-primary/50 px-2 py-0.5 rounded text-slate-300 w-full text-xs font-semibold"
                       value={l.remarks} 
                       placeholder="Click to add remarks..."
                       onChange={e => saveLogRow({ id: l.id, remarks: e.target.value })}

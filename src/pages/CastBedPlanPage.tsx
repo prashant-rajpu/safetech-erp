@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Construction, FileEdit, Check, X, Calendar, CheckSquare, Square, QrCode } from 'lucide-react'
 import {
   DndContext, useDraggable, useDroppable, type DragEndEvent, PointerSensor, useSensor, useSensors
 } from '@dnd-kit/core'
@@ -57,7 +58,7 @@ function GridCell({ id, cards, onEmptyClick }: { id: string; cards: any[]; onEmp
     <div
       ref={setNodeRef}
       onClick={() => { if (cards.length === 0) onEmptyClick() }}
-      className={`min-h-[52px] rounded-lg border p-1 space-y-1 transition-colors ${isOver ? 'border-red-500/50 bg-red-500/5' : 'border-slate-100 dark:border-white/5'} ${cards.length === 0 ? 'cursor-pointer hover:border-red-500/30' : ''}`}
+      className={`min-h-[52px] rounded-lg border p-1 space-y-1 transition-colors ${isOver ? 'border-primary/50 bg-primary/5' : 'border-slate-100 dark:border-white/5'} ${cards.length === 0 ? 'cursor-pointer hover:border-primary/30' : ''}`}
     >
       {cards.length === 0 && <div className="h-full min-h-[44px] flex items-center justify-center text-[8px] text-slate-400 uppercase font-bold">+</div>}
       {cards.map(c => c.node)}
@@ -256,14 +257,14 @@ export default function CastBedPlanPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Cast Bed <span className="text-red-500 font-light">Plan</span>
+            Cast Bed <span className="text-primary font-light">Plan</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Drag a casting to a different bed, date or shift — click an empty cell to plan a new one</p>
         </div>
         <div className="flex items-center gap-2 no-print">
-          <button onClick={() => setWeekStart(addDays(weekStart, -7))} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">← Prev</button>
-          <button onClick={() => setWeekStart(todayGulf())} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">Today</button>
-          <button onClick={() => setWeekStart(addDays(weekStart, 7))} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">Next →</button>
+          <button onClick={() => setWeekStart(addDays(weekStart, -7))} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all">← Prev</button>
+          <button onClick={() => setWeekStart(todayGulf())} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all">Today</button>
+          <button onClick={() => setWeekStart(addDays(weekStart, 7))} className="px-3 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all">Next →</button>
         </div>
       </div>
 
@@ -273,7 +274,7 @@ export default function CastBedPlanPage() {
           { label: 'Scheduled This Week', value: kpis.scheduledWeek, cls: 'text-slate-500' },
           { label: 'Beds In Use Today', value: kpis.bedsInUseToday, cls: 'text-amber-500' },
           { label: 'Completed This Week', value: kpis.completedWeek, cls: 'text-emerald-500' },
-          { label: 'Utilization %', value: `${kpis.utilization}%`, cls: 'text-red-500' }
+          { label: 'Utilization %', value: `${kpis.utilization}%`, cls: 'text-primary' }
         ].map(k => (
           <div key={k.label} className="glass-card-3d rounded-2xl p-4">
             <div className={`text-3xl font-black ${k.cls}`}>{k.value}</div>
@@ -294,7 +295,7 @@ export default function CastBedPlanPage() {
               <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: `140px repeat(${dateCols.length}, 1fr)` }}>
                 <div />
                 {dateCols.map(d => (
-                  <div key={d} className={`text-center text-[9px] font-black uppercase tracking-wider py-1 rounded-lg ${d === todayGulf() ? 'text-red-500 bg-red-500/5' : 'text-slate-500'}`}>
+                  <div key={d} className={`text-center text-[9px] font-black uppercase tracking-wider py-1 rounded-lg ${d === todayGulf() ? 'text-primary bg-primary/5' : 'text-slate-500'}`}>
                     {new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' })}
                   </div>
                 ))}
@@ -303,7 +304,7 @@ export default function CastBedPlanPage() {
               {/* Bed rows */}
               {bedNames.map(bed => (
                 <div key={bed} className="grid gap-2 mb-2 items-start" style={{ gridTemplateColumns: `140px repeat(${dateCols.length}, 1fr)` }}>
-                  <div className="text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-300 py-2 truncate" title={bed}>🏗 {bed}</div>
+                  <div className="text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-300 py-2 truncate flex items-center gap-1" title={bed}><Construction size={12} className="shrink-0" /> {bed}</div>
                   {dateCols.map(date => (
                     <div key={date} className="space-y-1">
                       {SHIFTS.map(shift => {
@@ -343,19 +344,19 @@ export default function CastBedPlanPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-black text-sm text-neutral-900 dark:text-white">{detailRow.schedule_date}</span>
               <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-500">{detailRow.shift} Shift</span>
-              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 border border-red-500/20">🏗 {detailRow.bed}</span>
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"><Construction size={11} /> {detailRow.bed}</span>
               <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${statusChipClass(detailRow.status)}`}>{detailRow.status}</span>
             </div>
             <div className="text-xs font-bold text-slate-600 dark:text-slate-300">
-              {detailRow.project_no} • {detailRow.drawing_no} • <span className="text-red-500">{detailRow.qty} element(s)</span>
+              {detailRow.project_no} • {detailRow.drawing_no} • <span className="text-primary">{detailRow.qty} element(s)</span>
             </div>
             <div className="text-[10px] font-mono text-slate-500 break-all">{detailRow.element_codes}</div>
-            {detailRow.remarks && <div className="text-[10px] text-slate-500 italic">📝 {detailRow.remarks}</div>}
+            {detailRow.remarks && <div className="text-[10px] text-slate-500 italic flex items-center gap-1"><FileEdit size={11} className="shrink-0" /> {detailRow.remarks}</div>}
 
             <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
               {elementsOf(detailRow, elements).map(el => (
-                <span key={el.id} className={`text-[8.5px] font-mono font-bold px-2 py-1 rounded-md border ${el.qr_generated ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>
-                  {el.qr_generated ? '⬛' : '⬜'} {el.element_code} — {el.status}
+                <span key={el.id} className={`text-[8.5px] font-mono font-bold px-2 py-1 rounded-md border inline-flex items-center gap-1 ${el.qr_generated ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>
+                  {el.qr_generated ? <CheckSquare size={10} /> : <Square size={10} />} {el.element_code} — {el.status}
                 </span>
               ))}
             </div>
@@ -363,8 +364,8 @@ export default function CastBedPlanPage() {
             {editable && (
               <div className="flex flex-wrap gap-1.5 pt-2">
                 {detailRow.status === 'Scheduled' && (
-                  <button disabled={busy} onClick={() => generateQr(detailRow)} className="px-3 py-1.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-[9px] font-extrabold uppercase rounded-lg btn-interactive">
-                    {busy ? '…' : '⬛ Generate QR Labels'}
+                  <button disabled={busy} onClick={() => generateQr(detailRow)} className="px-3 py-1.5 bg-gradient-to-br from-primary to-primary-dark text-white text-[9px] font-extrabold uppercase rounded-lg btn-interactive">
+                    {busy ? '…' : <span className="inline-flex items-center gap-1"><QrCode size={12} /> Generate QR Labels</span>}
                   </button>
                 )}
                 {detailRow.status === 'QR Generated' && (
@@ -373,18 +374,18 @@ export default function CastBedPlanPage() {
                   </button>
                 )}
                 {detailRow.status === 'In Progress' && (
-                  <button disabled={busy} onClick={() => setRowStatus(detailRow, 'Completed')} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                    ✓ Complete → Stockyard
+                  <button disabled={busy} onClick={() => setRowStatus(detailRow, 'Completed')} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                    <Check size={11} /> Complete → Stockyard
                   </button>
                 )}
                 {(detailRow.status === 'Scheduled' || detailRow.status === 'QR Generated') && (
-                  <button disabled={busy} onClick={() => setRowStatus(detailRow, 'Cancelled')} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-400 hover:text-red-500 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                    ✕ Cancel
+                  <button disabled={busy} onClick={() => setRowStatus(detailRow, 'Cancelled')} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-400 hover:text-primary text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                    <X size={11} /> Cancel
                   </button>
                 )}
               </div>
             )}
-            <button onClick={() => setDetailRow(null)} className="w-full mt-1 px-3 py-2 text-[9px] font-extrabold uppercase text-slate-500 hover:text-red-500 transition-all">Close</button>
+            <button onClick={() => setDetailRow(null)} className="w-full mt-1 px-3 py-2 text-[9px] font-extrabold uppercase text-slate-500 hover:text-primary transition-all">Close</button>
           </div>
         </div>
       )}
@@ -393,8 +394,8 @@ export default function CastBedPlanPage() {
       {quickPlan && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setQuickPlan(null)}>
           <form onSubmit={submitQuickPlan} className="glass-panel rounded-2xl border border-slate-200 dark:border-white/5 p-5 max-w-md w-full space-y-3" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2">
-              📅 Plan Casting — {quickPlan.bed}, {quickPlan.date} ({quickPlan.shift})
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2 flex items-center gap-1.5">
+              <Calendar size={13} className="shrink-0" /> Plan Casting — {quickPlan.bed}, {quickPlan.date} ({quickPlan.shift})
             </h3>
             <label className="block">
               <span className="text-[9px] uppercase font-black text-slate-500">Project</span>
@@ -424,7 +425,7 @@ export default function CastBedPlanPage() {
             </label>
             <div className="flex gap-2 pt-1">
               <button type="button" onClick={() => setQuickPlan(null)} className="flex-1 px-3 py-2.5 border border-slate-200 dark:border-white/10 text-slate-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">Cancel</button>
-              <button type="submit" disabled={qpSaving} className="flex-1 bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-[10px] uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
+              <button type="submit" disabled={qpSaving} className="flex-1 bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-[10px] uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
                 {qpSaving ? 'Planning…' : 'Schedule Casting'}
               </button>
             </div>

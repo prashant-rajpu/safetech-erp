@@ -39,14 +39,14 @@ export default function BatchingDashboardPage() {
     return Array.from(map.entries()).map(([name, value], i) => ({ name, value, color: GRADE_COLORS[i % GRADE_COLORS.length] }))
   }, [batches])
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading batching data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading batching data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Batching <span className="text-red-500 font-light">Dashboard</span>
+            Batching <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Concrete batch log, mix grades & pour volumes</p>
         </div>
@@ -94,7 +94,7 @@ export default function BatchingDashboardPage() {
           rows={[...batches].sort((a, b) => (b.batch_date || '').localeCompare(a.batch_date || '')).slice(0, 10)}
           empty="No batches recorded"
         />
-        <Link to="/m/concrete" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Concrete / Batch Register</Link>
+        <Link to="/m/concrete" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Concrete / Batch Register</Link>
       </div>
     </div>
   )

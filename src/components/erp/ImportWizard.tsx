@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react'
+import { Check, X, Download, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import Papa from 'papaparse'
 import type { ModuleDef } from '../../lib/erp/registry'
 import { insertAudited, snapshotTable } from '../../lib/erp/db'
@@ -126,9 +127,9 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
   }
 
   const stepBadge = (n: number, label: string, active: boolean, done: boolean) => (
-    <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${active ? 'text-red-500' : done ? 'text-emerald-500' : 'text-slate-400'}`}>
-      <span className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] ${active ? 'border-red-500 bg-red-500/10' : done ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-300 dark:border-white/10'}`}>
-        {done ? '✓' : n}
+    <div className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${active ? 'text-primary' : done ? 'text-emerald-500' : 'text-slate-400'}`}>
+      <span className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] ${active ? 'border-primary bg-primary/10' : done ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-300 dark:border-white/10'}`}>
+        {done ? <Check size={14} /> : n}
       </span>
       {label}
     </div>
@@ -141,7 +142,7 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
         {/* Header + steps */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
           <div>
-            <h3 className="text-lg font-black uppercase text-neutral-900 dark:text-white">CSV Import <span className="text-red-500 font-light">— {module.title}</span></h3>
+            <h3 className="text-lg font-black uppercase text-neutral-900 dark:text-white">CSV Import <span className="text-primary font-light">— {module.title}</span></h3>
             <div className="flex gap-4 mt-2">
               {stepBadge(1, 'File', step === 'file', step !== 'file')}
               {stepBadge(2, 'Column Mapping', step === 'map', step === 'preview' || step === 'done')}
@@ -149,7 +150,7 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
               {stepBadge(4, 'Import', step === 'done', false)}
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-red-500 font-black text-lg px-2" aria-label="Close">✕</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-primary font-black text-lg px-2" aria-label="Close"><X size={18} /></button>
         </div>
 
         {/* STEP 1 — file drop */}
@@ -158,10 +159,10 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
             onDragOver={e => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
             onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f) }}
-            className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer ${dragOver ? 'border-red-500 bg-red-500/5' : 'border-slate-300 dark:border-white/10 hover:border-red-500/40'}`}
+            className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer ${dragOver ? 'border-primary bg-primary/5' : 'border-slate-300 dark:border-white/10 hover:border-primary/40'}`}
             onClick={() => fileRef.current?.click()}
           >
-            <div className="text-4xl mb-3">📥</div>
+            <div className="mb-3 flex justify-center"><Download size={40} /></div>
             <div className="font-black uppercase text-sm text-neutral-800 dark:text-white">Drag & drop a CSV file here</div>
             <div className="text-xs text-slate-500 mt-1">or click to browse — first row must contain column headers</div>
             <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
@@ -176,7 +177,7 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
               {module.fields.map(f => (
                 <label key={f.key} className="block">
                   <span className="text-[9px] uppercase font-black text-slate-500">
-                    {f.label}{f.required && <span className="text-red-500"> *</span>}
+                    {f.label}{f.required && <span className="text-primary"> *</span>}
                   </span>
                   <select
                     className="w-full mt-1 px-2.5 py-2 rounded-lg glowing-input text-xs"
@@ -190,16 +191,16 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
               ))}
             </div>
             {requiredUnmapped.length > 0 && (
-              <div className="text-[11px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2">
-                ⚠ Required fields not mapped: {requiredUnmapped.map(f => f.label).join(', ')}
+              <div className="text-[11px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 flex items-center gap-1.5">
+                <AlertTriangle size={13} className="shrink-0" /> Required fields not mapped: {requiredUnmapped.map(f => f.label).join(', ')}
               </div>
             )}
             <div className="flex justify-between pt-2">
-              <button onClick={() => { setParsed(null); setStep('file') }} className="text-xs font-bold uppercase text-slate-500 hover:text-red-500 px-3 py-2">← Different File</button>
+              <button onClick={() => { setParsed(null); setStep('file') }} className="text-xs font-bold uppercase text-slate-500 hover:text-primary px-3 py-2">← Different File</button>
               <button
                 disabled={requiredUnmapped.length > 0}
                 onClick={() => setStep('preview')}
-                className="px-5 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Validate {parsed.rows.length} Rows →
               </button>
@@ -219,14 +220,14 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
                 <div className="text-2xl font-black text-amber-500">{analysis.dupes.length}</div>
                 <div className="text-[9px] uppercase font-black text-slate-500">Duplicates ({keyField})</div>
               </div>
-              <div className="p-3 rounded-2xl border border-red-500/20 bg-red-500/5">
-                <div className="text-2xl font-black text-red-500">{analysis.errors.length}</div>
+              <div className="p-3 rounded-2xl border border-primary/20 bg-primary/5">
+                <div className="text-2xl font-black text-primary">{analysis.errors.length}</div>
                 <div className="text-[9px] uppercase font-black text-slate-500">Validation errors</div>
               </div>
             </div>
 
             <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-              <input type="checkbox" checked={skipDupes} onChange={e => setSkipDupes(e.target.checked)} className="accent-red-500" />
+              <input type="checkbox" checked={skipDupes} onChange={e => setSkipDupes(e.target.checked)} className="accent-primary" />
               Skip duplicate records (recommended)
             </label>
 
@@ -253,7 +254,7 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
               <div className="flex gap-2">
-                <button onClick={() => setStep('map')} className="text-xs font-bold uppercase text-slate-500 hover:text-red-500 px-3 py-2">← Mapping</button>
+                <button onClick={() => setStep('map')} className="text-xs font-bold uppercase text-slate-500 hover:text-primary px-3 py-2">← Mapping</button>
                 {(analysis.errors.length > 0 || analysis.dupes.length > 0) && (
                   <button onClick={downloadErrorReport} className="text-xs font-bold uppercase text-amber-500 hover:text-amber-400 px-3 py-2 border border-amber-500/20 rounded-xl bg-amber-500/5">
                     ⬇ Error Report CSV
@@ -263,9 +264,9 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
               <button
                 disabled={analysis.valid.length === 0 || busy}
                 onClick={doImport}
-                className="px-6 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {busy ? 'Importing…' : `✓ Import ${analysis.valid.length} Records`}
+                {busy ? 'Importing…' : <span className="inline-flex items-center gap-1.5"><Check size={14} /> Import {analysis.valid.length} Records</span>}
               </button>
             </div>
             <p className="text-[10px] text-slate-500">A rollback snapshot is taken automatically before the import — you can undo it from the module toolbar.</p>
@@ -275,10 +276,10 @@ export default function ImportWizard({ module, existingRows, onClose, onImported
         {/* STEP 4 — done */}
         {step === 'done' && (
           <div className="text-center py-10 space-y-3">
-            <div className="text-5xl">✅</div>
+            <div className="flex justify-center"><CheckCircle2 size={48} className="text-success" /></div>
             <div className="font-black uppercase text-lg text-neutral-900 dark:text-white">{importedCount} records imported</div>
             <p className="text-xs text-slate-500">If something looks wrong, use <strong>Undo Import</strong> in the toolbar to restore the previous state.</p>
-            <button onClick={onClose} className="px-6 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive mt-2">
+            <button onClick={onClose} className="px-6 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive mt-2">
               Close
             </button>
           </div>

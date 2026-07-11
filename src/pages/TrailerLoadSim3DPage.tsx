@@ -3,6 +3,7 @@ import { fetchRows } from '../lib/erp/db'
 import Scene3DShell from '../lib/erp/three/Scene3DShell'
 import DraggableElementBox from '../lib/erp/three/DraggableElementBox'
 import { statusColor3D } from '../lib/erp/three/ElementBox'
+import { AlertTriangle, Check, X } from 'lucide-react'
 
 const LOADABLE_STATUSES = ['Stockyard', 'Curing']
 
@@ -98,14 +99,14 @@ export default function TrailerLoadSim3DPage() {
 
   const anyOutOfBounds = placedElements.some(isOutOfBounds)
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading trailer loading simulation…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading trailer loading simulation…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Trailer Loading <span className="text-red-500 font-light">3D Simulation</span>
+            Trailer Loading <span className="text-primary font-light">3D Simulation</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Drag elements onto the trailer bed to check fit and weight capacity</p>
         </div>
@@ -119,7 +120,7 @@ export default function TrailerLoadSim3DPage() {
       </div>
 
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2 text-[11px] text-amber-500 font-semibold">
-        ⚠ Illustrative live check only — nothing here is saved. Checks bed-boundary fit and total weight vs. capacity; does not detect elements overlapping each other.
+        <AlertTriangle size={13} className="inline shrink-0 -mt-0.5 mr-1" />Illustrative live check only — nothing here is saved. Checks bed-boundary fit and total weight vs. capacity; does not detect elements overlapping each other.
       </div>
 
       {trailers.length === 0 ? (
@@ -131,18 +132,18 @@ export default function TrailerLoadSim3DPage() {
         </div>
       ) : (
         <>
-          <div className={`glass-panel rounded-2xl p-4 border ${withinCapacity && !anyOutOfBounds ? 'border-emerald-500/30' : 'border-red-500/30'}`}>
+          <div className={`glass-panel rounded-2xl p-4 border ${withinCapacity && !anyOutOfBounds ? 'border-emerald-500/30' : 'border-primary/30'}`}>
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="text-xs font-black uppercase text-slate-500">
                 {trailer.trailer_type} — Bed {(bedLengthM).toFixed(1)}m × {bedWidthM.toFixed(1)}m
               </span>
               <div className="flex gap-2">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${withinCapacity ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                  {totalWeight.toFixed(1)}T / {capacity}T {withinCapacity ? '✓' : '✗ Over Capacity'}
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase inline-flex items-center gap-1 ${withinCapacity ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-primary/10 text-primary border border-primary/20'}`}>
+                  {totalWeight.toFixed(1)}T / {capacity}T {withinCapacity ? <Check size={11} /> : <><X size={11} /> Over Capacity</>}
                 </span>
                 {anyOutOfBounds && (
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-red-500/10 text-red-500 border border-red-500/20">
-                    ✗ Element(s) Out of Bed Bounds
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1">
+                    <X size={11} /> Element(s) Out of Bed Bounds
                   </span>
                 )}
               </div>

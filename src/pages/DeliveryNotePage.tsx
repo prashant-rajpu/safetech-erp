@@ -349,26 +349,26 @@ export default function DeliveryNotePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/5 no-print">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white uppercase">
-            Delivery Note <span className="text-red-500 font-light">Generator</span>
+            Delivery Note <span className="text-primary font-light">Generator</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Design, edit, print, or download official Safetech delivery templates</p>
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">
           <button 
             onClick={handleClearTemplate}
-            className="text-xs bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl btn-interactive transition-all"
+            className="text-xs bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl btn-interactive transition-all"
           >
             Clear Data (Blank Template)
           </button>
           <button 
             onClick={handleResetDemo}
-            className="text-xs bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl btn-interactive transition-all"
+            className="text-xs bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl btn-interactive transition-all"
           >
             Reset to Sample
           </button>
           <button 
             onClick={() => window.print()}
-            className="text-xs bg-gradient-to-br from-red-500 to-red-700 text-white font-extrabold uppercase px-5 py-2.5 rounded-xl btn-interactive shadow-lg shadow-red-500/25 transition-all"
+            className="text-xs bg-gradient-to-br from-primary to-primary-dark text-white font-extrabold uppercase px-5 py-2.5 rounded-xl btn-interactive shadow-lg shadow-primary/25 transition-all"
           >
             Print / Save PDF
           </button>
@@ -457,7 +457,7 @@ export default function DeliveryNotePage() {
                     setTrailerSearch('')
                     setDnType('Ex Factory - Transporter')
                   }}
-                  className="absolute right-3 top-6 text-xs text-red-500 hover:text-red-400 font-extrabold"
+                  className="absolute right-3 top-6 text-xs text-primary hover:text-primary font-extrabold"
                 >
                   Clear
                 </button>
@@ -482,9 +482,9 @@ export default function DeliveryNotePage() {
                           setDriverMobile(drv?.mobile || '')
                           setShowTrailerDropdown(false)
                         }}
-                        className="p-2.5 text-xs text-slate-300 hover:bg-red-500/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
+                        className="p-2.5 text-xs text-slate-300 hover:bg-primary/10 hover:text-white cursor-pointer transition-colors duration-150 flex flex-col gap-0.5"
                       >
-                        <span className="font-extrabold text-red-400">{t.plate_no}</span>
+                        <span className="font-extrabold text-primary">{t.plate_no}</span>
                         <span className="text-[10px] text-slate-400 font-semibold">{t.supplierName} ({t.trailer_type})</span>
                       </div>
                     ))
@@ -541,7 +541,7 @@ export default function DeliveryNotePage() {
               <button 
                 type="button" 
                 onClick={addRow}
-                className="text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 px-2 py-1 rounded-md tracking-wider uppercase font-bold transition-all"
+                className="text-[10px] bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 hover:border-primary/40 px-2 py-1 rounded-md tracking-wider uppercase font-bold transition-all"
               >
                 + Add Row
               </button>
@@ -555,7 +555,7 @@ export default function DeliveryNotePage() {
                     <button 
                       type="button" 
                       onClick={() => setItems(prev => prev.filter((_, i) => i !== idx))}
-                      className="text-red-500 hover:text-red-400"
+                      className="text-primary hover:text-primary"
                     >
                       Delete
                     </button>
@@ -582,7 +582,7 @@ export default function DeliveryNotePage() {
             <button 
               onClick={handleSaveToLogs}
               disabled={saving}
-              className="w-full bg-slate-900 hover:bg-slate-800 border border-white/5 hover:border-red-500/20 text-red-400 font-extrabold uppercase py-3 rounded-xl tracking-wider text-xs btn-interactive"
+              className="w-full bg-slate-900 hover:bg-slate-800 border border-white/5 hover:border-primary/20 text-primary font-extrabold uppercase py-3 rounded-xl tracking-wider text-xs btn-interactive"
             >
               {saving ? 'Saving Entries…' : 'Commit Deliveries to DB'}
             </button>
@@ -707,10 +707,10 @@ export default function DeliveryNotePage() {
                       {/* Total / Subtotal Row */}
                       {isLastPage ? (
                         <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[24px]">
-                          <td className="border-r border-black p-1.5 text-red-600 uppercase" colSpan={4}>GRAND TOTAL:</td>
-                          <td className="border-r border-black p-1.5 text-red-600">{grandTotals.volume > 0 ? grandTotals.volume : ''}</td>
-                          <td className="border-r border-black p-1.5 text-red-600">{grandTotals.weight > 0 ? grandTotals.weight : ''}</td>
-                          <td className="p-1.5 text-red-600">{grandTotals.qty > 0 ? grandTotals.qty : ''}</td>
+                          <td className="border-r border-black p-1.5 text-primary-dark uppercase" colSpan={4}>GRAND TOTAL:</td>
+                          <td className="border-r border-black p-1.5 text-primary-dark">{grandTotals.volume > 0 ? grandTotals.volume : ''}</td>
+                          <td className="border-r border-black p-1.5 text-primary-dark">{grandTotals.weight > 0 ? grandTotals.weight : ''}</td>
+                          <td className="p-1.5 text-primary-dark">{grandTotals.qty > 0 ? grandTotals.qty : ''}</td>
                         </tr>
                       ) : (
                         <tr className="bg-neutral-50 font-extrabold border-t border-black text-center text-[10px] h-[24px]">
@@ -783,7 +783,7 @@ export default function DeliveryNotePage() {
                   <div className="grid grid-cols-3 border border-black divide-x divide-black text-[9.5px] text-center bg-neutral-50/50">
                     <div className="p-1 flex flex-col justify-between h-[34px]">
                       <span className="font-extrabold uppercase text-[8px]">DN Type</span>
-                      <span className="font-semibold text-red-600">{dnType || '____________________'}</span>
+                      <span className="font-semibold text-primary-dark">{dnType || '____________________'}</span>
                     </div>
                     <div className="p-1 flex flex-col justify-between h-[34px]">
                       <span className="font-extrabold uppercase text-[8px]">Security Checker</span>
@@ -818,7 +818,7 @@ export default function DeliveryNotePage() {
                   {/* Watermark Stamps / Footer */}
                   <div className="flex justify-between items-center text-[8.5px] text-neutral-500 border-t border-neutral-200 pt-1">
                     <span>System Generated Document</span>
-                    <span className="font-bold text-red-600 uppercase tracking-widest border border-red-500/25 px-2 py-0.5 rounded text-[8px]">
+                    <span className="font-bold text-primary-dark uppercase tracking-widest border border-primary/25 px-2 py-0.5 rounded text-[8px]">
                       SECURITY APPROVED
                     </span>
                     <span>Page {pageIdx + 1} of {chunks.length}</span>

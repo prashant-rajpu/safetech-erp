@@ -6,6 +6,8 @@ import { logTraceEvent, type TraceStage } from '../lib/erp/elementTrace'
 import { statusChipClass } from '../lib/erp/uiHelpers'
 import { usePermissions } from '../lib/erp/usePermissions'
 import { useAuth } from '../lib/useAuth'
+import { getIcon } from '../lib/erp/icons'
+import { CheckCircle2, Camera, Search, MapPin, AlertTriangle, Construction, Check, Shuffle, Hourglass } from 'lucide-react'
 
 const STAGES: TraceStage[] = [
   'Planning', 'Casting', 'QC', 'Curing', 'Stockyard', 'Loading',
@@ -267,7 +269,7 @@ export default function QrScannerPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            QR / Barcode <span className="text-red-500 font-light">Scanner Terminal</span>
+            QR / Barcode <span className="text-primary font-light">Scanner Terminal</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Scan element ID labels with a device camera, USB gun, or manual entry — log status updates and defects on the spot</p>
         </div>
@@ -287,25 +289,25 @@ export default function QrScannerPage() {
             {!cameraOn && (
               isScanning ? (
                 <div className="space-y-2 animate-pulse text-white">
-                  <span className="text-2xl">⏳</span>
-                  <span className="text-[10px] uppercase font-black tracking-widest block text-red-500">Looking up element…</span>
+                  <span className="flex justify-center"><Hourglass size={22} /></span>
+                  <span className="text-[10px] uppercase font-black tracking-widest block text-primary">Looking up element…</span>
                 </div>
               ) : scanSuccess ? (
                 <div className="space-y-2 text-white">
-                  <span className="text-2xl text-emerald-500">✅</span>
+                  <span className="flex justify-center text-emerald-500"><CheckCircle2 size={22} /></span>
                   <span className="text-[10px] uppercase font-black tracking-widest block text-emerald-500">Scan Complete! Profile Loaded</span>
                 </div>
               ) : (
                 <div className="space-y-2 text-slate-500">
-                  <span className="text-3xl">📷</span>
+                  <span className="flex justify-center"><Camera size={28} /></span>
                   <span className="text-[10px] uppercase font-black tracking-widest block">Camera not started</span>
                   <button
                     onClick={startCamera}
-                    className="min-h-[44px] px-4 py-2.5 mt-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-[11px] font-extrabold uppercase rounded-lg btn-interactive"
+                    className="min-h-[44px] px-4 py-2.5 mt-2 bg-gradient-to-br from-primary to-primary-dark text-white text-[11px] font-extrabold uppercase rounded-lg btn-interactive inline-flex items-center gap-1.5"
                   >
-                    📷 Start Camera
+                    <Camera size={14} /> Start Camera
                   </button>
-                  {cameraError && <span className="text-[9px] text-red-400 block mt-1">{cameraError}</span>}
+                  {cameraError && <span className="text-[9px] text-primary block mt-1">{cameraError}</span>}
                 </div>
               )
             )}
@@ -334,7 +336,7 @@ export default function QrScannerPage() {
                 />
                 <button
                   onClick={() => handleScan(scanInput)}
-                  className="min-h-[44px] px-4 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-lg btn-interactive"
+                  className="min-h-[44px] px-4 py-2 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-lg btn-interactive"
                 >
                   Scan
                 </button>
@@ -351,9 +353,9 @@ export default function QrScannerPage() {
                       setScanInput(el.element_code)
                       handleScan(el.element_code)
                     }}
-                    className="text-[9px] font-mono bg-slate-50 dark:bg-white/5 hover:bg-red-500/10 text-slate-600 dark:text-slate-400 hover:text-red-500 border border-slate-200 dark:border-white/5 px-2 py-1 rounded-md transition-all font-bold"
+                    className="text-[9px] font-mono bg-slate-50 dark:bg-white/5 hover:bg-primary/10 text-slate-600 dark:text-slate-400 hover:text-primary border border-slate-200 dark:border-white/5 px-2 py-1 rounded-md transition-all font-bold"
                   >
-                    🔍 {el.element_code.slice(0, 15)}...
+                    <span className="inline-flex items-center gap-1"><Search size={10} /> {el.element_code.slice(0, 15)}...</span>
                   </button>
                 ))}
               </div>
@@ -365,27 +367,27 @@ export default function QrScannerPage() {
         <div className="lg:col-span-2 space-y-6">
           {profile ? (
             <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-white/5 space-y-6 animate-fadeIn relative">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-red-800 to-black rounded-t-3xl" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-dark to-black rounded-t-3xl" />
 
               {/* Header */}
               <div className="flex flex-wrap justify-between items-start gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
                 <div>
-                  <span className="text-[10px] text-red-500 font-extrabold uppercase tracking-widest block">Structural Element Profile</span>
+                  <span className="text-[10px] text-primary font-extrabold uppercase tracking-widest block">Structural Element Profile</span>
                   <h3 className="text-xl font-black text-neutral-900 dark:text-white font-mono mt-1">{profile.element_code}</h3>
                   <p className="text-xs text-slate-500 font-semibold">{profile.project_no} — {profile.project_name}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {editable && (
                     <>
-                      <button onClick={() => { setShowStatusForm(v => !v); setShowDefectForm(false) }} className="min-h-[40px] px-3 py-2 border border-red-500/30 text-red-500 bg-red-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                        📍 Update Status
+                      <button onClick={() => { setShowStatusForm(v => !v); setShowDefectForm(false) }} className="min-h-[40px] px-3 py-2 border border-primary/30 text-primary bg-primary/5 text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                        <MapPin size={11} /> Update Status
                       </button>
-                      <button onClick={() => { setShowDefectForm(v => !v); setShowStatusForm(false) }} className="min-h-[40px] px-3 py-2 border border-amber-500/30 text-amber-500 bg-amber-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                        ⚠️ Report Defect
+                      <button onClick={() => { setShowDefectForm(v => !v); setShowStatusForm(false) }} className="min-h-[40px] px-3 py-2 border border-amber-500/30 text-amber-500 bg-amber-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                        <AlertTriangle size={11} /> Report Defect
                       </button>
                     </>
                   )}
-                  <span className="inline-block px-3 py-1 bg-red-500/10 text-red-500 font-black uppercase text-[10px] rounded-lg border border-red-500/20">
+                  <span className="inline-block px-3 py-1 bg-primary/10 text-primary font-black uppercase text-[10px] rounded-lg border border-primary/20">
                     {profile.status}
                   </span>
                 </div>
@@ -393,7 +395,7 @@ export default function QrScannerPage() {
 
               {/* Update Status form */}
               {showStatusForm && (
-                <form onSubmit={submitStatusUpdate} className="rounded-2xl border border-red-500/20 bg-red-500/5 p-4 space-y-3">
+                <form onSubmit={submitStatusUpdate} className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <label className="block">
                       <span className="text-[9px] uppercase font-black text-slate-500">Stage</span>
@@ -408,7 +410,7 @@ export default function QrScannerPage() {
                       </select>
                     </label>
                   </div>
-                  <button type="submit" disabled={busy} className="min-h-[44px] w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
+                  <button type="submit" disabled={busy} className="min-h-[44px] w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg btn-interactive">
                     {busy ? 'Saving…' : 'Log Status Update'}
                   </button>
                 </form>
@@ -457,14 +459,14 @@ export default function QrScannerPage() {
                 </div>
                 <div className="p-3 border border-slate-100 dark:border-white/5 rounded-2xl bg-slate-50 dark:bg-black/10">
                   <span className="text-[9px] uppercase text-slate-400 font-bold block">Volume / Weight</span>
-                  <span className="text-xs font-black text-red-500 mt-1 block">
+                  <span className="text-xs font-black text-primary mt-1 block">
                     {profile.volume_cum.toFixed(2)} m³ / {profile.weight_tons.toFixed(2)} T
                   </span>
                 </div>
                 <div className="p-3 border border-slate-100 dark:border-white/5 rounded-2xl bg-slate-50 dark:bg-black/10">
                   <span className="text-[9px] uppercase text-slate-400 font-bold block">Current Location</span>
-                  <span className="text-xs font-black text-neutral-900 dark:text-white mt-1 block">
-                    🏗️ {profile.bay_location}
+                  <span className="text-xs font-black text-neutral-900 dark:text-white mt-1 block flex items-center gap-1">
+                    <Construction size={13} className="shrink-0" /> {profile.bay_location}
                   </span>
                 </div>
               </div>
@@ -473,8 +475,8 @@ export default function QrScannerPage() {
               <div className="space-y-3">
                 <span className="text-[10px] uppercase font-black text-slate-500 block">Complete Traceability Lifecycle Timeline</span>
                 {!profile.trace && (
-                  <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2">
-                    ⚠️ No traceability record found for this element yet — every stage below reflects no logged activity.
+                  <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                    <AlertTriangle size={12} className="shrink-0" /> No traceability record found for this element yet — every stage below reflects no logged activity.
                   </div>
                 )}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -501,9 +503,9 @@ export default function QrScannerPage() {
                         }`}
                       >
                         <div className="flex items-center justify-between text-[10px] font-black uppercase">
-                          <span>{stage.icon} {stage.label}</span>
+                          <span className="inline-flex items-center gap-1">{(() => { const StageIcon = getIcon(stage.icon); return <StageIcon size={11} /> })()} {stage.label}</span>
                           {isDone ? (
-                            <span className="text-emerald-500 text-[8px] font-black">✓ Done</span>
+                            <span className="text-emerald-500 text-[8px] font-black inline-flex items-center gap-0.5"><Check size={9} /> Done</span>
                           ) : (
                             <span className="text-slate-400 text-[8px] font-black">Pending</span>
                           )}
@@ -550,19 +552,19 @@ export default function QrScannerPage() {
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Mould Oil Verification</span>
-                      <span>{profile.qc_pre_pour ? '🟢 Cleared' : '🟡 Pending'}</span>
+                      <span className="inline-flex items-center gap-1">{profile.qc_pre_pour ? <><span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Cleared</> : <><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Pending</>}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Reinforcement Cage Check</span>
-                      <span>{profile.qc_rebar ? '🟢 Cleared' : '🟡 Pending'}</span>
+                      <span className="inline-flex items-center gap-1">{profile.qc_rebar ? <><span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Cleared</> : <><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Pending</>}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Spacer cover Check</span>
-                      <span>{profile.qc_cover ? '🟢 Cleared' : '🟡 Pending'}</span>
+                      <span className="inline-flex items-center gap-1">{profile.qc_cover ? <><span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Cleared</> : <><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Pending</>}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Embedded Plates & Lifters</span>
-                      <span>{profile.qc_embeds ? '🟢 Cleared' : '🟡 Pending'}</span>
+                      <span className="inline-flex items-center gap-1">{profile.qc_embeds ? <><span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Cleared</> : <><span className="inline-block w-2 h-2 rounded-full bg-amber-500" /> Pending</>}</span>
                     </div>
                   </div>
                 </div>
@@ -576,7 +578,7 @@ export default function QrScannerPage() {
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Cubes Test Ref</span>
-                      <span className="font-mono text-red-500">{profile.qc_test_ref}</span>
+                      <span className="font-mono text-primary">{profile.qc_test_ref}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span className="text-slate-500">Inspector</span>
@@ -622,8 +624,8 @@ export default function QrScannerPage() {
                   {profile.movements && profile.movements.map((m, idx) => (
                     <div key={idx} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400 font-semibold">
                       <div className="flex items-center gap-2">
-                        <span>🔀</span>
-                        <span>Transferred from <strong>{m.from_bay}</strong> to <strong className="text-red-500">{m.to_bay}</strong></span>
+                        <Shuffle size={13} />
+                        <span>Transferred from <strong>{m.from_bay}</strong> to <strong className="text-primary">{m.to_bay}</strong></span>
                       </div>
                       <div className="text-right">
                         <span className="block font-bold text-neutral-800 dark:text-white text-[11px]">{m.crane} ({m.operator})</span>
@@ -640,7 +642,7 @@ export default function QrScannerPage() {
             </div>
           ) : (
             <div className="glass-panel p-16 rounded-3xl border border-slate-200 dark:border-white/5 text-center flex flex-col items-center justify-center text-slate-400 font-semibold space-y-2">
-              <span className="text-4xl">🔍</span>
+              <Search size={36} />
               <span className="text-sm uppercase font-black tracking-wider text-slate-500">Element Profile not loaded</span>
               <p className="text-xs text-slate-500 max-w-sm">Scan a QR code label, type a valid element ID code, or click on a quick lookup item to render profile details.</p>
             </div>

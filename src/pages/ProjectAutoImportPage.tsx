@@ -4,6 +4,8 @@ import { fetchRows, insertAudited, snapshotTable, restoreSnapshot, hasSnapshot, 
 import { exportCsv } from '../lib/erp/printDoc'
 import { useAuth } from '../lib/useAuth'
 import { usePermissions } from '../lib/erp/usePermissions'
+import { getIcon } from '../lib/erp/icons'
+import { FileText, CheckCircle2, Construction, Download, X, Zap, Folder } from 'lucide-react'
 
 // One CSV → the whole operational chain, automatically linked:
 // Project → BOQ → Drawing Register → BOM → Element Planning →
@@ -232,12 +234,12 @@ export default function ProjectAutoImportPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Project <span className="text-red-500 font-light">Auto-Import</span>
+            Project <span className="text-primary font-light">Auto-Import</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">One CSV creates the entire chain — no manual linking required</p>
         </div>
         <div className="flex gap-2 no-print">
-          <button onClick={() => exportCsv('project-import-sample.csv', SAMPLE_HEADERS.map(h => ({ key: h, label: h })), SAMPLE_ROWS)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📄 Sample CSV</button>
+          <button onClick={() => exportCsv('project-import-sample.csv', SAMPLE_HEADERS.map(h => ({ key: h, label: h })), SAMPLE_ROWS)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><FileText size={12} /> Sample CSV</button>
           {canUndo && (
             <button onClick={undoAll} className="px-3.5 py-2 border border-amber-500/30 text-amber-500 bg-amber-500/5 text-[10px] font-extrabold uppercase rounded-xl transition-all">↩ Undo Last Auto-Import</button>
           )}
@@ -250,7 +252,7 @@ export default function ProjectAutoImportPage() {
           {pipelineStages.map((s, i) => (
             <React.Fragment key={s}>
               <span className={`text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg border whitespace-nowrap ${results?.some(r => r.stage === s && (r.created > 0 || s === 'Reports')) ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>{s}</span>
-              {i < pipelineStages.length - 1 && <span className="text-red-500 font-black text-xs">→</span>}
+              {i < pipelineStages.length - 1 && <span className="text-primary font-black text-xs">→</span>}
             </React.Fragment>
           ))}
         </div>
@@ -262,15 +264,17 @@ export default function ProjectAutoImportPage() {
         /* Results summary */
         <div className="glass-panel rounded-3xl p-6 border border-slate-200 dark:border-white/5 space-y-4">
           <div className="text-center space-y-1 pb-3 border-b border-slate-100 dark:border-white/5">
-            <div className="text-4xl">✅</div>
+            <div className="flex justify-center"><CheckCircle2 size={36} className="text-success" /></div>
             <div className="font-black uppercase text-lg text-neutral-900 dark:text-white">Auto-organization complete</div>
             <p className="text-xs text-slate-500">Everything is linked — open Casting Schedule to assign beds and generate QR labels.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-            {results.map(r => (
+            {results.map(r => {
+              const StageIcon = getIcon(r.icon)
+              return (
               <div key={r.stage} className="flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-black/10">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-lg">{r.icon}</span>
+                  <StageIcon size={20} />
                   <div>
                     <div className="text-xs font-black uppercase text-neutral-800 dark:text-white">{r.stage}</div>
                     <div className="text-[9px] text-slate-500 font-semibold">{r.note}</div>
@@ -278,7 +282,8 @@ export default function ProjectAutoImportPage() {
                 </div>
                 <span className={`text-xl font-black ${r.created > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>{r.stage === 'Reports' ? '∞' : `+${r.created}`}</span>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       ) : rows.length === 0 ? (
@@ -288,9 +293,9 @@ export default function ProjectAutoImportPage() {
           onDragLeave={() => setDragOver(false)}
           onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f) handleFile(f) }}
           onClick={() => fileRef.current?.click()}
-          className={`border-2 border-dashed rounded-3xl p-16 text-center transition-all cursor-pointer ${dragOver ? 'border-red-500 bg-red-500/5' : 'border-slate-300 dark:border-white/10 hover:border-red-500/40'}`}
+          className={`border-2 border-dashed rounded-3xl p-16 text-center transition-all cursor-pointer ${dragOver ? 'border-primary bg-primary/5' : 'border-slate-300 dark:border-white/10 hover:border-primary/40'}`}
         >
-          <div className="text-5xl mb-3">🏗️</div>
+          <div className="mb-3 flex justify-center"><Construction size={44} /></div>
           <div className="font-black uppercase text-sm text-neutral-800 dark:text-white">Drop the Project CSV here</div>
           <div className="text-xs text-slate-500 mt-1 max-w-md mx-auto">Each row = one drawing with its element quantity. Projects, BOQ, drawing register, BOM, element codes, casting schedule and delivery plan are generated and linked automatically.</div>
           <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
@@ -300,22 +305,22 @@ export default function ProjectAutoImportPage() {
         <div className="glass-panel rounded-3xl p-6 border border-slate-200 dark:border-white/5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
             <div>
-              <div className="text-xs font-black uppercase text-neutral-800 dark:text-white">📥 {fileName}</div>
+              <div className="text-xs font-black uppercase text-neutral-800 dark:text-white flex items-center gap-1.5"><Download size={13} className="shrink-0" /> {fileName}</div>
               <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
                 {grouped.size} project(s) • {rows.length} drawing row(s) • {totalElements} elements will be planned
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => { setRows([]); setFileName('') }} className="px-3.5 py-2 text-slate-500 hover:text-red-500 text-[10px] font-extrabold uppercase">✕ Discard</button>
-              <button disabled={running} onClick={runPipeline} className="px-5 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive">
-                {running ? 'Organizing…' : '⚡ Run Auto-Organization'}
+              <button onClick={() => { setRows([]); setFileName('') }} className="px-3.5 py-2 text-slate-500 hover:text-primary text-[10px] font-extrabold uppercase inline-flex items-center gap-1"><X size={12} /> Discard</button>
+              <button disabled={running} onClick={runPipeline} className="px-5 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive">
+                {running ? 'Organizing…' : <span className="inline-flex items-center gap-1.5"><Zap size={14} /> Run Auto-Organization</span>}
               </button>
             </div>
           </div>
 
           {Array.from(grouped.entries()).map(([pno, info]) => (
             <div key={pno} className="border border-slate-100 dark:border-white/5 rounded-2xl p-3.5 space-y-2">
-              <div className="text-xs font-black text-red-500 uppercase">📁 {pno} — {info.name}</div>
+              <div className="text-xs font-black text-primary uppercase flex items-center gap-1.5"><Folder size={13} className="shrink-0" /> {pno} — {info.name}</div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[10px]">
                   <thead>
@@ -329,7 +334,7 @@ export default function ProjectAutoImportPage() {
                       <tr key={i}>
                         <td className="py-1.5 pr-3 font-mono">{r.drawing_no}</td>
                         <td className="py-1.5 pr-3">{r.element_type}</td>
-                        <td className="py-1.5 pr-3 text-red-500 font-black">{r.qty}</td>
+                        <td className="py-1.5 pr-3 text-primary font-black">{r.qty}</td>
                         <td className="py-1.5 pr-3">{r.length_mm}×{r.width_mm}×{r.thickness_mm}</td>
                         <td className="py-1.5 pr-3">{r.concrete_grade}</td>
                         <td className="py-1.5 pr-3">{r.planned_cast_date}</td>

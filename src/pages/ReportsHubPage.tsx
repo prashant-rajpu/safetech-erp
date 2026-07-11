@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom'
 import { fetchRows } from '../lib/erp/db'
 import { printSectionsDoc, exportCsv, exportExcel, type ReportSection } from '../lib/erp/printDoc'
 import { statusChipClass } from '../lib/erp/uiHelpers'
+import { getIcon } from '../lib/erp/icons'
+import { Upload, BarChart3, Eye, Printer } from 'lucide-react'
 
 // All operational reports derive live from the module tables and respect the
 // 06:00 GMT+4 reporting-day boundary for timestamped records.
@@ -404,7 +406,7 @@ export default function ReportsHubPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Reports <span className="text-red-500 font-light">Hub</span>
+            Reports <span className="text-primary font-light">Hub</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Auto-generated operational reports — reporting day 06:00 → 06:00 GMT+4</p>
         </div>
@@ -413,10 +415,10 @@ export default function ReportsHubPage() {
             Report Date
             <input type="date" value={day} onChange={e => setDay(e.target.value)} className="glowing-input px-3 py-2 rounded-xl text-xs" />
           </label>
-          <button onClick={() => built && exportCsv(`${active.key}-report.csv`, allCols, allRows)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📤 CSV</button>
-          <button onClick={() => built && exportExcel(`${active.key}-report.xls`, active.title, allCols, allRows)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📊 Excel</button>
-          <button onClick={() => built && printSectionsDoc({ title: active.title, subtitle: active.desc, meta: built.meta, kpis: built.kpis, sections: built.sections, paper: 'A4', landscape: built.sections.some(s => s.columns.length > 7), previewOnly: true })} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">👁 Preview</button>
-          <button onClick={() => built && printSectionsDoc({ title: active.title, subtitle: active.desc, meta: built.meta, kpis: built.kpis, sections: built.sections, paper: 'A4', landscape: built.sections.some(s => s.columns.length > 7) })} className="px-3.5 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-[10px] font-extrabold uppercase rounded-xl btn-interactive">🖨 Print / PDF</button>
+          <button onClick={() => built && exportCsv(`${active.key}-report.csv`, allCols, allRows)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Upload size={12} /> CSV</button>
+          <button onClick={() => built && exportExcel(`${active.key}-report.xls`, active.title, allCols, allRows)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><BarChart3 size={12} /> Excel</button>
+          <button onClick={() => built && printSectionsDoc({ title: active.title, subtitle: active.desc, meta: built.meta, kpis: built.kpis, sections: built.sections, paper: 'A4', landscape: built.sections.some(s => s.columns.length > 7), previewOnly: true })} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Eye size={12} /> Preview</button>
+          <button onClick={() => built && printSectionsDoc({ title: active.title, subtitle: active.desc, meta: built.meta, kpis: built.kpis, sections: built.sections, paper: 'A4', landscape: built.sections.some(s => s.columns.length > 7) })} className="px-3.5 py-2 bg-gradient-to-br from-primary to-primary-dark text-white text-[10px] font-extrabold uppercase rounded-xl btn-interactive inline-flex items-center gap-1"><Printer size={12} /> Print / PDF</button>
         </div>
       </div>
 
@@ -428,10 +430,10 @@ export default function ReportsHubPage() {
             onClick={() => setParams({ report: r.key })}
             title={r.desc}
             className={`px-3 py-2 rounded-xl text-[10px] font-extrabold uppercase transition-all ${r.key === active.key
-              ? 'bg-red-500/15 text-red-500 border border-red-500/20 shadow-sm shadow-red-500/10'
-              : 'text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/5 border border-transparent'}`}
+              ? 'bg-primary/15 text-primary border border-primary/20 shadow-sm shadow-primary/10'
+              : 'text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/5 border border-transparent'} inline-flex items-center gap-1.5`}
           >
-            {r.icon} {r.title}
+            {(() => { const ReportIcon = getIcon(r.icon); return <ReportIcon size={12} /> })()} {r.title}
           </button>
         ))}
       </div>
@@ -444,7 +446,7 @@ export default function ReportsHubPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {built.kpis.map(k => (
               <div key={k.label} className="glass-card-3d rounded-2xl p-4 text-center">
-                <div className="text-2xl font-black glow-text-red">{k.value}</div>
+                <div className="text-2xl font-black glow-text-primary">{k.value}</div>
                 <div className="text-[8.5px] uppercase font-black text-slate-500 mt-1 tracking-wider">{k.label}</div>
               </div>
             ))}
@@ -456,7 +458,7 @@ export default function ReportsHubPage() {
             <div key={s.heading} className="glass-panel rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden">
               <div className="px-4 py-2.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/60 dark:bg-black/20">
                 <span className="text-[10px] uppercase tracking-widest font-black text-slate-600 dark:text-slate-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block mr-2" />{s.heading}
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block mr-2" />{s.heading}
                 </span>
                 <span className="text-[9px] font-black text-slate-400 uppercase">{s.rows.length} record(s)</span>
               </div>

@@ -47,14 +47,14 @@ export default function PrestressingDashboardPage() {
     message: `Release ${r.release_no || r.id} (element ${r.element_code || '—'}) awaiting strength check — tensioning ${r.tensioning_no || '—'}.`,
   }))
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading prestressing data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading prestressing data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Prestressing <span className="text-red-500 font-light">Dashboard</span>
+            Prestressing <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Strand inventory, tensioning, release & long-line planning</p>
         </div>
@@ -104,7 +104,7 @@ export default function PrestressingDashboardPage() {
           rows={[...tensioning].sort((a, b) => (b.tensioning_date || '').localeCompare(a.tensioning_date || '')).slice(0, 10)}
           empty="No tensioning events recorded"
         />
-        <Link to="/m/pt-tensioning" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Tensioning Register</Link>
+        <Link to="/m/pt-tensioning" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Tensioning Register</Link>
       </div>
     </div>
   )

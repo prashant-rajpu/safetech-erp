@@ -4,6 +4,8 @@ import {
   PieChart, Pie, Cell
 } from 'recharts'
 import { supabase } from '../lib/supabaseClient'
+import { getIcon } from '../lib/erp/icons'
+import { ClipboardList, Flag, Printer, Check } from 'lucide-react'
 
 type DeliveryRow = {
   id: string
@@ -305,7 +307,7 @@ export default function DeliveryReportPage() {
     document.body.removeChild(link);
   }
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading operations data...</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading operations data...</div>
 
   return (
     <div className="space-y-6">
@@ -315,32 +317,32 @@ export default function DeliveryReportPage() {
           onClick={() => setReportView('a3')}
           className={`flex-1 py-2.5 rounded-xl text-xs uppercase font-extrabold transition-all duration-150 ${
             reportView === 'a3'
-              ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/25'
+              ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/25'
               : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
         >
-          📋 A3 Daily Operations Report
+          <span className="inline-flex items-center gap-1.5"><ClipboardList size={14} /> A3 Daily Operations Report</span>
         </button>
         <button
           onClick={() => setReportView('traceability')}
           className={`flex-1 py-2.5 rounded-xl text-xs uppercase font-extrabold transition-all duration-150 ${
             reportView === 'traceability'
-              ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/25'
+              ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/25'
               : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
         >
-          🏁 Element Traceability Audit Lookup
+          <span className="inline-flex items-center gap-1.5"><Flag size={14} /> Element Traceability Audit Lookup</span>
         </button>
       </div>
 
       {reportView === 'a3' ? (
         <>
           {/* FILTER HEADER (No-Print) */}
-          <div className="glass-panel p-5 rounded-2xl border border-red-500/10 shadow-xl space-y-4 no-print">
+          <div className="glass-panel p-5 rounded-2xl border border-primary/10 shadow-xl space-y-4 no-print">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-white/5">
               <div>
                 <h3 className="text-xl font-extrabold text-neutral-900 dark:text-white tracking-wide uppercase">
-                  Operations <span className="text-red-500 font-light">Reports</span>
+                  Operations <span className="text-primary font-light">Reports</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">Filter deliveries by daily 24h work timelines (06:00 to 06:00) or custom periods</p>
               </div>
@@ -351,7 +353,7 @@ export default function DeliveryReportPage() {
                     onClick={() => setMode(m)}
                     className={`px-4 py-2 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all duration-200 btn-interactive ${
                       mode === m 
-                        ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/25' 
+                        ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/25' 
                         : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -412,13 +414,13 @@ export default function DeliveryReportPage() {
               <div className="md:col-span-1 flex gap-2">
                 <button 
                   onClick={() => window.print()}
-                  className="flex-1 bg-gradient-to-br from-red-500 to-red-700 text-white font-extrabold uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-red-500/25 transition-all text-xs tracking-wider text-center"
+                  className="flex-1 bg-gradient-to-br from-primary to-primary-dark text-white font-extrabold uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-primary/25 transition-all text-xs tracking-wider text-center"
                 >
                   PDF
                 </button>
                 <button 
                   onClick={exportToExcel}
-                  className="flex-1 bg-slate-900 border border-white/5 hover:border-red-500/20 text-slate-300 hover:text-white font-extrabold uppercase py-3 rounded-xl btn-interactive transition-all text-xs tracking-wider text-center"
+                  className="flex-1 bg-slate-900 border border-white/5 hover:border-primary/20 text-slate-300 hover:text-white font-extrabold uppercase py-3 rounded-xl btn-interactive transition-all text-xs tracking-wider text-center"
                 >
                   EXCEL
                 </button>
@@ -445,7 +447,7 @@ export default function DeliveryReportPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-black text-sm uppercase tracking-widest bg-red-600 text-white px-5 py-2 block shadow">
+                    <span className="font-black text-sm uppercase tracking-widest bg-primary-dark text-white px-5 py-2 block shadow">
                       DAILY OPERATIONS DELIVERY REPORT
                     </span>
                   </div>
@@ -453,7 +455,7 @@ export default function DeliveryReportPage() {
 
                 {/* Info row */}
                 <div className="flex justify-between text-[10px] font-bold pb-2 border-b border-neutral-200">
-                  <span>Target Date/Period: <strong className="text-red-600">{timelineRange.startStr.slice(0, 10)}</strong></span>
+                  <span>Target Date/Period: <strong className="text-primary-dark">{timelineRange.startStr.slice(0, 10)}</strong></span>
                   <span>Timeline Limit: <strong>Shift 24 Hours (06:00 - 06:00)</strong></span>
                   <span>Document State: <strong className="text-emerald-600">AUDITED & COMPILED</strong></span>
                 </div>
@@ -462,7 +464,7 @@ export default function DeliveryReportPage() {
                 <div className="grid grid-cols-5 border border-black divide-x divide-black text-center bg-neutral-50 font-semibold text-[10.5px]">
                   <div className="p-2 flex flex-col justify-between">
                     <span className="text-[8px] text-neutral-500 uppercase font-black">TOTAL COMPLETED TRIPS</span>
-                    <strong className="text-lg font-black text-red-600 mt-1">{summary.trips}</strong>
+                    <strong className="text-lg font-black text-primary-dark mt-1">{summary.trips}</strong>
                   </div>
                   <div className="p-2 flex flex-col justify-between">
                     <span className="text-[8px] text-neutral-500 uppercase font-black">TOTAL QUANTITY LOADED</span>
@@ -478,7 +480,7 @@ export default function DeliveryReportPage() {
                   </div>
                   <div className="p-2 flex flex-col justify-between">
                     <span className="text-[8px] text-neutral-500 uppercase font-black">ACTIVE PROJECT SITES</span>
-                    <strong className="text-lg font-black text-red-600 mt-1">{summary.activeProjects}</strong>
+                    <strong className="text-lg font-black text-primary-dark mt-1">{summary.activeProjects}</strong>
                   </div>
                 </div>
 
@@ -487,7 +489,7 @@ export default function DeliveryReportPage() {
                   
                   {/* PRECAST WALL PANELS */}
                   <div className="border border-black p-3 space-y-2">
-                    <h4 className="text-[10px] font-black uppercase text-red-600 border-b border-black pb-1">
+                    <h4 className="text-[10px] font-black uppercase text-primary-dark border-b border-black pb-1">
                       A. PRECAST ELEMENTS DISPATCH BREAKDOWN
                     </h4>
                     <table className="w-full text-[9px]">
@@ -523,7 +525,7 @@ export default function DeliveryReportPage() {
 
                   {/* HOLLOWCORE SLABS */}
                   <div className="border border-black p-3 space-y-2">
-                    <h4 className="text-[10px] font-black uppercase text-red-600 border-b border-black pb-1">
+                    <h4 className="text-[10px] font-black uppercase text-primary-dark border-b border-black pb-1">
                       B. HOLLOWCORE DISPATCH BREAKDOWN
                     </h4>
                     <table className="w-full text-[9px]">
@@ -619,11 +621,11 @@ export default function DeliveryReportPage() {
 
                 {/* Efficiency KPIs */}
                 <div className="border border-black bg-neutral-900 text-white p-2.5 grid grid-cols-5 text-center text-[9px] uppercase font-bold">
-                  <div>Avg Weight/Trip: <span className="text-red-500 font-extrabold">{metrics.avgWeight} T</span></div>
+                  <div>Avg Weight/Trip: <span className="text-primary font-extrabold">{metrics.avgWeight} T</span></div>
                   <div>Avg Volume/Trip: <span className="font-extrabold">{metrics.avgVol} m³</span></div>
                   <div>Precast elements: <span className="font-extrabold">{metrics.precastPct}%</span></div>
                   <div>HCS slabs: <span className="font-extrabold">{metrics.hcsPct}%</span></div>
-                  <div>Top Project: <span className="text-red-500 font-black">{metrics.topProject}</span></div>
+                  <div>Top Project: <span className="text-primary font-black">{metrics.topProject}</span></div>
                 </div>
 
                 {/* Complete detailed logs sheet table */}
@@ -653,7 +655,7 @@ export default function DeliveryReportPage() {
                         filteredDeliveries.map((d, idx) => (
                           <tr key={d.id} className="hover:bg-neutral-50 font-semibold h-[20px]">
                             <td className="border-r border-neutral-300 p-0.5 font-bold">{idx + 1}</td>
-                            <td className="border-r border-neutral-300 p-0.5 font-extrabold text-red-600">{d.project_no}</td>
+                            <td className="border-r border-neutral-300 p-0.5 font-extrabold text-primary-dark">{d.project_no}</td>
                             <td className="border-r border-neutral-300 p-0.5 text-left truncate max-w-[130px]">{d.project_name}</td>
                             <td className="border-r border-neutral-300 p-0.5">{d.location}</td>
                             <td className="border-r border-neutral-300 p-0.5 font-bold">{d.trailer_plate}</td>
@@ -675,7 +677,7 @@ export default function DeliveryReportPage() {
               {/* Page Footer block */}
               <div className="flex justify-between items-center text-[8px] text-neutral-500 border-t border-neutral-300 pt-1 mt-4">
                 <span>Report Target Timeline: Logistics Shift (06:00 - 06:00 GMT+4)</span>
-                <span className="font-extrabold uppercase tracking-widest text-red-600">
+                <span className="font-extrabold uppercase tracking-widest text-primary-dark">
                   Safetech Operations Dashboard Confidential
                 </span>
                 <span>Generated: {new Date().toLocaleDateString('en-GB')} | Page 1 of 1</span>
@@ -704,9 +706,9 @@ export default function DeliveryReportPage() {
               </div>
               <button
                 onClick={() => window.print()}
-                className="px-5 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white font-extrabold text-xs uppercase rounded-xl btn-interactive shadow-lg"
+                className="px-5 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white font-extrabold text-xs uppercase rounded-xl btn-interactive shadow-lg"
               >
-                🖨️ Print Audit Log Sheet
+                <span className="inline-flex items-center gap-1.5"><Printer size={14} /> Print Audit Log Sheet</span>
               </button>
             </div>
           </div>
@@ -726,7 +728,7 @@ export default function DeliveryReportPage() {
                       onClick={() => setSearchTraceCode(t.element_code)}
                       className={`w-full text-left p-3 rounded-xl border text-xs transition-all flex justify-between items-center ${
                         searchTraceCode === t.element_code
-                          ? 'bg-red-500/10 text-red-500 border-red-500/30'
+                          ? 'bg-primary/10 text-primary border-primary/30'
                           : 'bg-slate-50 dark:bg-black/10 border-slate-100 dark:border-white/5 text-slate-600 dark:text-slate-400'
                       }`}
                     >
@@ -772,7 +774,7 @@ export default function DeliveryReportPage() {
                       {/* Element Code Banner */}
                       <div className="bg-neutral-100 p-4 text-center border border-neutral-300 space-y-1">
                         <span className="text-[8.5px] uppercase font-black text-neutral-500 block">Unique ID Tracking Code</span>
-                        <strong className="text-xl font-mono tracking-widest text-red-600 block">{activeTrace.element_code}</strong>
+                        <strong className="text-xl font-mono tracking-widest text-primary-dark block">{activeTrace.element_code}</strong>
                         <span className="text-[9px] text-neutral-600 font-bold block">Status: verified factory lifecycle checklist</span>
                       </div>
 
@@ -802,12 +804,12 @@ export default function DeliveryReportPage() {
                                 <span className={`absolute -left-[30px] top-0.5 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center text-[8px] font-bold ${
                                   done ? 'border-emerald-600 text-emerald-600' : 'border-neutral-300 text-neutral-400'
                                 }`}>
-                                  {done ? '✓' : idx + 1}
+                                  {done ? <Check size={10} /> : idx + 1}
                                 </span>
                                 
                                 <div className="flex justify-between font-bold text-[11px]">
-                                  <span className={done ? 'text-neutral-900 font-extrabold' : 'text-neutral-400'}>
-                                    {s.icon} {s.label}
+                                  <span className={`inline-flex items-center gap-1 ${done ? 'text-neutral-900 font-extrabold' : 'text-neutral-400'}`}>
+                                    {(() => { const StageIcon = getIcon(s.icon); return <StageIcon size={11} /> })()} {s.label}
                                   </span>
                                   <span className={done ? 'text-emerald-600 font-mono' : 'text-neutral-400 italic'}>
                                     {done ? val : 'Pending'}
@@ -828,7 +830,7 @@ export default function DeliveryReportPage() {
                         <span>Lead QA Inspector Certification</span>
                         <div className="border-t border-dashed border-neutral-400 w-36 pt-1">Signature & Date Stamp</div>
                       </div>
-                      <div className="text-center font-bold text-red-600 uppercase tracking-wider">
+                      <div className="text-center font-bold text-primary-dark uppercase tracking-wider">
                         Safetech Operations Trace system
                       </div>
                       <div className="space-y-4 text-right">

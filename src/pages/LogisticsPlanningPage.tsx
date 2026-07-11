@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { Truck } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 
 // Reads/writes the shared `allocations` table (merged with the former
@@ -123,7 +124,7 @@ export default function LogisticsPlanningPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading dispatch planning logs...</div>
+    return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading dispatch planning logs...</div>
   }
 
   return (
@@ -132,7 +133,7 @@ export default function LogisticsPlanningPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Dispatch & Fleet <span className="text-red-500 font-light">Planning</span>
+            Dispatch & Fleet <span className="text-primary font-light">Planning</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Schedule trailer loadings, departure timelines, and monitor vehicle availability status</p>
         </div>
@@ -143,7 +144,7 @@ export default function LogisticsPlanningPage() {
         {Object.entries(fleetCounters).map(([status, count]) => (
           <div key={status} className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-white/5 flex flex-col justify-between">
             <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{status}</span>
-            <span className="text-2xl font-black text-red-500 mt-1">{count} Vehicles</span>
+            <span className="text-2xl font-black text-primary mt-1">{count} Vehicles</span>
           </div>
         ))}
       </div>
@@ -208,8 +209,8 @@ export default function LogisticsPlanningPage() {
               </label>
             </div>
 
-            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-              🚚 Schedule Dispatch Trip
+            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+              <Truck size={14} /> Schedule Dispatch Trip
             </button>
           </form>
         </div>
@@ -235,7 +236,7 @@ export default function LogisticsPlanningPage() {
               <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-300">
                 {plans.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                    <td className="py-3 font-mono font-bold text-red-500">{p.dispatch_no}</td>
+                    <td className="py-3 font-mono font-bold text-primary">{p.dispatch_no}</td>
                     <td className="py-3 font-bold text-neutral-800 dark:text-white">{p.trailer_plate}</td>
                     <td className="py-3 text-slate-500 font-semibold">{p.driver_name}</td>
                     <td className="py-3 text-center text-slate-400">{p.loading_time}</td>
@@ -243,7 +244,7 @@ export default function LogisticsPlanningPage() {
                     <td className="py-3 font-semibold">{p.destination}</td>
                     <td className="py-3 text-center">
                       <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                        p.status === 'In Transit' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                        p.status === 'In Transit' ? 'bg-primary/10 text-primary border border-primary/20' :
                         p.status === 'Delivered' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' :
                         p.status === 'Loading' ? 'bg-amber-500/10 text-amber-500' :
                         'bg-slate-100 dark:bg-white/5 text-slate-400'

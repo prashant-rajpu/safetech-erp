@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Compass, Lock, Download, Upload, BarChart3, FileText, Printer, Trash2, CheckCircle2, Pencil, X, Save, Eye } from 'lucide-react'
 import { useParams, Link } from 'react-router-dom'
 import { getModule, type ModuleDef, type FieldDef } from '../../lib/erp/registry'
 import { fetchRows, insertAudited, updateAudited, deleteAudited, hasSnapshot, snapshotInfo, restoreSnapshot } from '../../lib/erp/db'
@@ -8,6 +9,7 @@ import { useAuth } from '../../lib/useAuth'
 import { qrSvg } from '../../lib/qr'
 import ImportWizard from './ImportWizard'
 import { statusChipClass, buildQrPayload } from '../../lib/erp/uiHelpers'
+import { getIcon } from '../../lib/erp/icons'
 
 const PAGE_SIZE = 12
 
@@ -120,9 +122,9 @@ export default function ModuleWorkspace() {
   if (!module) {
     return (
       <div className="glass-panel p-12 rounded-3xl text-center space-y-3">
-        <div className="text-4xl">🧭</div>
+        <div className="flex justify-center"><Compass size={36} /></div>
         <div className="font-black uppercase text-slate-600 dark:text-slate-300">Unknown module</div>
-        <Link to="/dashboard" className="text-red-500 text-xs font-bold uppercase">← Back to dashboard</Link>
+        <Link to="/dashboard" className="text-primary text-xs font-bold uppercase">← Back to dashboard</Link>
       </div>
     )
   }
@@ -132,10 +134,10 @@ export default function ModuleWorkspace() {
   if (!can(module.section, 'view')) {
     return (
       <div className="glass-panel p-12 rounded-3xl text-center space-y-3">
-        <div className="text-4xl">🔒</div>
+        <div className="flex justify-center"><Lock size={36} className="text-yellow-500" /></div>
         <div className="font-black uppercase text-yellow-500">Access restricted</div>
         <p className="text-xs text-slate-500 dark:text-slate-400">You do not have permission to view {module.title}.</p>
-        <Link to="/dashboard" className="text-red-500 text-xs font-bold uppercase">← Back to dashboard</Link>
+        <Link to="/dashboard" className="text-primary text-xs font-bold uppercase">← Back to dashboard</Link>
       </div>
     )
   }
@@ -273,7 +275,7 @@ export default function ModuleWorkspace() {
     )
     if (f.type === 'boolean') return (
       <label className="flex items-center gap-2 mt-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-        <input type="checkbox" className="accent-red-500" checked={!!v} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.checked }))} />
+        <input type="checkbox" className="accent-primary" checked={!!v} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.checked }))} />
         Yes / Cleared
       </label>
     )
@@ -292,18 +294,20 @@ export default function ModuleWorkspace() {
     )
   }
 
+  const ModuleIcon = getIcon(module.icon)
+
   return (
     <div className="space-y-6">
       {/* Title */}
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            {module.icon} {module.title} <span className="text-red-500 font-light">Module</span>
+          <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase flex items-center gap-2.5">
+            <ModuleIcon size={26} className="text-primary shrink-0" /> {module.title} <span className="text-primary font-light">Module</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{module.subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase">
-          <span className="px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500">{rows.length} Records</span>
+          <span className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">{rows.length} Records</span>
           {statusCounts.map(([k, n]) => (
             <span key={k} className={`px-3 py-1.5 rounded-full border ${statusChipClass(k)}`}>{k}: {n}</span>
           ))}
@@ -321,25 +325,25 @@ export default function ModuleWorkspace() {
         />
         <div className="flex flex-wrap gap-2 ml-auto">
           {allowCreate && (
-            <button onClick={openAdd} className="px-4 py-2 bg-gradient-to-br from-red-500 to-red-700 text-white text-[10px] font-extrabold uppercase rounded-xl btn-interactive">＋ Add Record</button>
+            <button onClick={openAdd} className="px-4 py-2 bg-gradient-to-br from-primary to-primary-dark text-white text-[10px] font-extrabold uppercase rounded-xl btn-interactive">＋ Add Record</button>
           )}
           {allowCreate && (
-            <button onClick={() => setShowImport(true)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📥 Import CSV</button>
+            <button onClick={() => setShowImport(true)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Download size={12} /> Import CSV</button>
           )}
           {allowEdit && snapshotAt && (
             <button onClick={undoImport} className="px-3.5 py-2 border border-amber-500/30 text-amber-500 text-[10px] font-extrabold uppercase rounded-xl bg-amber-500/5 hover:bg-amber-500/10 transition-all">↩ Undo Import</button>
           )}
-          <button onClick={() => exportCsv(`${module.id}.csv`, printCols, filtered)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📤 CSV</button>
-          <button onClick={() => exportExcel(`${module.id}.xls`, module.title, printCols, filtered)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📊 Excel</button>
-          <button onClick={downloadSample} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📄 Sample</button>
-          <button onClick={() => setShowPrint(true)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">🖨 Print</button>
+          <button onClick={() => exportCsv(`${module.id}.csv`, printCols, filtered)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Upload size={12} /> CSV</button>
+          <button onClick={() => exportExcel(`${module.id}.xls`, module.title, printCols, filtered)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><BarChart3 size={12} /> Excel</button>
+          <button onClick={downloadSample} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><FileText size={12} /> Sample</button>
+          <button onClick={() => setShowPrint(true)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Printer size={12} /> Print</button>
         </div>
       </div>
 
       {/* Bulk action bar — appears once ≥1 row is selected */}
       {selected.size > 0 && (allowEdit || allowDelete) && (
-        <div className="glass-panel rounded-2xl p-3 border border-red-500/20 bg-red-500/5 flex flex-wrap items-center gap-2 no-print">
-          <span className="text-[10px] font-black uppercase text-red-500 px-2">{selected.size} selected</span>
+        <div className="glass-panel rounded-2xl p-3 border border-primary/20 bg-primary/5 flex flex-wrap items-center gap-2 no-print">
+          <span className="text-[10px] font-black uppercase text-primary px-2">{selected.size} selected</span>
           {allowEdit && module.statusField && (
             <>
               <select
@@ -353,14 +357,14 @@ export default function ModuleWorkspace() {
               <button
                 onClick={bulkApplyStatus}
                 disabled={!bulkStatus}
-                className="px-3.5 py-1.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-[10px] font-extrabold uppercase rounded-lg btn-interactive disabled:opacity-40"
+                className="px-3.5 py-1.5 bg-gradient-to-br from-primary to-primary-dark text-white text-[10px] font-extrabold uppercase rounded-lg btn-interactive disabled:opacity-40"
               >Apply</button>
             </>
           )}
           {allowDelete && (
-            <button onClick={bulkDelete} className="px-3.5 py-1.5 border border-red-500/30 text-red-500 text-[10px] font-extrabold uppercase rounded-lg hover:bg-red-500/10 transition-all">🗑 Delete Selected</button>
+            <button onClick={bulkDelete} className="px-3.5 py-1.5 border border-primary/30 text-primary text-[10px] font-extrabold uppercase rounded-lg hover:bg-primary/10 transition-all inline-flex items-center gap-1"><Trash2 size={12} /> Delete Selected</button>
           )}
-          <button onClick={() => setSelected(new Set())} className="ml-auto text-[10px] font-bold uppercase text-slate-500 hover:text-red-500 px-2">Clear</button>
+          <button onClick={() => setSelected(new Set())} className="ml-auto text-[10px] font-bold uppercase text-slate-500 hover:text-primary px-2">Clear</button>
         </div>
       )}
 
@@ -376,14 +380,14 @@ export default function ModuleWorkspace() {
                 <tr className="border-b border-slate-200 dark:border-white/10 text-slate-400 font-bold text-[10px] uppercase bg-slate-50/60 dark:bg-black/20">
                   {(allowEdit || allowDelete) && (
                     <th className="py-2.5 px-3 w-8">
-                      <input type="checkbox" className="accent-red-500" checked={pageRows.length > 0 && selected.size === pageRows.length} onChange={toggleSelectAll} />
+                      <input type="checkbox" className="accent-primary" checked={pageRows.length > 0 && selected.size === pageRows.length} onChange={toggleSelectAll} />
                     </th>
                   )}
                   {module.fields.map(f => (
                     <th
                       key={f.key}
                       onClick={() => { setSortKey(f.key); setSortAsc(sortKey === f.key ? !sortAsc : true) }}
-                      className="py-2.5 px-3 cursor-pointer select-none hover:text-red-500 whitespace-nowrap"
+                      className="py-2.5 px-3 cursor-pointer select-none hover:text-primary whitespace-nowrap"
                     >
                       {f.label}{sortKey === f.key ? (sortAsc ? ' ▲' : ' ▼') : ''}
                     </th>
@@ -413,7 +417,7 @@ export default function ModuleWorkspace() {
                   <tr key={row.id || idx} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                     {(allowEdit || allowDelete) && (
                       <td className="py-2.5 px-3">
-                        <input type="checkbox" className="accent-red-500" checked={selected.has(row.id)} onChange={() => toggleSelectRow(row.id)} />
+                        <input type="checkbox" className="accent-primary" checked={selected.has(row.id)} onChange={() => toggleSelectRow(row.id)} />
                       </td>
                     )}
                     {module.fields.map(f => (
@@ -437,7 +441,7 @@ export default function ModuleWorkspace() {
                             >{row[f.key] || '—'}</span>
                           )
                         ) : f.type === 'boolean' ? (
-                          <span>{row[f.key] ? '✅' : '—'}</span>
+                          <span>{row[f.key] ? <CheckCircle2 size={14} className="text-success" /> : '—'}</span>
                         ) : (
                           String(row[f.key] ?? '') || '—'
                         )}
@@ -445,17 +449,17 @@ export default function ModuleWorkspace() {
                     ))}
                     <td className="py-2.5 px-3 text-center whitespace-nowrap">
                       {module.qrField && (
-                        <button onClick={() => setQrRow(row)} className="text-slate-500 hover:text-red-500 font-bold text-[9px] uppercase px-1.5" title="QR label">QR</button>
+                        <button onClick={() => setQrRow(row)} className="text-slate-500 hover:text-primary font-bold text-[9px] uppercase px-1.5" title="QR label">QR</button>
                       )}
                       {isLockedRow(row) ? (
-                        <span className="text-slate-400 text-[9px] font-bold uppercase px-1.5" title="Built-in record — locked">🔒</span>
+                        <span className="text-slate-400 text-[9px] font-bold uppercase px-1.5 inline-flex" title="Built-in record — locked"><Lock size={12} /></span>
                       ) : (
                         <>
                           {allowEdit && (
                             <button onClick={() => openEdit(row)} className="text-blue-500 font-bold text-[9px] uppercase px-1.5 hover:underline">Edit</button>
                           )}
                           {allowDelete && (
-                            <button onClick={() => removeRow(row)} className="text-red-500 font-bold text-[9px] uppercase px-1.5 hover:underline">Del</button>
+                            <button onClick={() => removeRow(row)} className="text-primary font-bold text-[9px] uppercase px-1.5 hover:underline">Del</button>
                           )}
                         </>
                       )}
@@ -479,7 +483,7 @@ export default function ModuleWorkspace() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2 min-w-0">
                       {(allowEdit || allowDelete) && (
-                        <input type="checkbox" className="accent-red-500 mt-0.5 shrink-0" checked={selected.has(row.id)} onChange={() => toggleSelectRow(row.id)} />
+                        <input type="checkbox" className="accent-primary mt-0.5 shrink-0" checked={selected.has(row.id)} onChange={() => toggleSelectRow(row.id)} />
                       )}
                       <div className="min-w-0">
                         <div className="font-bold text-sm truncate">{String(row[primary.key] ?? '—')}</div>
@@ -490,14 +494,14 @@ export default function ModuleWorkspace() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {module.qrField && (
-                        <button onClick={() => setQrRow(row)} className="text-slate-500 hover:text-red-500 font-bold text-[9px] uppercase px-1">QR</button>
+                        <button onClick={() => setQrRow(row)} className="text-slate-500 hover:text-primary font-bold text-[9px] uppercase px-1">QR</button>
                       )}
                       {isLockedRow(row) ? (
-                        <span className="text-slate-400 text-[9px]" title="Locked">🔒</span>
+                        <span className="text-slate-400 text-[9px] inline-flex" title="Locked"><Lock size={11} /></span>
                       ) : (
                         <>
                           {allowEdit && <button onClick={() => openEdit(row)} className="text-blue-500 font-bold text-[9px] uppercase px-1">Edit</button>}
-                          {allowDelete && <button onClick={() => removeRow(row)} className="text-red-500 font-bold text-[9px] uppercase px-1">Del</button>}
+                          {allowDelete && <button onClick={() => removeRow(row)} className="text-primary font-bold text-[9px] uppercase px-1">Del</button>}
                         </>
                       )}
                     </div>
@@ -506,7 +510,7 @@ export default function ModuleWorkspace() {
                     {secondary.map(f => (
                       <div key={f.key} className="min-w-0">
                         <span className="text-slate-400 text-[9px] uppercase font-bold block">{f.label}</span>
-                        <span className="font-semibold truncate block">{f.type === 'boolean' ? (row[f.key] ? '✅' : '—') : (String(row[f.key] ?? '') || '—')}</span>
+                        <span className="font-semibold truncate block">{f.type === 'boolean' ? (row[f.key] ? <CheckCircle2 size={13} className="text-success" /> : '—') : (String(row[f.key] ?? '') || '—')}</span>
                       </div>
                     ))}
                   </div>
@@ -521,8 +525,8 @@ export default function ModuleWorkspace() {
           <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-500 no-print">
             <span>{filtered.length} records — page {page + 1} / {pageCount}</span>
             <div className="flex gap-2">
-              <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className="px-3 py-1 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:text-red-500">← Prev</button>
-              <button disabled={page >= pageCount - 1} onClick={() => setPage(p => p + 1)} className="px-3 py-1 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:text-red-500">Next →</button>
+              <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className="px-3 py-1 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:text-primary">← Prev</button>
+              <button disabled={page >= pageCount - 1} onClick={() => setPage(p => p + 1)} className="px-3 py-1 rounded-lg border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:text-primary">Next →</button>
             </div>
           </div>
         )}
@@ -533,21 +537,21 @@ export default function ModuleWorkspace() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" onClick={() => setEditing(null)}>
           <form onSubmit={saveForm} className="glass-panel rounded-3xl w-full max-w-xl max-h-[88vh] overflow-y-auto p-6 space-y-4 bg-white dark:bg-[#0e0e12]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
-              <h3 className="text-base font-black uppercase text-neutral-900 dark:text-white">
-                {editing === 'new' ? '＋ Add' : '✏️ Edit'} <span className="text-red-500 font-light">{module.title}</span>
+              <h3 className="text-base font-black uppercase text-neutral-900 dark:text-white flex items-center gap-1.5">
+                {editing === 'new' ? '＋ Add' : <><Pencil size={15} /> Edit</>} <span className="text-primary font-light">{module.title}</span>
               </h3>
-              <button type="button" onClick={() => setEditing(null)} className="text-slate-400 hover:text-red-500 font-black text-lg px-2">✕</button>
+              <button type="button" onClick={() => setEditing(null)} className="text-slate-400 hover:text-primary font-black text-lg px-2"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {module.fields.map(f => (
                 <label key={f.key} className={`block ${f.type === 'textarea' ? 'md:col-span-2' : ''}`}>
-                  <span className="text-[9px] uppercase font-black text-slate-500">{f.label}{f.required && <span className="text-red-500"> *</span>}</span>
+                  <span className="text-[9px] uppercase font-black text-slate-500">{f.label}{f.required && <span className="text-primary"> *</span>}</span>
                   {inputFor(f)}
                 </label>
               ))}
             </div>
-            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
-              {saving ? 'Saving…' : '💾 Save Record'}
+            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
+              {saving ? 'Saving…' : <span className="inline-flex items-center gap-1.5"><Save size={14} /> Save Record</span>}
             </button>
           </form>
         </div>
@@ -558,8 +562,8 @@ export default function ModuleWorkspace() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" onClick={() => setShowPrint(false)}>
           <div className="glass-panel rounded-3xl w-full max-w-md p-6 space-y-4 bg-white dark:bg-[#0e0e12]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
-              <h3 className="text-base font-black uppercase text-neutral-900 dark:text-white">🖨 Print <span className="text-red-500 font-light">{module.title}</span></h3>
-              <button onClick={() => setShowPrint(false)} className="text-slate-400 hover:text-red-500 font-black text-lg px-2">✕</button>
+              <h3 className="text-base font-black uppercase text-neutral-900 dark:text-white flex items-center gap-1.5"><Printer size={16} /> Print <span className="text-primary font-light">{module.title}</span></h3>
+              <button onClick={() => setShowPrint(false)} className="text-slate-400 hover:text-primary font-black text-lg px-2"><X size={18} /></button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
@@ -581,12 +585,12 @@ export default function ModuleWorkspace() {
             <div className="flex gap-2">
               <button
                 onClick={() => { printRegister({ title: module.title, subtitle: module.subtitle, paper: printPaper, landscape: printLandscape, columns: printCols, rows: filtered, meta: [search ? `Filter: "${search}"` : `All records`, `Records: ${filtered.length}`], previewOnly: true }); }}
-                className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-xs font-extrabold uppercase rounded-xl transition-all"
-              >👁 Preview</button>
+                className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-xs font-extrabold uppercase rounded-xl transition-all"
+              ><span className="inline-flex items-center gap-1.5"><Eye size={14} /> Preview</span></button>
               <button
                 onClick={() => { printRegister({ title: module.title, subtitle: module.subtitle, paper: printPaper, landscape: printLandscape, columns: printCols, rows: filtered, meta: [search ? `Filter: "${search}"` : `All records`, `Records: ${filtered.length}`] }); setShowPrint(false) }}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive"
-              >🖨 Print / PDF</button>
+                className="flex-1 px-4 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive"
+              ><span className="inline-flex items-center gap-1.5"><Printer size={14} /> Print / PDF</span></button>
             </div>
           </div>
         </div>
@@ -596,7 +600,7 @@ export default function ModuleWorkspace() {
       {qrRow && module.qrField && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm no-print" onClick={() => setQrRow(null)}>
           <div className="glass-panel rounded-3xl w-full max-w-sm p-6 space-y-4 text-center bg-white dark:bg-[#0e0e12]" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-black uppercase text-neutral-900 dark:text-white">Element QR <span className="text-red-500 font-light">Label</span></h3>
+            <h3 className="text-sm font-black uppercase text-neutral-900 dark:text-white">Element QR <span className="text-primary font-light">Label</span></h3>
             <div className="bg-white rounded-2xl p-4 inline-block mx-auto border border-slate-200" dangerouslySetInnerHTML={{ __html: qrSvg(buildQrPayload(module, qrRow), { size: 168, margin: 2 }) }} />
             <div className="font-mono font-black text-sm text-neutral-900 dark:text-white">{String(qrRow[module.qrField] ?? '')}</div>
             <p className="text-[9px] text-slate-500 break-all px-2">{buildQrPayload(module, qrRow)}</p>
@@ -606,8 +610,8 @@ export default function ModuleWorkspace() {
                 code: String(qrRow[module.qrField!] ?? ''),
                 lines: module.fields.filter(f => f.key !== module.qrField).slice(0, 6).map(f => [f.label, String(qrRow[f.key] ?? '—')] as [string, string])
               }])}
-              className="w-full px-4 py-2.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-xs font-extrabold uppercase rounded-xl btn-interactive"
-            >🖨 Print Label</button>
+              className="w-full px-4 py-2.5 bg-gradient-to-br from-primary to-primary-dark text-white text-xs font-extrabold uppercase rounded-xl btn-interactive"
+            ><span className="inline-flex items-center gap-1.5"><Printer size={14} /> Print Label</span></button>
           </div>
         </div>
       )}

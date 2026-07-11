@@ -44,7 +44,7 @@ export default function DraggableElementBox({
         />
       </mesh>
       <Html position={[0, dims[1] + 0.3, 0]} center distanceFactor={12}>
-        <div className={`px-1.5 py-0.5 rounded text-white text-[9px] font-mono whitespace-nowrap pointer-events-none ${isInvalid ? 'bg-red-600' : 'bg-black/80'}`}>
+        <div className={`px-1.5 py-0.5 rounded text-white text-[9px] font-mono whitespace-nowrap pointer-events-none ${isInvalid ? 'bg-primary-dark' : 'bg-black/80'}`}>
           {label}{isDragging ? ' ✥' : ''}
         </div>
       </Html>

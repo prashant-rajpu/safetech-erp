@@ -43,14 +43,14 @@ export default function EnvironmentalDashboardPage() {
     return Array.from(map.entries()).map(([name, value], i) => ({ name, value, color: WASTE_COLORS[i % WASTE_COLORS.length] }))
   }, [waste])
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading environmental data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading environmental data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Environmental <span className="text-red-500 font-light">Dashboard</span>
+            Environmental <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Carbon, waste & water tracking, environmental reports</p>
         </div>
@@ -98,7 +98,7 @@ export default function EnvironmentalDashboardPage() {
           rows={[...carbon].sort((a, b) => (b.record_date || '').localeCompare(a.record_date || '')).slice(0, 10)}
           empty="No carbon records recorded"
         />
-        <Link to="/m/carbon-records" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Carbon Tracking Register</Link>
+        <Link to="/m/carbon-records" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Carbon Tracking Register</Link>
       </div>
     </div>
   )

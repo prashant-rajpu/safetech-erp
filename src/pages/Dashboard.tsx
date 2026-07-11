@@ -17,6 +17,8 @@ import CountUpCard from '../components/CountUpCard'
 import AlertsPanel from '../components/AlertsPanel'
 import { SectionTitle, MiniTable } from '../components/erp/DashboardWidgets'
 import { statusChipClass } from '../lib/erp/uiHelpers'
+import { getIcon } from '../lib/erp/icons'
+import { Clock, AlertTriangle, MapPin } from 'lucide-react'
 
 const KANBAN_COLUMNS = [
   { key: 'empty', label: 'Empty', statuses: ['IN FACTORY EMPTY'], color: '#94a3b8' },
@@ -173,7 +175,7 @@ export default function Dashboard(){
   const qcPre = db.qc_inspections || []
   const qcPost = db.post_casting_inspections || []
 
-  if(loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading control center telemetry…</div>
+  if(loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading control center telemetry…</div>
 
   return (
     <div className="space-y-6">
@@ -181,28 +183,31 @@ export default function Dashboard(){
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Operations <span className="text-red-500 font-light">Control Center</span>
+            Operations <span className="text-primary font-light">Control Center</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Precast manufacturing, yard & logistics — live from all departments</p>
         </div>
-        <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 shadow-md shadow-red-500/5 mt-3 md:mt-0 max-w-fit">
+        <div className="text-xs font-bold px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary shadow-md shadow-primary/5 mt-3 md:mt-0 max-w-fit">
           ● OPERATIONAL DAY {today}
         </div>
       </div>
 
       {/* Tab bar */}
       <div className="glass-panel rounded-2xl p-2 border border-slate-200 dark:border-white/5 flex flex-wrap gap-1.5 no-print">
-        {TABS.map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`px-4 py-2.5 rounded-xl text-[10.5px] font-extrabold uppercase tracking-wider transition-all ${tab === t.key
-              ? 'bg-red-500/15 text-red-500 border border-red-500/20 shadow-sm shadow-red-500/10'
-              : 'text-slate-500 dark:text-slate-400 hover:text-red-500 hover:bg-red-500/5 border border-transparent'}`}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
+        {TABS.map(t => {
+          const TabIcon = getIcon(t.icon)
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-4 py-2.5 rounded-xl text-[10.5px] font-extrabold uppercase tracking-wider transition-all inline-flex items-center gap-1.5 ${tab === t.key
+                ? 'bg-primary/15 text-primary border border-primary/20 shadow-sm shadow-primary/10'
+                : 'text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-primary/5 border border-transparent'}`}
+            >
+              <TabIcon size={13} /> {t.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* ═══ EXECUTIVE OVERVIEW ═══ */}
@@ -240,10 +245,10 @@ export default function Dashboard(){
                     <div key={p.project} className="space-y-1">
                       <div className="flex justify-between text-[10px] font-bold text-slate-500">
                         <span className="truncate">{p.project} — {p.name}</span>
-                        <span className="text-red-500">{p.done}/{p.planned} ({p.pct}%)</span>
+                        <span className="text-primary">{p.done}/{p.planned} ({p.pct}%)</span>
                       </div>
                       <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                        <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-red-700 transition-all" style={{ width: `${p.pct}%` }} />
+                        <div className="h-full rounded-full bg-gradient-to-r from-primary to-primary-dark transition-all" style={{ width: `${p.pct}%` }} />
                       </div>
                     </div>
                   ))}
@@ -281,7 +286,7 @@ export default function Dashboard(){
               {recentActivities.length === 0 ? <div className="text-neutral-500 text-xs py-6 text-center">No recorded activity yet.</div> :
                 recentActivities.map(a => (
                   <div key={a.id} className="flex items-center justify-between text-[11px] py-1.5 border-b border-slate-100 dark:border-white/5 font-semibold text-slate-600 dark:text-slate-400">
-                    <span className="truncate">🕘 {a.details}</span>
+                    <span className="truncate inline-flex items-center gap-1"><Clock size={11} className="shrink-0" /> {a.details}</span>
                     <span className="text-[9px] text-slate-400 shrink-0 ml-3">{a.ts} • {a.user_email}</span>
                   </div>
                 ))}
@@ -320,10 +325,10 @@ export default function Dashboard(){
                 {bedUtilization.map(b => (
                   <div key={b.bed} className="space-y-1">
                     <div className="flex justify-between text-[10px] font-bold text-slate-500">
-                      <span>{b.bed}</span><span className="text-red-500">{b.planned} pcs</span>
+                      <span>{b.bed}</span><span className="text-primary">{b.planned} pcs</span>
                     </div>
                     <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                      <div className={`h-full rounded-full ${b.planned > 6 ? 'bg-red-500' : b.planned > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, b.planned * 12)}%` }} />
+                      <div className={`h-full rounded-full ${b.planned > 6 ? 'bg-primary' : b.planned > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, b.planned * 12)}%` }} />
                     </div>
                   </div>
                 ))}
@@ -338,8 +343,8 @@ export default function Dashboard(){
               empty="No casting schedule entries"
             />
             {delayedElements.length > 0 && (
-              <div className="mt-3 p-3 rounded-xl border border-red-500/20 bg-red-500/5 text-[11px] font-bold text-red-500">
-                ⚠ {delayedElements.length} element(s) past planned casting date: {delayedElements.slice(0, 4).map(e => e.element_code).join(', ')}{delayedElements.length > 4 ? '…' : ''}
+              <div className="mt-3 p-3 rounded-xl border border-primary/20 bg-primary/5 text-[11px] font-bold text-primary flex items-center gap-1.5">
+                <AlertTriangle size={13} className="shrink-0" /> {delayedElements.length} element(s) past planned casting date: {delayedElements.slice(0, 4).map(e => e.element_code).join(', ')}{delayedElements.length > 4 ? '…' : ''}
               </div>
             )}
           </div>
@@ -359,12 +364,12 @@ export default function Dashboard(){
             <div className="glass-panel rounded-2xl p-5 border border-white/5">
               <SectionTitle>Upcoming Castings (next in plan)</SectionTitle>
               <MiniTable cols={[{ key: 'schedule_date', label: 'Date' }, { key: 'shift', label: 'Shift' }, { key: 'bed', label: 'Bed' }, { key: 'element_codes', label: 'Elements' }, { key: 'status', label: 'Status' }]} rows={upcomingCastings} empty="Nothing scheduled ahead" />
-              <Link to="/casting-schedule" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Casting Schedule</Link>
+              <Link to="/casting-schedule" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Casting Schedule</Link>
             </div>
             <div className="glass-panel rounded-2xl p-5 border border-white/5">
               <SectionTitle>Elements Awaiting QR Generation</SectionTitle>
               <MiniTable cols={[{ key: 'element_code', label: 'Element' }, { key: 'project_no', label: 'Project' }, { key: 'planned_cast_date', label: 'Planned' }, { key: 'status', label: 'Status' }]} rows={elements.filter(e => e.status === 'Planned').slice(0, 10)} empty="All planned elements have QR labels" />
-              <Link to="/project-import" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Project Auto-Import</Link>
+              <Link to="/project-import" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Project Auto-Import</Link>
             </div>
           </div>
         </div>
@@ -443,7 +448,7 @@ export default function Dashboard(){
           {/* Kanban Status Board (Live Vehicles) */}
           <div className="space-y-4">
             <div className="text-xs uppercase tracking-widest font-bold text-slate-400 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               Live Vehicles — Trailer Dispatch & Logistics Board
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -465,11 +470,11 @@ export default function Dashboard(){
                           layout
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="text-xs bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 flex flex-col gap-1 shadow-md shadow-black/5 dark:shadow-black/30 hover:border-red-500/20 transition-all duration-200"
+                          className="text-xs bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-xl px-3 py-2 flex flex-col gap-1 shadow-md shadow-black/5 dark:shadow-black/30 hover:border-primary/20 transition-all duration-200"
                         >
                           <span className="font-extrabold text-neutral-800 dark:text-white">{trailerPlates[e.trailer_id] || e.trailer_id.slice(0, 8)}</span>
                           {e.site_location && (
-                            <span className="text-[10px] text-slate-400 tracking-wide truncate">📍 {e.site_location}</span>
+                            <span className="text-[10px] text-slate-400 tracking-wide truncate inline-flex items-center gap-1"><MapPin size={10} className="shrink-0" /> {e.site_location}</span>
                           )}
                         </motion.div>
                       ))}
@@ -511,10 +516,10 @@ export default function Dashboard(){
                   <div key={z.id} className="space-y-1">
                     <div className="flex justify-between text-[10px] font-bold text-slate-500">
                       <span>{z.zone_name} <span className="text-slate-400">({z.bays})</span></span>
-                      <span className={pct > 85 ? 'text-red-500' : pct > 60 ? 'text-amber-500' : 'text-emerald-500'}>{z.current_pcs}/{z.capacity_pcs} ({pct}%)</span>
+                      <span className={pct > 85 ? 'text-primary' : pct > 60 ? 'text-amber-500' : 'text-emerald-500'}>{z.current_pcs}/{z.capacity_pcs} ({pct}%)</span>
                     </div>
                     <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                      <div className={`h-full rounded-full ${pct > 85 ? 'bg-red-500' : pct > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, pct)}%` }} />
+                      <div className={`h-full rounded-full ${pct > 85 ? 'bg-primary' : pct > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, pct)}%` }} />
                     </div>
                   </div>
                 )
@@ -547,9 +552,9 @@ export default function Dashboard(){
               <div className="space-y-2">
                 {ncrs.length === 0 ? <div className="text-neutral-500 text-xs py-8 text-center">No NCRs recorded.</div> :
                   ncrs.slice(0, 6).map(n => (
-                    <div key={n.id} className={`p-3 rounded-xl border text-xs ${n.status === 'Closed' ? 'border-slate-200 dark:border-white/5' : 'border-red-500/20 bg-red-500/5'}`}>
+                    <div key={n.id} className={`p-3 rounded-xl border text-xs ${n.status === 'Closed' ? 'border-slate-200 dark:border-white/5' : 'border-primary/20 bg-primary/5'}`}>
                       <div className="flex items-center justify-between">
-                        <span className="font-black text-[10px] uppercase text-red-500">{n.ncr_no} • {n.severity}</span>
+                        <span className="font-black text-[10px] uppercase text-primary">{n.ncr_no} • {n.severity}</span>
                         <span className={`px-2 py-0.5 rounded-md border text-[9px] font-black uppercase ${statusChipClass(n.status)}`}>{n.status}</span>
                       </div>
                       <div className="text-slate-600 dark:text-slate-300 font-semibold mt-1 text-[11px]">{n.description}</div>

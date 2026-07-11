@@ -24,7 +24,7 @@ export default function ControllerEntry({ defaultTab = 'dispatch' }: { defaultTa
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white uppercase">
-            Data Entry <span className="text-red-500 font-light">Terminal</span>
+            Data Entry <span className="text-primary font-light">Terminal</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Submit logistics, dispatch, and delivery notes into the Safetech database</p>
         </div>
@@ -38,7 +38,7 @@ export default function ControllerEntry({ defaultTab = 'dispatch' }: { defaultTa
             onClick={()=>setTab(t.key)}
             className={`flex-1 py-3 rounded-xl text-xs uppercase tracking-wider font-extrabold transition-all duration-300 btn-interactive ${
               tab === t.key 
-                ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/30' 
+                ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/30' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -50,7 +50,7 @@ export default function ControllerEntry({ defaultTab = 'dispatch' }: { defaultTa
       {/* Forms Container */}
       <div className="glass-panel rounded-2xl p-6 max-w-3xl mx-auto border border-white/5 shadow-2xl relative overflow-hidden">
         {/* Concrete girder lines on form */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-red-800 to-black" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-dark to-black" />
         
         {tab === 'dispatch' && <DispatchForm />}
         {tab === 'fleet' && <FleetStatusForm />}

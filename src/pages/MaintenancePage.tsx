@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Calendar, Wrench } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 
 type MaintenanceLog = {
@@ -69,7 +70,7 @@ export default function MaintenancePage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading maintenance logs...</div>
+    return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading maintenance logs...</div>
   }
 
   return (
@@ -78,7 +79,7 @@ export default function MaintenancePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Equipment Maintenance <span className="text-red-500 font-light">Control</span>
+            Equipment Maintenance <span className="text-primary font-light">Control</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Schedule vehicle services, crane certification inspections, and mould calibration breakdown logs</p>
         </div>
@@ -90,21 +91,21 @@ export default function MaintenancePage() {
           onClick={() => setActiveSubTab('calendar')}
           className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
             activeSubTab === 'calendar' 
-              ? 'border-red-500 text-red-500' 
+              ? 'border-primary text-primary' 
               : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          📅 Preventive Maintenance Calendar
+          <span className="inline-flex items-center gap-1.5"><Calendar size={13} /> Preventive Maintenance Calendar</span>
         </button>
         <button
           onClick={() => setActiveSubTab('breakdowns')}
           className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 ${
             activeSubTab === 'breakdowns' 
-              ? 'border-red-500 text-red-500' 
+              ? 'border-primary text-primary' 
               : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          🔧 Breakdown & Service History
+          <span className="inline-flex items-center gap-1.5"><Wrench size={13} /> Breakdown & Service History</span>
         </button>
       </div>
 
@@ -161,8 +162,8 @@ export default function MaintenancePage() {
               <input type="text" placeholder="E.g. Factory Maintenance Team" className="w-full mt-1 px-3 py-1.5 rounded-lg glowing-input text-xs" value={technician} onChange={e=>setTechnician(e.target.value)} />
             </label>
 
-            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-              🔧 Register Maintenance Event
+            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+              <Wrench size={14} /> Register Maintenance Event
             </button>
           </form>
         </div>
@@ -182,7 +183,7 @@ export default function MaintenancePage() {
                   <div key={l.id} className="p-4 border border-slate-200 dark:border-white/5 rounded-2xl bg-slate-50 dark:bg-black/10 relative flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded font-black uppercase">
+                        <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded font-black uppercase">
                           {l.equipment_type} ID: {l.equipment_id}
                         </span>
                         <span className="text-[10px] text-slate-400 font-bold">{l.maintenance_date}</span>
@@ -223,7 +224,7 @@ export default function MaintenancePage() {
                   <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-300">
                     {logs.map(l => (
                       <tr key={l.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                        <td className="py-3 font-semibold text-red-500">{l.equipment_type}</td>
+                        <td className="py-3 font-semibold text-primary">{l.equipment_type}</td>
                         <td className="py-3 font-bold text-neutral-800 dark:text-white">{l.equipment_id}</td>
                         <td className="py-3 text-center text-slate-400">{l.maintenance_date}</td>
                         <td className="py-3 truncate max-w-[200px]" title={l.description}>{l.description}</td>

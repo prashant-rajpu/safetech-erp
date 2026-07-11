@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Upload, Printer, Construction, FileEdit, Check, X, Calendar, QrCode, CheckSquare, Square } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { fetchRows, insertAudited, updateAudited, nowStamp, todayGulf } from '../lib/erp/db'
 import { printRegister, exportCsv, printQrLabels, type QrLabel } from '../lib/erp/printDoc'
@@ -236,13 +237,13 @@ export default function CastingSchedulePage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5 gap-3">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Casting <span className="text-red-500 font-light">Schedule</span>
+            Casting <span className="text-primary font-light">Schedule</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Plan elements to beds — QR labels generate at planning and carry full details for every downstream department</p>
         </div>
         <div className="flex gap-2 no-print">
-          <button onClick={() => exportCsv('casting-schedule.csv', printCols, schedule)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">📤 CSV</button>
-          <button onClick={() => printRegister({ title: 'Casting Schedule', subtitle: 'Bed & mould production plan', paper: 'A4', landscape: true, columns: printCols, rows: schedule, meta: [`Records: ${schedule.length}`] })} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-red-500/30 hover:text-red-500 text-[10px] font-extrabold uppercase rounded-xl transition-all">🖨 Print</button>
+          <button onClick={() => exportCsv('casting-schedule.csv', printCols, schedule)} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Upload size={12} /> CSV</button>
+          <button onClick={() => printRegister({ title: 'Casting Schedule', subtitle: 'Bed & mould production plan', paper: 'A4', landscape: true, columns: printCols, rows: schedule, meta: [`Records: ${schedule.length}`] })} className="px-3.5 py-2 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:border-primary/30 hover:text-primary text-[10px] font-extrabold uppercase rounded-xl transition-all inline-flex items-center gap-1"><Printer size={12} /> Print</button>
         </div>
       </div>
 
@@ -265,8 +266,8 @@ export default function CastingSchedulePage() {
         {/* Plan form */}
         {editable && (
           <form onSubmit={planCasting} className="lg:col-span-1 glass-panel p-5 rounded-2xl border border-slate-200 dark:border-white/5 space-y-3 h-fit">
-            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2">
-              🏗️ Plan Elements to Cast
+            <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-white/5 pb-2 flex items-center gap-1.5">
+              <Construction size={13} /> Plan Elements to Cast
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
@@ -318,8 +319,8 @@ export default function CastingSchedulePage() {
               <span className="text-[9px] uppercase font-black text-slate-500">Remarks</span>
               <input type="text" className="w-full mt-1 px-3 py-2 rounded-lg glowing-input text-xs" value={fRemarks} onChange={e => setFRemarks(e.target.value)} placeholder="Cage readiness, priorities…" />
             </label>
-            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
-              {saving ? 'Planning…' : '📅 Schedule Casting'}
+            <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-3 rounded-xl shadow-lg btn-interactive">
+              {saving ? 'Planning…' : <span className="inline-flex items-center gap-1.5"><Calendar size={13} /> Schedule Casting</span>}
             </button>
             <p className="text-[9px] text-slate-500 leading-relaxed">Unique element codes are auto-generated in plant format. Generate QR labels from the schedule list — labels carry project, drawing, dimensions, bed and casting details for Production, QA/QC, Stockyard, Dispatch and Delivery.</p>
 
@@ -332,7 +333,7 @@ export default function CastingSchedulePage() {
                   <div key={name} className="flex items-center gap-2 text-[10px] font-bold text-slate-600 dark:text-slate-400">
                     <span className="w-20 truncate">{name}</span>
                     <div className="flex-grow h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                      <div className={`h-full rounded-full ${n > 6 ? 'bg-red-500' : n > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, n * 12)}%` }} />
+                      <div className={`h-full rounded-full ${n > 6 ? 'bg-primary' : n > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, n * 12)}%` }} />
                     </div>
                     <span className="w-6 text-right">{n}</span>
                   </div>
@@ -359,26 +360,26 @@ export default function CastingSchedulePage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-sm text-neutral-900 dark:text-white">{row.schedule_date}</span>
                         <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 text-slate-500">{row.shift} Shift</span>
-                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-red-500/10 text-red-500 border border-red-500/20">🏗 {row.bed}</span>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 inline-flex items-center gap-1"><Construction size={11} /> {row.bed}</span>
                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md border ${statusChipClass(row.status)}`}>{row.status}</span>
                       </div>
                       <div className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1.5">
-                        {row.project_no} • {row.drawing_no} • <span className="text-red-500">{row.qty} element(s)</span>
+                        {row.project_no} • {row.drawing_no} • <span className="text-primary">{row.qty} element(s)</span>
                       </div>
                       <div className="text-[10px] font-mono text-slate-500 mt-1 break-all">{row.element_codes}</div>
-                      {row.remarks && <div className="text-[10px] text-slate-500 italic mt-1">📝 {row.remarks}</div>}
+                      {row.remarks && <div className="text-[10px] text-slate-500 italic mt-1 flex items-center gap-1"><FileEdit size={11} className="shrink-0" /> {row.remarks}</div>}
                     </div>
 
                     {editable && (
                       <div className="flex flex-wrap gap-1.5 shrink-0">
                         {row.status === 'Scheduled' && (
-                          <button disabled={busy} onClick={() => generateQr(row)} className="px-3 py-1.5 bg-gradient-to-br from-red-500 to-red-700 text-white text-[9px] font-extrabold uppercase rounded-lg btn-interactive">
-                            {busy ? '…' : '⬛ Generate QR Labels'}
+                          <button disabled={busy} onClick={() => generateQr(row)} className="px-3 py-1.5 bg-gradient-to-br from-primary to-primary-dark text-white text-[9px] font-extrabold uppercase rounded-lg btn-interactive">
+                            {busy ? '…' : <span className="inline-flex items-center gap-1"><QrCode size={12} /> Generate QR Labels</span>}
                           </button>
                         )}
                         {(row.status === 'QR Generated' || row.status === 'In Progress' || row.status === 'Completed') && (
-                          <button disabled={busy} onClick={() => generateQr(row, true)} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-red-500 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                            🖨 Reprint Labels
+                          <button disabled={busy} onClick={() => generateQr(row, true)} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-500 hover:text-primary text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                            <Printer size={11} /> Reprint Labels
                           </button>
                         )}
                         {row.status === 'QR Generated' && (
@@ -387,13 +388,13 @@ export default function CastingSchedulePage() {
                           </button>
                         )}
                         {row.status === 'In Progress' && (
-                          <button disabled={busy} onClick={() => setRowStatus(row, 'Completed')} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                            ✓ Complete → Stockyard
+                          <button disabled={busy} onClick={() => setRowStatus(row, 'Completed')} className="px-3 py-1.5 border border-emerald-500/30 text-emerald-500 bg-emerald-500/5 text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex items-center gap-1">
+                            <Check size={11} /> Complete → Stockyard
                           </button>
                         )}
                         {(row.status === 'Scheduled' || row.status === 'QR Generated') && (
-                          <button disabled={busy} onClick={() => setRowStatus(row, 'Cancelled')} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-400 hover:text-red-500 text-[9px] font-extrabold uppercase rounded-lg transition-all">
-                            ✕
+                          <button disabled={busy} onClick={() => setRowStatus(row, 'Cancelled')} className="px-3 py-1.5 border border-slate-200 dark:border-white/10 text-slate-400 hover:text-primary text-[9px] font-extrabold uppercase rounded-lg transition-all inline-flex">
+                            <X size={11} />
                           </button>
                         )}
                       </div>
@@ -404,8 +405,8 @@ export default function CastingSchedulePage() {
                   {els.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
                       {els.map(el => (
-                        <span key={el.id} className={`text-[8.5px] font-mono font-bold px-2 py-1 rounded-md border ${el.qr_generated ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>
-                          {el.qr_generated ? '⬛' : '⬜'} {el.element_code} — {el.status}
+                        <span key={el.id} className={`text-[8.5px] font-mono font-bold px-2 py-1 rounded-md border inline-flex items-center gap-1 ${el.qr_generated ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>
+                          {el.qr_generated ? <CheckSquare size={10} /> : <Square size={10} />} {el.element_code} — {el.status}
                         </span>
                       ))}
                     </div>

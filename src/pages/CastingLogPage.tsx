@@ -114,7 +114,7 @@ export default function CastingLogPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading casting logs...</div>
+    return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading casting logs...</div>
   }
 
   return (
@@ -123,7 +123,7 @@ export default function CastingLogPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Concrete Casting <span className="text-red-500 font-light">Log</span>
+            Concrete Casting <span className="text-primary font-light">Log</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Record daily factory concrete pours and mould casting allocations</p>
         </div>
@@ -137,7 +137,7 @@ export default function CastingLogPage() {
         </div>
         <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-white/5 flex flex-col justify-between">
           <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Volume Casted</span>
-          <span className="text-2xl font-black text-red-500 mt-1">{stats.totalVol} m³</span>
+          <span className="text-2xl font-black text-primary mt-1">{stats.totalVol} m³</span>
         </div>
         <div className="glass-panel p-4 rounded-2xl border border-slate-200 dark:border-white/5 flex flex-col justify-between">
           <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Total Weight Casted</span>
@@ -289,7 +289,7 @@ export default function CastingLogPage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-gradient-to-br from-red-500 to-red-700 hover:from-red-400 hover:to-red-600 text-white font-extrabold text-xs tracking-wider uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-red-500/25 mt-4"
+              className="w-full bg-gradient-to-br from-primary to-primary-dark hover:from-primary hover:to-primary-dark text-white font-extrabold text-xs tracking-wider uppercase py-3 rounded-xl btn-interactive shadow-lg shadow-primary/25 mt-4"
             >
               {saving ? 'Logging Pour...' : '💾 Log Casted Element'}
             </button>

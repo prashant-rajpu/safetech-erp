@@ -8,7 +8,7 @@ function ConfigError() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: '#0a0a0a', color: '#f87171', fontFamily: 'monospace', padding: '2rem', textAlign: 'center',
+      background: '#1C1C1E', color: '#E8622C', fontFamily: 'monospace', padding: '2rem', textAlign: 'center',
     }}>
       <div>
         <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Configuration Error</h1>

@@ -63,14 +63,14 @@ export default function MaintenanceDashboardPage() {
     })),
   ]
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading maintenance telemetry…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading maintenance telemetry…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Maintenance <span className="text-red-500 font-light">Dashboard</span>
+            Maintenance <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Equipment register, preventive maintenance & calibration tracking</p>
         </div>
@@ -120,7 +120,7 @@ export default function MaintenanceDashboardPage() {
           rows={[...pm].sort((a, b) => (b.scheduled_date || '').localeCompare(a.scheduled_date || '')).slice(0, 10)}
           empty="No preventive maintenance scheduled"
         />
-        <Link to="/m/equipment-register" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Equipment Register</Link>
+        <Link to="/m/equipment-register" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Equipment Register</Link>
       </div>
     </div>
   )

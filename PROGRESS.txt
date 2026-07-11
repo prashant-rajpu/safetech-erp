@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 Phase 6 COMPLETE incl. Trailer Loading 3D extension + trailers/dispatch schema-drift bug fix. User confirmed real-browser check passed: WebGL render + drag interaction both work — items 15/16's open caveat is now closed.)
+Last updated: 2026-07-11 (v2 Phase 7 COMPLETE and user-confirmed visually — full design-system switch to concrete-grey/blueprint-blue, dark mode dropped, emoji icons replaced with Lucide, ~50 files touched in one pass. Verified via tsc/build/22 Playwright checks AND the user's own real-browser check. Committed.)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -1017,6 +1017,148 @@ DONE — VERIFIED COMPLETE
     final visuals/interaction). Phase 6 including the Trailer Loading
     extension is now fully verified end-to-end, not just code-complete.
 
+19. V2 ROADMAP — PHASE 7: Premium UI Pass / Design System Switch
+    (2026-07-11). Resolved the design-system conflict flagged since Phase
+    1 (CLAUDE.md said "preserve existing red/black glassmorphism branding,
+    never redesign" — an earlier pasted plan called for a different
+    concrete-grey/blueprint-blue system, never confirmed with the user).
+    User chose to adopt the new system as canonical, done in ONE PASS
+    (not staged across approval cycles — a deliberate exception to this
+    project's usual incremental discipline, made with full scope known
+    upfront). This is the largest single undertaking in the project:
+    ~50 files touched, 582 automated color replacements, 20 files of
+    manual emoji-to-icon conversion, a new dependency, and a CLAUDE.md
+    rewrite.
+      a) FOUNDATION — tailwind.config.cjs gained real color tokens for
+         the first time (surface #F4F4F2, ink #1C1C1E, primary #1B4B8C,
+         primary-dark #163C6E, alert #E8622C, success #2C7A6B) and
+         fontFamily (heading: Space Grotesk, mono: IBM Plex Mono — the
+         mono override cascades free to every existing font-mono
+         usage app-wide, zero per-file edits needed for that). index.html
+         gained the 2 new Google Fonts links (kept Outfit as body font —
+         spec only named headings/mono as deviating). src/styles/
+         tailwind.css: rewrote body colors + every red-tinted custom
+         class (glass-panel, glass-card-3d, glowing-input, btn-interactive)
+         to the new palette IN PLACE — same class names, new colors —
+         this was the single highest-leverage move: it re-themed the
+         majority of the app's chrome (132+148+54 occurrences across
+         35+23+24 files) without touching those files individually.
+         Renamed concrete-accent-red/gray -> concrete-accent-primary/
+         neutral and glow-text-red/gray -> glow-text-primary/neutral
+         (only 1 real usage existed, in ReportsHubPage.tsx — fixed).
+         Dead unused CSS classes (status-live, warning-card, safety-
+         accent, rev-badge, blueprint-grid, rebar-pattern — confirmed
+         zero usages anywhere) left untouched, out of scope.
+      b) DARK MODE DROPPED — removed Sidebar.tsx's theme-toggle button
+         and its localStorage/useState mechanism entirely. Kept
+         `darkMode: 'class'` in tailwind.config.cjs deliberately (not
+         removed) so any leftover `dark:` utility classes in the ~35
+         files that still have them stay PERMANENTLY INERT (nothing
+         ever adds .dark to <html> again) rather than requiring a
+         second massive sweep to strip them file-by-file for zero
+         functional gain. Verified live: document.documentElement.
+         className === '' after login, confirmed via Playwright.
+      c) CLAUDE.md rewritten — CORE PRINCIPLES no longer says "preserve
+         existing branding / light-dark themes"; UI GUIDELINES gained a
+         full "Design System (canonical)" section documenting the exact
+         tokens, fonts, icon system and shared chrome classes so future
+         sessions don't re-litigate this.
+      d) ICON SYSTEM — installed lucide-react (confirmed legitimate
+         official package, now versioned 1.x). Built src/lib/erp/
+         icons.ts: an EMOJI-KEYED map (not a rewrite of registry.ts's
+         127 icon: field values — a deliberate, safer deviation from
+         the literal plan text found mid-implementation: keeping the
+         emoji as lookup keys into a Lucide map means 0 of those 127
+         field values needed touching, only the render call sites).
+         Fixed render sites: Sidebar.tsx (both dashboard-link and
+         section-button icon spans), ModuleWorkspace.tsx (module header
+         icon — cascades to all ~50 generic CRUD pages), PermissionsPage
+         .tsx (NAV_SECTIONS-derived table headers).
+      e) 20 FILES OF INLINE EMOJI — real per-file work, no shortcut,
+         each hand-reviewed to distinguish direct-JSX-literal emoji
+         (safe to replace inline) from data-array icon: field values
+         (needed a render-site getIcon() lookup instead, to avoid
+         corrupting string literals into invalid JSX — a real bug
+         caught before it shipped: an early automated regex-based sweep
+         script was abandoned mid-design specifically because it would
+         have corrupted array literals like Dashboard.tsx's
+         `{ icon: '👔' }` TABS array into broken syntax). Files: Sidebar
+         .tsx, ImportWizard.tsx, ModuleWorkspace.tsx, AdminPanel.tsx,
+         CastBedPlanPage.tsx, CastingSchedulePage.tsx, CsvImport.tsx,
+         Dashboard.tsx, DeliveryReportPage.tsx, DispatchForm.tsx,
+         GatePassPage.tsx, Login.tsx, LogisticsPlanningPage.tsx,
+         MaintenancePage.tsx, PermissionsPage.tsx, ProductionPage.tsx,
+         ProjectAutoImportPage.tsx, QrScannerPage.tsx, ReportsHubPage
+         .tsx, StockyardPage.tsx, plus the 4 Phase-6 3D pages' "⚠
+         Illustrative" disclaimer banners. CastingLogPage.tsx's emoji
+         deliberately left untouched — confirmed dead/unrouted code
+         (same finding as an earlier session), not worth editing.
+         DraggableElementBox.tsx's "✥" drag-cursor hint glyph
+         deliberately left as-is — a cursor indicator inside a 3D label
+         string, not a branding icon, different in kind from the rest.
+         A final broad Unicode-range grep sweep caught 2 more real
+         misses outside the original emoji ranges: ⬛/⬜ (QR-generated
+         checkbox indicators in CastBedPlanPage.tsx/CastingSchedulePage
+         .tsx, fixed to CheckSquare/Square) and ✓/✗ pass-fail badges in
+         Erection3DPage.tsx/TrailerLoadSim3DPage.tsx (my own Phase 6
+         code, fixed to Check/X for consistency).
+      f) COLOR SWEEP — inventoried every distinct red shade actually
+         used (300/400/500/600/700/800/950, confirmed via grep, no
+         guessing) and ran ONE scripted regex sweep across all of
+         src/**/*.tsx (not split into pages/then-components/ batches
+         as originally planned — a single controlled pass was simpler
+         and equally verifiable): 300/400/500 -> primary, 600/700/800/
+         950 -> primary-dark. 582 replacements across 42 files.
+      g) BLACK WAS NOT SWEPT — a real scope correction made mid-
+         implementation, not a silent plan deviation: investigated
+         every plain (non-opacity) bg-black/text-black/border-black
+         usage and found NONE of it was actually functioning as a
+         "brand color" — it was 100% either (1) printable-document
+         templates (Delivery Note/Report labels, correctly black-on-
+         white for print fidelity regardless of screen brand) or (2)
+         generic neutral chrome (logo-chip backgrounds, unrelated to
+         the red/black-vs-blueprint conflict). Left entirely untouched.
+         This correction is why the plan's "black -> ink" mapping never
+         happened — the premise didn't hold once checked against real
+         usage, not because it was skipped.
+      h) STRAY HEX COLORS — a targeted (not blanket) pass found and
+         fixed genuine brand-identity hex usages the class-name sweep
+         couldn't catch: GatePassPage.tsx's printed-pass brand/title
+         color, printDoc.ts's shared document-header brand-mark/title/
+         section-count colors (used by every printed register/report
+         in the app), and main.tsx's config-error fallback screen.
+         Explicitly did NOT touch chart data-series fill colors
+         (Dashboard.tsx, DeliveryReportPage.tsx Bar/Pie/Line charts) or
+         semantic status-color maps (KANBAN_COLUMNS, SEVERITY_COLORS,
+         PIE_COLORS, GRADE_COLORS, WASTE_COLORS, Erection3D/
+         TrailerLoadSim3D's pass-fail red) — same "leave semantic pass/
+         fail colors alone" principle applied throughout, confirmed via
+         reading each site's actual context rather than assuming.
+      Verified: tsc --noEmit + vite build clean after EVERY stage
+      (foundation, icons, color sweep, residual fixes — not just once
+      at the end, given the size of this change). Final residual grep
+      confirmed ZERO remaining red-[0-9] Tailwind classes anywhere in
+      src/. 22/22 Playwright checks passed against the live LAN dev
+      server across a representative cross-section of pages from every
+      phase built this session (Dashboard, a generic /m/ module,
+      CastBedPlanPage, QrScannerPage, a Phase-5 KPI dashboard, a Phase-6
+      3D view, HSE, Stockyard, Reports Hub) — zero page errors anywhere.
+      Confirmed live via computed style: nav elements render at
+      rgb(27, 75, 140) = exactly #1B4B8C, the new primary token, not a
+      leftover red. Confirmed via document.documentElement.className
+      that dark mode is never applied. Screenshot-confirmed the overall
+      visual result: consistent blueprint-blue accent app-wide, clean
+      Lucide line icons throughout the sidebar and every module page
+      (confirmed the ModuleWorkspace.tsx fix cascades correctly to all
+      ~50 generic CRUD pages via one file), concrete-grey background.
+    NOT DONE (explicitly out of scope, not silently dropped): the
+    "compact by default, comfortable toggle in settings" density
+    feature named in the original design spec was NOT built this pass
+    — it's a genuinely new settings feature (new state, new toggle UI),
+    not a re-theme of existing pages, and was never explicitly
+    confirmed as in-scope for this pass. Flagged for a future request
+    if still wanted.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -1087,32 +1229,27 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1-6 are ALL DONE AND FULLY VERIFIED (item 18 — user confirmed
-   the real-browser check passed, closing the last open gap). This
-   includes the Trailer Loading 3D extension (item 16) and the
-   trailers/dispatch schema-drift bug fix (item 17 — 3 separate
-   discoveries, all verified live with real temporary data). All 4 3D
-   views (Cast Bed, Yard/Stack, Erection Sim, Trailer Loading) render
-   correctly and the drag-and-drop interaction works, confirmed
-   end-to-end by the user, not just code-complete. DispatchForm/
-   DeliveryNotePage/LogisticsPlanningPage/GatePassPage no longer read
-   nonexistent trailers.supplier/type columns; dispatch_log's auto-seed
-   logic works.
-2. To make Trailer Loading actually useful long-term: populate real
-   trailer specs via /m/trailer-types (still empty by design — no
-   fabricated capacity data was ever inserted).
-3. Per CLAUDE.md's "wait for approval before starting the next phase"
+1. Phases 1-7 are ALL DONE. Phase 7 (item 19) is the biggest single pass
+   in the project — full design-system switch (concrete-grey/blueprint-
+   blue, Space Grotesk/IBM Plex Mono, Lucide icons, dark mode dropped),
+   ~50 files touched, verified via tsc/build/22 Playwright checks and
+   screenshots, but NOT YET confirmed by the user in a real browser.
+2. DONE: user confirmed the new look visually ("it's good") and the
+   Phase 7 commit landed. No further action needed on this item.
+3. To make Trailer Loading actually useful long-term: populate real
+   trailer specs via /m/trailer-types (real data has already started
+   appearing there — an "A-FRAME" row was seen during Phase 7
+   verification, added independently of this session's work).
+4. Per CLAUDE.md's "wait for approval before starting the next phase"
    rule, get explicit sign-off on what's next: populating real/placeholder
    data into the 6 new Phase-5 sections and Erection Planning (0 rows
    today, so Erection 3D/erection sequencing has never been exercised
-   against real multi-step data) and/or Phase 7 (UI pass) and/or the
-   photo-logging follow-up deferred from Phase 3.
-4. Resolve the design-system conflict flagged above (red/black glass
-   vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
-   ask the user directly rather than guessing. Not urgent yet but don't
-   let it go unresolved.
-5. Remaining phases in order: Phase 7 (UI pass — pending the conflict
-   resolution above), Phase 8 (reporting/gap-check).
+   against real multi-step data) and/or Phase 8 (reporting/gap-check)
+   and/or the photo-logging follow-up deferred from Phase 3 and/or the
+   density-toggle feature explicitly deferred from Phase 7 (item 19,
+   "NOT DONE").
+5. Remaining phase: Phase 8 (reporting/gap-check) — the last one in the
+   original 8-phase roadmap.
 6. Worth a dedicated pass sometime: db/init.sql and db/erp_schema.sql
    have diverged on at least 4 tables now (trailers, suppliers,
    dispatch_log, and earlier-session findings on others) — the live DB

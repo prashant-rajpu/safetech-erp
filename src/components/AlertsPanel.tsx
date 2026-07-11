@@ -17,11 +17,11 @@ export default function AlertsPanel({ alerts }: { alerts: Alert[] }){
             transition={{ delay: i * 0.05 }}
             className={`p-4 rounded-xl border text-sm backdrop-blur flex items-center gap-3 ${
               a.severity === 'high'
-                ? 'bg-red-950/20 border-red-500/30 text-red-300 shadow-lg shadow-red-500/5'
+                ? 'bg-primary-dark/20 border-primary/30 text-primary shadow-lg shadow-primary/5'
                 : 'bg-amber-950/20 border-amber-500/30 text-amber-300 shadow-lg shadow-amber-500/5'
             }`}
           >
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 animate-ping ${a.severity === 'high' ? 'bg-red-400' : 'bg-amber-400'}`} />
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 animate-ping ${a.severity === 'high' ? 'bg-primary' : 'bg-amber-400'}`} />
             <span className="font-medium">{a.message}</span>
           </motion.div>
         ))}

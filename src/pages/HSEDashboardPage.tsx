@@ -73,21 +73,21 @@ export default function HSEDashboardPage() {
     })),
   ]
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading HSE telemetry…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading HSE telemetry…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            HSE <span className="text-red-500 font-light">Dashboard</span>
+            HSE <span className="text-primary font-light">Dashboard</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Health, safety & environment — incidents, permits, risk assessments</p>
         </div>
         <div className={`text-xs font-bold px-3 py-1.5 rounded-full border shadow-md mt-3 md:mt-0 max-w-fit ${
           daysSinceLastIncident === null ? 'bg-slate-500/10 border-slate-500/30 text-slate-400'
           : daysSinceLastIncident >= 30 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-emerald-500/5'
-          : 'bg-red-500/10 border-red-500/30 text-red-400 shadow-red-500/5'
+          : 'bg-primary/10 border-primary/30 text-primary shadow-primary/5'
         }`}>
           ● {daysSinceLastIncident === null ? 'NO INCIDENTS LOGGED' : `${daysSinceLastIncident} DAYS SINCE LAST INCIDENT`}
         </div>
@@ -137,7 +137,7 @@ export default function HSEDashboardPage() {
           rows={[...incidents].sort((a, b) => (b.incident_date || '').localeCompare(a.incident_date || '')).slice(0, 10)}
           empty="No incidents recorded"
         />
-        <Link to="/m/hse-incidents" className="inline-block mt-3 text-[10px] font-black uppercase text-red-500 hover:underline">→ Open Incident Register</Link>
+        <Link to="/m/hse-incidents" className="inline-block mt-3 text-[10px] font-black uppercase text-primary hover:underline">→ Open Incident Register</Link>
       </div>
     </div>
   )

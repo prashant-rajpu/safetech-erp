@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AlertTriangle } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Login(){
@@ -25,16 +26,16 @@ export default function Login(){
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">
-      <div className="glass-panel rounded-3xl p-8 max-w-md w-full border border-red-500/10 shadow-2xl relative overflow-hidden flex flex-col items-center">
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-red-800 to-black" />
+      <div className="glass-panel rounded-3xl p-8 max-w-md w-full border border-primary/10 shadow-2xl relative overflow-hidden flex flex-col items-center">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-dark to-black" />
         
         {/* Brand Icon */}
-        <div className="w-16 h-16 rounded-2xl bg-black border border-neutral-800 flex items-center justify-center p-1.5 shadow-xl shadow-red-500/10 mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-black border border-neutral-800 flex items-center justify-center p-1.5 shadow-xl shadow-primary/10 mb-4">
           <img src="/safetech_logo.png" alt="Logo" className="w-full h-full object-contain rounded-xl" />
         </div>
         
         <h2 className="text-2xl font-black text-neutral-900 dark:text-white tracking-wider uppercase mb-1">SAFETECH</h2>
-        <p className="text-xs uppercase tracking-widest text-red-500 font-bold mb-8">Operations Control Panel</p>
+        <p className="text-xs uppercase tracking-widest text-primary font-bold mb-8">Operations Control Panel</p>
         
         <form onSubmit={handleLogin} className="w-full space-y-4">
           <label className="block">
@@ -59,13 +60,13 @@ export default function Login(){
           </label>
           
           {error && (
-            <div className="text-xs font-bold text-red-400 uppercase tracking-wide bg-red-950/20 border border-red-500/10 p-3 rounded-xl">
-              ⚠️ {error}
+            <div className="text-xs font-bold text-primary uppercase tracking-wide bg-primary-dark/20 border border-primary/10 p-3 rounded-xl flex items-center gap-1.5">
+              <AlertTriangle size={13} className="shrink-0" /> {error}
             </div>
           )}
           
           <button 
-            className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white py-3.5 rounded-xl font-extrabold uppercase tracking-wider text-xs btn-interactive shadow-lg shadow-red-500/20" 
+            className="w-full bg-gradient-to-br from-primary to-primary-dark text-white py-3.5 rounded-xl font-extrabold uppercase tracking-wider text-xs btn-interactive shadow-lg shadow-primary/20" 
             disabled={loading}
           >
             {loading ? 'Authorizing Terminal...' : 'Access Dashboard'}

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { fetchRows } from '../lib/erp/db'
 import Scene3DShell from '../lib/erp/three/Scene3DShell'
 import ElementBox, { statusColor3D } from '../lib/erp/three/ElementBox'
+import { AlertTriangle } from 'lucide-react'
 
 function elementsOf(row: any, elements: any[]): any[] {
   const codes = String(row.element_codes || '').split(',').map((c: string) => c.trim()).filter(Boolean)
@@ -48,14 +49,14 @@ export default function CastBed3DPage() {
     return placed
   }, [bedSchedule, elements])
 
-  if (loading) return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading cast bed 3D data…</div>
+  if (loading) return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading cast bed 3D data…</div>
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Cast Bed <span className="text-red-500 font-light">3D View</span>
+            Cast Bed <span className="text-primary font-light">3D View</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">Elements on bed, colored by casting status</p>
         </div>
@@ -69,7 +70,7 @@ export default function CastBed3DPage() {
       </div>
 
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-2 text-[11px] text-amber-500 font-semibold">
-        ⚠ Illustrative view — bed dimensions are real ({bedLengthM}m × {bedWidthM}m), but element order along the bed is derived from schedule order, not a tracked physical position.
+        <AlertTriangle size={13} className="inline shrink-0 -mt-0.5 mr-1" />Illustrative view — bed dimensions are real ({bedLengthM}m × {bedWidthM}m), but element order along the bed is derived from schedule order, not a tracked physical position.
       </div>
 
       {beds.length === 0 ? (

@@ -126,13 +126,13 @@ export async function buildPrintHtml(opts: PrintDocOptions): Promise<string> {
     page-break-after: always;
   }
   .sheet:last-child { page-break-after: avoid; }
-  .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #b91c1c; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
+  .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1B4B8C; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
   .brand { display: flex; gap: 10px; align-items: center; }
-  .brand-mark { width: 46px; height: 46px; background: #0a0a0a; color: #ef4444; font-weight: 900; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 8px; letter-spacing: 1px; }
+  .brand-mark { width: 46px; height: 46px; background: #0a0a0a; color: #1B4B8C; font-weight: 900; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 8px; letter-spacing: 1px; }
   .co-name { font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
   .co-sub { font-size: 8.5px; color: #555; }
   .doc-title-block { text-align: center; flex: 1; }
-  .doc-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #b91c1c; }
+  .doc-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #1B4B8C; }
   .doc-sub { font-size: 9.5px; color: #444; margin-top: 2px; }
   .doc-meta { font-size: 8.5px; color: #666; margin-top: 1px; }
   .doc-qr { text-align: center; }
@@ -226,13 +226,13 @@ export async function printSectionsDoc(opts: {
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; color: #111; background: #f1f5f9; padding: 12px; }
   .doc { background: white; max-width: ${opts.paper === 'A3' ? (opts.landscape ? '420mm' : '297mm') : (opts.landscape ? '297mm' : '210mm')}; margin: 0 auto; padding: 10mm; box-shadow: 0 2px 12px rgba(0,0,0,.18); }
-  .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #b91c1c; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
+  .doc-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1B4B8C; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
   .brand { display: flex; gap: 10px; align-items: center; }
-  .brand-mark { width: 46px; height: 46px; background: #0a0a0a; color: #ef4444; font-weight: 900; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .brand-mark { width: 46px; height: 46px; background: #0a0a0a; color: #1B4B8C; font-weight: 900; font-size: 18px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
   .co-name { font-weight: 900; font-size: 13px; text-transform: uppercase; }
   .co-sub { font-size: 8.5px; color: #555; }
   .doc-title-block { text-align: center; flex: 1; }
-  .doc-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #b91c1c; }
+  .doc-title { font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #1B4B8C; }
   .doc-sub { font-size: 9.5px; color: #444; margin-top: 2px; }
   .doc-meta { font-size: 8.5px; color: #666; margin-top: 1px; }
   .doc-qr { text-align: center; }
@@ -240,11 +240,11 @@ export async function printSectionsDoc(opts: {
   .barcode { font-family: 'Libre Barcode 128', monospace; font-size: 24px; line-height: 1; }
   .kpis { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .kpi { flex: 1; min-width: 90px; border: 1.4px solid #111; border-radius: 8px; padding: 6px 10px; text-align: center; }
-  .kv { font-size: 16px; font-weight: 900; color: #b91c1c; }
+  .kv { font-size: 16px; font-weight: 900; color: #1B4B8C; }
   .kl { font-size: 7px; font-weight: 800; text-transform: uppercase; color: #555; letter-spacing: .5px; }
   .section { margin-bottom: 14px; page-break-inside: avoid; }
   .sec-head { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .8px; background: #111; color: white; padding: 4px 8px; border-radius: 5px 5px 0 0; display: flex; justify-content: space-between; }
-  .sec-count { color: #fca5a5; font-size: 8px; }
+  .sec-count { color: #7A9CC6; font-size: 8px; }
   table.grid { width: 100%; border-collapse: collapse; font-size: 8.4px; }
   table.grid th { background: #f1f5f9; color: #333; text-transform: uppercase; font-size: 7.2px; padding: 3.5px 5px; text-align: left; border: 1px solid #cbd5e1; }
   table.grid td { border: 1px solid #d7dee8; padding: 3px 5px; }
@@ -323,7 +323,7 @@ export async function printQrLabels(labels: QrLabel[], previewOnly = false) {
   .sheet-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; padding: 6mm; max-width: 210mm; margin: 0 auto; background: white; }
   .label { border: 1.6px solid #111; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
   .l-head { display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; color: white; padding: 4px 8px; }
-  .l-brand { font-weight: 900; font-size: 11px; letter-spacing: 1px; color: #ef4444; }
+  .l-brand { font-weight: 900; font-size: 11px; letter-spacing: 1px; color: #1B4B8C; }
   .l-tag { font-size: 7px; font-weight: 700; letter-spacing: 1px; color: #cbd5e1; }
   .l-body { display: flex; gap: 8px; padding: 8px; }
   .l-info { flex: 1; min-width: 0; }

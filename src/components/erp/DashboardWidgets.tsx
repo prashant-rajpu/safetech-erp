@@ -4,7 +4,7 @@ import { statusChipClass } from '../../lib/erp/uiHelpers'
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-xs uppercase tracking-widest font-bold text-slate-400 mb-4 pb-2 border-b border-slate-200 dark:border-white/5 flex items-center gap-2">
-      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
       {children}
     </div>
   )

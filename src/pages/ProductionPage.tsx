@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Construction, Link2, CheckCircle2, XCircle, FileEdit } from 'lucide-react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../lib/useAuth'
 import { updateAudited, insertAudited } from '../lib/erp/db'
@@ -338,7 +339,7 @@ export default function ProductionPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-red-500 font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading production telemetry...</div>
+    return <div className="p-6 text-primary font-semibold flex items-center justify-center min-h-[300px] animate-pulse">Loading production telemetry...</div>
   }
 
   return (
@@ -347,7 +348,7 @@ export default function ProductionPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-200 dark:border-white/5">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-            Manufacturing & Production <span className="text-red-500 font-light">Control</span>
+            Manufacturing & Production <span className="text-primary font-light">Control</span>
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Monitor daily concrete pour casting logs, reinforcement steel fabrications, and QC inspection checkouts</p>
         </div>
@@ -360,12 +361,12 @@ export default function ProductionPage() {
             key={t}
             onClick={() => setSearchParams({ tab: t })}
             className={`flex-1 py-2.5 rounded-xl text-xs uppercase tracking-wider font-extrabold transition-all btn-interactive ${
-              activeTab === t 
-                ? 'bg-gradient-to-br from-red-500 to-red-700 text-white shadow-md shadow-red-500/25' 
+              activeTab === t
+                ? 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-md shadow-primary/25'
                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
-            }`}
+            } inline-flex items-center justify-center gap-1.5`}
           >
-            {t === 'casting' ? '🏗️ Casting Log' : t === 'rebar' ? '⛓️ Reinforcement Tracking' : '🟢 QC Inspections check'}
+            {t === 'casting' ? <><Construction size={13} /> Casting Log</> : t === 'rebar' ? <><Link2 size={13} /> Reinforcement Tracking</> : <><CheckCircle2 size={13} /> QC Inspections check</>}
           </button>
         ))}
       </div>
@@ -484,8 +485,8 @@ export default function ProductionPage() {
                 <input type="text" placeholder="Concrete slump OK..." className="w-full mt-1 px-3 py-1.5 rounded-lg glowing-input text-xs" value={castRemarks} onChange={e=>setCastRemarks(e.target.value)} />
               </label>
 
-              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-                🏗️ Log Casting Pour
+              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+                <Construction size={14} /> Log Casting Pour
               </button>
             </form>
           </div>
@@ -513,7 +514,7 @@ export default function ProductionPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-300">
                   {castLogs.map(c => (
                     <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                      <td className="py-2.5 font-mono font-bold text-red-500">{c.casting_id}</td>
+                      <td className="py-2.5 font-mono font-bold text-primary">{c.casting_id}</td>
                       <td className="py-2.5">{c.cast_date}</td>
                       <td className="py-2.5 font-mono text-neutral-800 dark:text-white font-bold">{c.element_code}</td>
                       <td className="py-2.5 text-slate-500">{c.bed_mould_id}</td>
@@ -588,8 +589,8 @@ export default function ProductionPage() {
                 </label>
               </div>
 
-              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-                ⛓️ Register Steel Cage
+              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+                <Link2 size={14} /> Register Steel Cage
               </button>
             </form>
           </div>
@@ -614,7 +615,7 @@ export default function ProductionPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-300">
                   {rebarLogs.map(r => (
                     <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                      <td className="py-2.5 font-mono font-bold text-red-500">{r.cage_id}</td>
+                      <td className="py-2.5 font-mono font-bold text-primary">{r.cage_id}</td>
                       <td className="py-2.5 font-mono text-neutral-800 dark:text-white font-bold">{r.element_code}</td>
                       <td className="py-2.5 text-right font-semibold">{r.steel_weight_kg} kg</td>
                       <td className="py-2.5 text-slate-500">{r.fabricator}</td>
@@ -653,23 +654,23 @@ export default function ProductionPage() {
                 <span className="text-[9px] uppercase font-black text-slate-400 block mb-1">Pre-Pour Checklist checks</span>
                 
                 <label className="flex items-center gap-2 text-xs font-bold select-none cursor-pointer">
-                  <input type="checkbox" checked={prePour} onChange={e=>setPrePour(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-red-600" />
+                  <input type="checkbox" checked={prePour} onChange={e=>setPrePour(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-primary-dark" />
                   Mould Cleared & Oiled
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold select-none cursor-pointer">
-                  <input type="checkbox" checked={qcRebar} onChange={e=>setQcRebar(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-red-600" />
+                  <input type="checkbox" checked={qcRebar} onChange={e=>setQcRebar(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-primary-dark" />
                   Reinforcement / Cage Secured
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold select-none cursor-pointer">
-                  <input type="checkbox" checked={coverCheck} onChange={e=>setCoverCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-red-600" />
+                  <input type="checkbox" checked={coverCheck} onChange={e=>setCoverCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-primary-dark" />
                   Spacer Concrete Cover Checked
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold select-none cursor-pointer">
-                  <input type="checkbox" checked={embedCheck} onChange={e=>setEmbedCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-red-600" />
+                  <input type="checkbox" checked={embedCheck} onChange={e=>setEmbedCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-primary-dark" />
                   Embedded Plates / Sleeves Checked
                 </label>
                 <label className="flex items-center gap-2 text-xs font-bold select-none cursor-pointer">
-                  <input type="checkbox" checked={dimCheck} onChange={e=>setDimCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-red-600" />
+                  <input type="checkbox" checked={dimCheck} onChange={e=>setDimCheck(e.target.checked)} className="rounded border-slate-300 dark:border-white/10 text-primary-dark" />
                   Dimensions Verification Completed
                 </label>
               </div>
@@ -697,11 +698,11 @@ export default function ProductionPage() {
                     onClick={() => setQcResult('FAILED')}
                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                       qcResult === 'FAILED'
-                        ? 'bg-red-500/20 text-red-500 border border-red-500/30 shadow-md shadow-red-500/10'
+                        ? 'bg-primary/20 text-primary border border-primary/30 shadow-md shadow-primary/10'
                         : 'bg-slate-100 dark:bg-white/5 text-slate-400'
                     }`}
                   >
-                    ❌ REJECTED / FAILED
+                    <span className="inline-flex items-center gap-1.5"><XCircle size={13} /> REJECTED / FAILED</span>
                   </button>
                   <button
                     type="button"
@@ -712,13 +713,13 @@ export default function ProductionPage() {
                         : 'bg-slate-100 dark:bg-white/5 text-slate-400'
                     }`}
                   >
-                    🟢 PASSED / CLEARED
+                    <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={13} /> PASSED / CLEARED</span>
                   </button>
                 </div>
               </label>
 
-              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive">
-                📝 Log QC clearance
+              <button type="submit" disabled={saving} className="w-full bg-gradient-to-br from-primary to-primary-dark text-white font-bold text-xs uppercase py-2.5 rounded-xl shadow-lg mt-2 btn-interactive inline-flex items-center justify-center gap-1.5">
+                <FileEdit size={14} /> Log QC clearance
               </button>
             </form>
           </div>
@@ -747,16 +748,16 @@ export default function ProductionPage() {
                   {qcLogs.map(q => (
                     <tr key={q.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                       <td className="py-2.5 font-mono font-bold text-neutral-800 dark:text-white">{q.element_code}</td>
-                      <td className="py-2.5 text-center">{q.pre_pour_check ? '✅' : '❌'}</td>
-                      <td className="py-2.5 text-center">{q.reinforcement_check ? '✅' : '❌'}</td>
-                      <td className="py-2.5 text-center">{q.cover_check ? '✅' : '❌'}</td>
-                      <td className="py-2.5 text-center">{q.embedded_items_check ? '✅' : '❌'}</td>
-                      <td className="py-2.5 text-center">{q.dimensions_check ? '✅' : '❌'}</td>
+                      <td className="py-2.5 text-center">{q.pre_pour_check ? <CheckCircle2 size={14} className="text-success inline" /> : <XCircle size={14} className="text-primary inline" />}</td>
+                      <td className="py-2.5 text-center">{q.reinforcement_check ? <CheckCircle2 size={14} className="text-success inline" /> : <XCircle size={14} className="text-primary inline" />}</td>
+                      <td className="py-2.5 text-center">{q.cover_check ? <CheckCircle2 size={14} className="text-success inline" /> : <XCircle size={14} className="text-primary inline" />}</td>
+                      <td className="py-2.5 text-center">{q.embedded_items_check ? <CheckCircle2 size={14} className="text-success inline" /> : <XCircle size={14} className="text-primary inline" />}</td>
+                      <td className="py-2.5 text-center">{q.dimensions_check ? <CheckCircle2 size={14} className="text-success inline" /> : <XCircle size={14} className="text-primary inline" />}</td>
                       <td className="py-2.5 font-mono text-slate-500">{q.concrete_test_ref}</td>
                       <td className="py-2.5 text-slate-500 font-semibold">{q.inspector}</td>
                       <td className="py-2.5 text-center">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                          q.qc_result === 'PASSED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                          q.qc_result === 'PASSED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-primary/10 text-primary border border-primary/20'
                         }`}>{q.qc_result}</span>
                       </td>
                     </tr>
