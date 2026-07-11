@@ -29,6 +29,12 @@ const ReportsHubPage = lazy(() => import('./pages/ReportsHubPage'))
 const PermissionsPage = lazy(() => import('./pages/PermissionsPage'))
 const HSEDashboardPage = lazy(() => import('./pages/HSEDashboardPage'))
 const WorkforceDashboardPage = lazy(() => import('./pages/WorkforceDashboardPage'))
+const PrestressingDashboardPage = lazy(() => import('./pages/PrestressingDashboardPage'))
+const BatchingDashboardPage = lazy(() => import('./pages/BatchingDashboardPage'))
+const MaintenanceDashboardPage = lazy(() => import('./pages/MaintenanceDashboardPage'))
+const DocumentControlDashboardPage = lazy(() => import('./pages/DocumentControlDashboardPage'))
+const HandoverDashboardPage = lazy(() => import('./pages/HandoverDashboardPage'))
+const EnvironmentalDashboardPage = lazy(() => import('./pages/EnvironmentalDashboardPage'))
 
 const PageLoader = () => (
   <div className="glass-panel rounded-2xl p-16 text-center text-slate-500 font-semibold animate-pulse">
@@ -105,6 +111,12 @@ export default function AppRoutes(){
                 <Route path="/permissions" element={<ProtectedRoute section="admin"><PermissionsPage /></ProtectedRoute>} />
                 <Route path="/hse" element={<ProtectedRoute section="hse"><HSEDashboardPage /></ProtectedRoute>} />
                 <Route path="/workforce" element={<ProtectedRoute section="workforce"><WorkforceDashboardPage /></ProtectedRoute>} />
+                <Route path="/prestressing" element={<ProtectedRoute section="prestressing"><PrestressingDashboardPage /></ProtectedRoute>} />
+                <Route path="/batching" element={<ProtectedRoute section="production"><BatchingDashboardPage /></ProtectedRoute>} />
+                <Route path="/maintenance-dashboard" element={<ProtectedRoute section="maintenance"><MaintenanceDashboardPage /></ProtectedRoute>} />
+                <Route path="/documents" element={<ProtectedRoute section="documents"><DocumentControlDashboardPage /></ProtectedRoute>} />
+                <Route path="/handover" element={<ProtectedRoute section="handover"><HandoverDashboardPage /></ProtectedRoute>} />
+                <Route path="/environmental" element={<ProtectedRoute section="environmental"><EnvironmentalDashboardPage /></ProtectedRoute>} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Routes>
               </Suspense>

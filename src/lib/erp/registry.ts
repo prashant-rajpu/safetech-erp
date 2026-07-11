@@ -329,6 +329,21 @@ export const MODULES: ModuleDef[] = [
     ]
   },
   {
+    id: 'mould-preparation', title: 'Mould Preparation', subtitle: 'Setup, strike & inspection log', icon: '🧰', section: 'production', table: 'mould_preparation_log', keyField: 'mould_name', statusField: 'status',
+    fields: [
+      { key: 'mould_name', label: 'Mould', required: true },
+      { key: 'bed', label: 'Bed' },
+      { key: 'activity', label: 'Activity', type: 'select', options: ['Setup', 'Strike', 'Inspection', 'Cleaning', 'Repair'] },
+      { key: 'scheduled_date', label: 'Scheduled Date', type: 'date' },
+      { key: 'completed_date', label: 'Completed Date', type: 'date' },
+      { key: 'condition', label: 'Condition', type: 'select', options: ['Good', 'Minor Damage', 'Major Damage', 'Under Repair'] },
+      { key: 'reuse_count', label: 'Reuse Count', type: 'number' },
+      { key: 'technician', label: 'Technician' },
+      { key: 'status', label: 'Status', type: 'select', options: ['Scheduled', 'Completed', 'On Hold'] },
+      { key: 'remarks', label: 'Remarks' }
+    ]
+  },
+  {
     id: 'finishing', title: 'Finishing', subtitle: 'Patching, grinding & surface works', icon: '🪚', section: 'production', table: 'finishing_works', keyField: 'element_code', statusField: 'status',
     fields: [
       { key: 'element_code', label: 'Element Code', required: true },
@@ -1201,7 +1216,9 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { name: 'Casting', path: '/production?tab=casting' },
       { name: 'Reinforcement', path: m('reinforcement') },
+      { name: 'Batching Dashboard', path: '/batching' },
       { name: 'Concrete', path: m('concrete') },
+      { name: 'Mould Preparation', path: m('mould-preparation') },
       { name: 'Finishing', path: m('finishing') },
       { name: 'Repairs', path: m('repairs') },
       { name: 'Concrete Grades', path: m('concrete-grades') },
@@ -1248,6 +1265,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'prestressing', name: 'Prestressing', icon: '➰',
     items: [
+      { name: 'Prestressing Dashboard', path: '/prestressing' },
       { name: 'Strand Inventory', path: m('pt-strands') },
       { name: 'Tensioning', path: m('pt-tensioning') },
       { name: 'Strand Release', path: m('pt-release') },
@@ -1304,7 +1322,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'maintenance', name: 'Maintenance', icon: '🔧',
     items: [
-      { name: 'Maintenance Dashboard', path: '/maintenance' },
+      { name: 'Maintenance Dashboard', path: '/maintenance-dashboard' },
+      { name: 'Maintenance Log', path: '/maintenance' },
       { name: 'Equipment Register', path: m('equipment-register') },
       { name: 'Preventive Maintenance', path: m('preventive-maintenance') },
       { name: 'Calibration Records', path: m('calibration-records') },
@@ -1314,6 +1333,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'documents', name: 'Document Control', icon: '🗃️',
     items: [
+      { name: 'Document Control Dashboard', path: '/documents' },
       { name: 'RFI Register', path: m('rfi-register') },
       { name: 'Method Statements', path: m('method-statements') },
       { name: 'Submittals', path: m('submittals') }
@@ -1322,6 +1342,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'handover', name: 'Customer Handover', icon: '🤝',
     items: [
+      { name: 'Handover Dashboard', path: '/handover' },
       { name: 'Handover Packages', path: m('handover-packages') },
       { name: 'DLP Tracker', path: m('dlp-records') },
       { name: 'Handover Defects', path: m('handover-defects') },
@@ -1331,6 +1352,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     key: 'environmental', name: 'Environmental', icon: '🌍',
     items: [
+      { name: 'Environmental Dashboard', path: '/environmental' },
       { name: 'Carbon Tracking', path: m('carbon-records') },
       { name: 'Waste Tracking', path: m('waste-records') },
       { name: 'Water Tracking', path: m('water-records') },

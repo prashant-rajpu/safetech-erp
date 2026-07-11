@@ -1,5 +1,5 @@
 SAFETECH PRECAST ERP — PROGRESS LOG
-Last updated: 2026-07-11 (v2 Phases 1-4 complete: schema, Cast Bed Plan, QR traceability, Logistics/Stack Planning + status-vocab bug fixes; all master data populated)
+Last updated: 2026-07-11 (v2 Phases 1-5 complete: schema, Cast Bed Plan, QR traceability, Logistics/Stack Planning, 6 new KPI dashboards + Formwork; all master data populated)
 
 =====================================================================
 STACK / ENVIRONMENT
@@ -707,6 +707,78 @@ DONE — VERIFIED COMPLETE
       already correctly cleaned up; audit_logs is an append-only trail by
       design, so those entries are expected permanent history, not a bug.
 
+14. V2 ROADMAP — PHASE 5: Nine Modules (2026-07-11). Exploration corrected
+    the "nine new modules" framing, same pattern as Phase 4: 6 of the 7
+    remaining topics (Pre-Stress/PT, Batching, Maintenance, Document
+    Control, Handover/DLP, Environmental) already had FULL SCHEMA from
+    v2 Phase 1's 22-table data spine + the legacy concrete_batches table
+    — registered as generic CRUD with real RLS, but zero custom
+    dashboards. Only FORMWORK was a genuine schema gap, same category as
+    Phase 4's Stack Planning: `moulds` is a 3-column master list
+    (mould_name/type/product_width_m), nothing tracked the actual
+    mould-prep workflow. User approved building all 7 in one pass.
+      a) FORMWORK — new table `mould_preparation_log` (mould_name, bed,
+         activity Setup/Strike/Inspection/Cleaning/Repair, scheduled/
+         completed dates, condition, reuse_count, technician, remarks,
+         status Scheduled/Completed/On Hold + audit cols),
+         db/phase5_formwork.sql, RLS reusing 'production' section.
+         Registered as module `mould-preparation` (generic CRUD, same
+         treatment as Stack Planning — no custom dashboard). Nav entry
+         added under Production, next to Concrete.
+      b) SIX NEW KPI DASHBOARDS, all built to the exact
+         HSEDashboardPage.tsx/WorkforceDashboardPage.tsx template
+         (KPI cards + donut chart + MiniTables + AlertsPanel where a
+         genuine due-date field exists in the schema):
+         - PrestressingDashboardPage.tsx (/prestressing) — pt_strands/
+           pt_tensioning/pt_release/pt_long_line_plans. Alert: pending
+           releases (status='Pending', a real wait-state field).
+         - BatchingDashboardPage.tsx (/batching) — concrete_batches only.
+           NO AlertsPanel — deliberately not fabricating a threshold
+           since the table has no due-date concept.
+         - MaintenanceDashboardPage.tsx (/maintenance-dashboard) —
+           equipment_register/preventive_maintenance/calibration_records
+           (the 3 new spine tables the legacy MaintenancePage.tsx never
+           touched — that page still owns maintenance_logs only,
+           untouched). Alerts: overdue PM, calibrations due ≤30 days.
+         - DocumentControlDashboardPage.tsx (/documents) — rfi_register/
+           method_statements/submittals. Alert: RFIs open >14 days
+           (staleness from raised_date, a genuine signal).
+         - HandoverDashboardPage.tsx (/handover) — handover_packages/
+           dlp_records/handover_defects/customer_acceptance. Alerts:
+           DLPs ending ≤30 days, overdue defects.
+         - EnvironmentalDashboardPage.tsx (/environmental) —
+           carbon_records/waste_records/water_records/
+           environmental_reports. NO AlertsPanel — same reasoning as
+           Batching, no due-date field on the tracking tables.
+      c) FIXED A NAV COLLISION found while planning: registry.ts already
+         labeled the LEGACY MaintenancePage.tsx (a log/calendar form for
+         maintenance_logs only) as "Maintenance Dashboard" even though
+         it isn't a KPI dashboard and never touched the 3 new spine
+         tables. Renamed that entry to "Maintenance Log" (path /maintenance
+         unchanged, MaintenancePage.tsx itself untouched) and added the
+         real "Maintenance Dashboard" entry pointing at the new
+         /maintenance-dashboard page — avoids two identically-labeled
+         nav items pointing at different pages.
+      All 6 new dashboards' nav entries added as the first item in their
+      respective (already-populated) nav groups (prestressing/documents/
+      handover/environmental groups; Batching under Production).
+      Verified: tsc --noEmit + vite build clean; migration applied with
+      4 RLS policies confirmed; 24/24 Playwright checks passed against
+      the live LAN dev server (all 6 dashboards load with correct
+      titles, zero console/page errors, glass-panel content renders;
+      /m/mould-preparation loads; legacy /maintenance still works
+      alongside new /maintenance-dashboard; HSE/Workforce/main Dashboard
+      regression-checked, unaffected). Screenshot-confirmed the
+      Prestressing dashboard's empty state (all 4 spine sections'
+      tables are currently empty — no data populated yet, same as when
+      Phase 1 first created them) renders as an intentional "No records
+      yet" state, not a broken page.
+    NOT DONE (explicitly out of scope, no data populated): none of the
+    6 new sections' tables have real data yet — dashboards are built and
+    verified against empty tables only. Populating Prestressing/
+    Batching/Maintenance/Documents/Handover/Environmental with real or
+    placeholder records was not requested this phase.
+
 =====================================================================
 V2 ROADMAP — REMAINING PHASES (context for continuation)
 =====================================================================
@@ -777,33 +849,26 @@ see item 8 above for the full derivation record.
 =====================================================================
 NEXT STEPS (in order)
 =====================================================================
-1. Phases 1-4 are ALL DONE. All master-data blockers resolved (items 11+12):
-   Cast Bed Plan has real beds/moulds, new castings can reference
-   P26010/P26011, stockyard_inventory has real linked rows so
-   QrScannerPage.tsx resolves a real scan end-to-end. Phase 4 (item 13)
-   added Stack Planning as generic CRUD and fixed 2 confirmed bugs: the
-   QR Scanner's free-text status field (now a constrained select) and
-   Dashboard.tsx's element funnel/project progress silently showing 0%
-   past "Cast" (now correctly reads stockyard_inventory.status). The
-   remaining 2 casting_schedule rows are still future-dated/unbedded on
-   purpose — they'll flow into stockyard_inventory naturally as real
-   production proceeds through Cast Bed Plan.
+1. Phases 1-5 are ALL DONE. All master-data blockers resolved (items 11+12).
+   Phase 4 (item 13) added Stack Planning + fixed 2 confirmed status-vocab
+   bugs. Phase 5 (item 14) added Formwork (mould_preparation_log, generic
+   CRUD) + 6 new KPI dashboards (Prestressing/Batching/Maintenance/
+   Document Control/Handover/Environmental), all following the HSE/
+   Workforce template, all verified against the live dev server. NONE of
+   the 6 new dashboards' underlying tables have real data populated yet —
+   they're built, wired, and tested against empty tables only.
 2. Per CLAUDE.md's "wait for approval before starting the next phase"
-   rule, get explicit sign-off on what's next: Phase 5's remaining
-   new-module UI work (the 22 Phase-1 tables are generic CRUD only right
-   now — richer dashboards for Prestressing/Erection/Maintenance/etc.
-   are still undone, same pattern as HSEDashboardPage.tsx/
-   WorkforceDashboardPage.tsx) and/or Phase 6 (3D viz) and/or the
+   rule, get explicit sign-off on what's next: populating real/placeholder
+   data into the 6 new Phase-5 sections (same category of gap as the
+   Phase 4 master-data work) and/or Phase 6 (3D viz) and/or the
    photo-logging follow-up deferred from Phase 3.
 3. Resolve the design-system conflict flagged above (red/black glass
    vs. concrete-grey/blueprint-blue) BEFORE Phase 7 starts — ideally
    ask the user directly rather than guessing. Not urgent yet (Phase 7
    is last in the dependency chain), but don't let it go unresolved.
-4. Remaining phases in order: Phase 5 (finish the 6 new sections' custom
-   UI + the 9 HSE/Workforce/Prestressing/etc. modules, depends on 1),
-   Phase 6 (3D viz, depends on 2+3+4 — elements.shape_type is ready for
-   it), Phase 7 (UI pass — pending the conflict resolution above),
-   Phase 8 (reporting/gap-check).
+4. Remaining phases in order: Phase 6 (3D viz, depends on 2+3+4 —
+   elements.shape_type is ready for it), Phase 7 (UI pass — pending the
+   conflict resolution above), Phase 8 (reporting/gap-check).
 
 =====================================================================
 KNOWN TROUBLESHOOTING NOTES (carry forward)
